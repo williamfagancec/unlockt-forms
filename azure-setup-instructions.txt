@@ -1,0 +1,178 @@
+===================================
+AZURE DEPLOYMENT SETUP INSTRUCTIONS
+===================================
+
+This application is ready to deploy to Azure App Service with MS Entra ID SSO authentication.
+
+STEP 1: Register Application in Microsoft Entra ID
+---------------------------------------------------
+1. Go to Azure Portal (portal.azure.com)
+2. Navigate to Microsoft Entra ID → App registrations → New registration
+3. Application details:
+   - Name: Unlockt Form Application
+   - Supported account types: Select based on your needs (Single tenant/Multi-tenant)
+   - Redirect URI: Web → https://your-app-name.azurewebsites.net/auth/redirect
+4. Click "Register"
+5. Save the following values:
+   - Application (client) ID → This is your AZURE_CLIENT_ID
+   - Directory (tenant) ID → This is your AZURE_TENANT_ID
+
+STEP 2: Create Client Secret
+-----------------------------
+1. In your app registration, go to "Certificates & secrets"
+2. Click "New client secret"
+3. Add description: "Unlockt Form Production"
+4. Set expiration (recommend 24 months)
+5. Click "Add"
+6. IMPORTANT: Copy the secret VALUE immediately (shown only once)
+   → This is your AZURE_CLIENT_SECRET
+
+STEP 3: Configure API Permissions
+----------------------------------
+1. In your app registration, go to "API permissions"
+2. Click "Add a permission"
+3. Select "Microsoft Graph" → "Delegated permissions"
+4. Add these permissions:
+   - openid
+   - profile
+   - email
+   - User.Read
+   - offline_access
+5. Click "Add permissions"
+6. Click "Grant admin consent" (if you have admin rights)
+
+STEP 4: Deploy to Azure App Service
+------------------------------------
+Option A: Using Azure CLI
+
+1. Install Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+2. Login: az login
+3. Create resource group:
+   az group create --name unlockt-rg --location eastus
+
+4. Create App Service plan:
+   az appservice plan create --name unlockt-plan --resource-group unlockt-rg --sku B1 --is-linux
+
+5. Create web app:
+   az webapp create --resource-group unlockt-rg --plan unlockt-plan --name your-app-name --runtime "NODE:20-lts"
+
+6. Configure environment variables:
+   az webapp config appsettings set --resource-group unlockt-rg --name your-app-name --settings \
+     AZURE_CLIENT_ID="your_client_id" \
+     AZURE_TENANT_ID="your_tenant_id" \
+     AZURE_CLIENT_SECRET="your_client_secret" \
+     REDIRECT_URI="https://your-app-name.azurewebsites.net/auth/redirect" \
+     POST_LOGOUT_REDIRECT_URI="https://your-app-name.azurewebsites.net" \
+     SESSION_SECRET="your_random_secret_here" \
+     NODE_ENV="production"
+
+7. Deploy code:
+   az webapp up --name your-app-name --resource-group unlockt-rg
+
+Option B: Using Azure Portal Deployment Center
+
+1. Go to Azure Portal → Create resource → Web App
+2. Configure:
+   - Runtime: Node 20 LTS
+   - Region: Choose closest to your users
+   - Plan: B1 or higher recommended
+3. After creation, go to Configuration → Application settings
+4. Add all environment variables from Step 6 above
+5. Go to Deployment Center → GitHub/Local Git
+6. Follow prompts to deploy your code
+
+STEP 5: Set up PostgreSQL Database
+-----------------------------------
+1. In Azure Portal, create "Azure Database for PostgreSQL"
+2. Choose "Flexible Server"
+3. Configure:
+   - Server name: unlockt-db
+   - Region: Same as App Service
+   - PostgreSQL version: 15 or later
+   - Compute + storage: Based on your needs (Burstable B1ms for development)
+4. Networking: Allow access from Azure services
+5. After creation, get connection string:
+   - Format: postgresql://username:password@servername.postgres.database.azure.com/dbname?sslmode=require
+6. Add to App Service environment variables:
+   DATABASE_URL="your_connection_string"
+
+7. Run schema migration:
+   - Connect to your deployed app
+   - SSH into the app or use Azure Cloud Shell
+   - Run: npm run db:push
+
+STEP 6: Security Best Practices (Production)
+---------------------------------------------
+1. Store secrets in Azure Key Vault:
+   - Create Key Vault
+   - Add secrets: AZURE_CLIENT_SECRET, SESSION_SECRET, DATABASE_URL
+   - Reference in App Service using: @Microsoft.KeyVault(SecretUri=...)
+
+2. Enable Managed Identity:
+   az webapp identity assign --name your-app-name --resource-group unlockt-rg
+
+3. Configure SSL/TLS:
+   - Azure App Service provides free SSL certificates
+   - Enable HTTPS only in App Service settings
+
+4. Set up monitoring:
+   - Enable Application Insights
+   - Monitor form submissions and errors
+
+5. Configure CORS (if needed):
+   - Set allowed origins in App Service CORS settings
+
+STEP 7: Update Redirect URIs
+-----------------------------
+1. Go back to your App Registration in Entra ID
+2. Update Redirect URIs to include:
+   - https://your-app-name.azurewebsites.net/auth/redirect
+   - http://localhost:5000/auth/redirect (for local development)
+
+STEP 8: Test the Application
+-----------------------------
+1. Visit: https://your-app-name.azurewebsites.net
+2. Submit a test form (public access)
+3. Visit: https://your-app-name.azurewebsites.net/admin
+4. Click "Sign In with Microsoft"
+5. Authenticate with your Entra ID account
+6. Verify you can see submitted forms
+7. Test PDF export
+8. Test Excel export
+
+ENVIRONMENT VARIABLES REFERENCE
+--------------------------------
+Required for production:
+- AZURE_CLIENT_ID: From App Registration
+- AZURE_TENANT_ID: From App Registration
+- AZURE_CLIENT_SECRET: From Certificates & secrets
+- DATABASE_URL: PostgreSQL connection string
+- REDIRECT_URI: https://your-app-name.azurewebsites.net/auth/redirect
+- POST_LOGOUT_REDIRECT_URI: https://your-app-name.azurewebsites.net
+- SESSION_SECRET: Random string (use: openssl rand -hex 32)
+- NODE_ENV: production
+
+Optional:
+- PORT: 5000 (default, Azure manages this)
+
+MICROSOFT FABRIC INTEGRATION (Future)
+--------------------------------------
+For data lake export to MS Fabric:
+1. Set up Azure Data Lake Storage Gen2
+2. Create Fabric workspace
+3. Configure OneLake integration
+4. Add export endpoint to application
+5. Use Azure Functions for scheduled exports
+
+TROUBLESHOOTING
+---------------
+- Auth fails: Check redirect URIs match exactly
+- Database errors: Verify connection string and firewall rules
+- App won't start: Check Application Insights logs
+- Form submission fails: Check CORS settings
+
+SUPPORT
+-------
+- Azure documentation: https://docs.microsoft.com/azure
+- MS Entra ID docs: https://docs.microsoft.com/entra
+- PostgreSQL on Azure: https://docs.microsoft.com/azure/postgresql
