@@ -100,6 +100,22 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+app.get('/admin/letter-of-appointment', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'letter-of-appointment.html'));
+});
+
+app.get('/admin/letter-of-appointment/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'letter-of-appointment-detail.html'));
+});
+
+app.get('/admin/quote-slip', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip.html'));
+});
+
+app.get('/admin/quote-slip/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip-detail.html'));
+});
+
 app.get('/api/insurers', async (req, res) => {
   try {
     const insurersList = await db.select().from(insurers).where(eq(insurers.isActive, true)).orderBy(insurers.displayOrder, insurers.name);
