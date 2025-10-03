@@ -5,7 +5,7 @@ const msal = require('@azure/msal-node');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const { db } = require('./server/db');
-const { formSubmissions, users, quoteSlipSubmissions, insurers } = require('./shared/schema');
+const { formSubmissions, users, quoteSlipSubmissions, insurers, roofTypes, externalWallTypes, floorTypes, buildingTypes } = require('./shared/schema');
 const { eq, desc } = require('drizzle-orm');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
@@ -106,6 +106,46 @@ app.get('/api/insurers', async (req, res) => {
   } catch (error) {
     console.error('Error fetching insurers:', error);
     res.status(500).json({ error: 'Failed to fetch insurers' });
+  }
+});
+
+app.get('/api/roof-types', async (req, res) => {
+  try {
+    const types = await db.select().from(roofTypes).where(eq(roofTypes.isActive, true)).orderBy(roofTypes.displayOrder, roofTypes.name);
+    res.json(types);
+  } catch (error) {
+    console.error('Error fetching roof types:', error);
+    res.status(500).json({ error: 'Failed to fetch roof types' });
+  }
+});
+
+app.get('/api/external-wall-types', async (req, res) => {
+  try {
+    const types = await db.select().from(externalWallTypes).where(eq(externalWallTypes.isActive, true)).orderBy(externalWallTypes.displayOrder, externalWallTypes.name);
+    res.json(types);
+  } catch (error) {
+    console.error('Error fetching external wall types:', error);
+    res.status(500).json({ error: 'Failed to fetch external wall types' });
+  }
+});
+
+app.get('/api/floor-types', async (req, res) => {
+  try {
+    const types = await db.select().from(floorTypes).where(eq(floorTypes.isActive, true)).orderBy(floorTypes.displayOrder, floorTypes.name);
+    res.json(types);
+  } catch (error) {
+    console.error('Error fetching floor types:', error);
+    res.status(500).json({ error: 'Failed to fetch floor types' });
+  }
+});
+
+app.get('/api/building-types', async (req, res) => {
+  try {
+    const types = await db.select().from(buildingTypes).where(eq(buildingTypes.isActive, true)).orderBy(buildingTypes.displayOrder, buildingTypes.name);
+    res.json(types);
+  } catch (error) {
+    console.error('Error fetching building types:', error);
+    res.status(500).json({ error: 'Failed to fetch building types' });
   }
 });
 
