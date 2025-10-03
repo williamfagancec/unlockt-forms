@@ -318,7 +318,22 @@ app.post('/api/submit-quote-slip', upload.fields([
       buildingType: req.body.buildingType || null,
       yearBuilt: req.body.yearBuilt || null,
       numberOfLots: req.body.numberOfLots || null,
-      numberOfFloors: req.body.numberOfFloors || null
+      numberOfFloors: req.body.numberOfFloors || null,
+      facilityPoolsSpas: req.body.facilityPoolsSpas === 'on',
+      facilityJetty: req.body.facilityJetty === 'on',
+      facilityFireSafetySystems: req.body.facilityFireSafetySystems === 'on',
+      facilityPlayground: req.body.facilityPlayground === 'on',
+      facilityLake: req.body.facilityLake === 'on',
+      facilitySprinklers: req.body.facilitySprinklers === 'on',
+      facilityGym: req.body.facilityGym === 'on',
+      facilityWaterFeature: req.body.facilityWaterFeature === 'on',
+      facilityEvCharges: req.body.facilityEvCharges === 'on',
+      facilityTennisCourt: req.body.facilityTennisCourt === 'on',
+      facilityCarStacker: req.body.facilityCarStacker === 'on',
+      requiredCoverFlood: req.body.requiredCoverFlood === 'on',
+      discloseInsuranceDeclined: req.body.discloseInsuranceDeclined === 'on',
+      discloseAsbestosPresent: req.body.discloseAsbestosPresent === 'on',
+      discloseHeritageListed: req.body.discloseHeritageListed === 'on'
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();
