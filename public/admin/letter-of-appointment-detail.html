@@ -284,6 +284,22 @@
           <span class="field-label">5. Confirm appointment and arrangement in writing</span>
           <div id="question5"></div>
         </div>
+
+        <h2 class="section-title" style="margin-top: 30px;">Attachments & Signature</h2>
+        <div class="field-grid">
+          <div class="field-group">
+            <span class="field-label">Common Seal</span>
+            <div class="field-value" id="commonSealFile"></div>
+          </div>
+          <div class="field-group">
+            <span class="field-label">Letter Head</span>
+            <div class="field-value" id="letterHeadFile"></div>
+          </div>
+        </div>
+        <div class="field-group" style="margin-top: 20px;">
+          <span class="field-label">Signature</span>
+          <div id="signatureFile"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -354,6 +370,19 @@
       document.getElementById('question3').innerHTML = getCheckboxHTML(submission.questionCheckbox3);
       document.getElementById('question4').innerHTML = getCheckboxHTML(submission.questionCheckbox4);
       document.getElementById('question5').innerHTML = getCheckboxHTML(submission.questionCheckbox5);
+
+      document.getElementById('commonSealFile').innerHTML = getFileHTML(submission.commonSealFile, 'Common Seal');
+      document.getElementById('letterHeadFile').innerHTML = getFileHTML(submission.letterHeadFile, 'Letter Head');
+      
+      if (submission.signatureFile) {
+        document.getElementById('signatureFile').innerHTML = `
+          <div style="margin-top: 10px;">
+            <img src="/uploads/${submission.signatureFile}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
+          </div>
+        `;
+      } else {
+        document.getElementById('signatureFile').innerHTML = '<span style="color: #999;">No signature uploaded</span>';
+      }
     }
 
     function getCheckboxHTML(value) {
@@ -361,6 +390,14 @@
         return '<span class="checkbox-value checkbox-yes">✓ Yes</span>';
       } else {
         return '<span class="checkbox-value checkbox-no">✗ No</span>';
+      }
+    }
+
+    function getFileHTML(filename, label) {
+      if (filename) {
+        return `<a href="/uploads/${filename}" target="_blank" style="color: #5fa88a; text-decoration: none; font-weight: 500;">📎 View ${label}</a>`;
+      } else {
+        return '<span style="color: #999;">Not uploaded</span>';
       }
     }
 

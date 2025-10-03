@@ -532,7 +532,16 @@
       document.getElementById('declarationFullName').textContent = s.declarationFullName || 'N/A';
       document.getElementById('declarationPosition').textContent = s.declarationPosition || 'N/A';
       document.getElementById('confirmDisclosures').textContent = s.confirmDisclosures || 'N/A';
-      document.getElementById('signatureFile').innerHTML = getFileHTML(s.signatureFile);
+      
+      if (s.signatureFile) {
+        document.getElementById('signatureFile').innerHTML = `
+          <div style="margin-top: 10px;">
+            <img src="/uploads/${s.signatureFile}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
+          </div>
+        `;
+      } else {
+        document.getElementById('signatureFile').innerHTML = '<span style="color: #999;">No signature uploaded</span>';
+      }
     }
 
     function displayFacilities(s) {

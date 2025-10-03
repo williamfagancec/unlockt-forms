@@ -38,6 +38,7 @@ const upload = multer({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
