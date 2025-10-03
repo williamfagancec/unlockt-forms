@@ -96,26 +96,6 @@ app.get('/quote-slip', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'quote-slip.html'));
 });
 
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-app.get('/admin/letter-of-appointment', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'letter-of-appointment.html'));
-});
-
-app.get('/admin/letter-of-appointment/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'letter-of-appointment-detail.html'));
-});
-
-app.get('/admin/quote-slip', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip.html'));
-});
-
-app.get('/admin/quote-slip/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip-detail.html'));
-});
-
 app.get('/api/insurers', async (req, res) => {
   try {
     const insurersList = await db.select().from(insurers).where(eq(insurers.isActive, true)).orderBy(insurers.displayOrder, insurers.name);
@@ -180,6 +160,41 @@ const adminAuthMiddleware = async (req, res, next) => {
   req.adminUser = user;
   next();
 };
+
+const adminPageMiddleware = async (req, res, next) => {
+  if (!req.session.adminUser) {
+    return res.redirect('/admin-login.html');
+  }
+  
+  const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
+  if (!user || !user.isActive) {
+    req.session.destroy();
+    return res.redirect('/admin-login.html');
+  }
+  
+  req.adminUser = user;
+  next();
+};
+
+app.get('/admin', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/admin/letter-of-appointment', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'letter-of-appointment.html'));
+});
+
+app.get('/admin/letter-of-appointment/:id', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'letter-of-appointment-detail.html'));
+});
+
+app.get('/admin/quote-slip', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip.html'));
+});
+
+app.get('/admin/quote-slip/:id', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip-detail.html'));
+});
 
 app.post('/api/admin/login', [
   body('username').trim().notEmpty().withMessage('Username is required'),
