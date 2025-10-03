@@ -311,7 +311,14 @@ app.post('/api/submit-quote-slip', upload.fields([
       renewalDate: req.body.renewalDate,
       currentInsurer: req.body.currentInsurer || null,
       currentBuildingSumInsured: req.body.currentBuildingSumInsured || null,
-      requestedSumInsured: req.body.requestedSumInsured || null
+      requestedSumInsured: req.body.requestedSumInsured || null,
+      roofType: req.body.roofType || null,
+      externalWallType: req.body.externalWallType || null,
+      floorType: req.body.floorType || null,
+      buildingType: req.body.buildingType || null,
+      yearBuilt: req.body.yearBuilt || null,
+      numberOfLots: req.body.numberOfLots || null,
+      numberOfFloors: req.body.numberOfFloors || null
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();
