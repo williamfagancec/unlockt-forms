@@ -584,7 +584,7 @@ app.get('/api/admin/quote-slip/stats', adminAuthMiddleware, async (req, res) => 
   }
 });
 
-app.get('/api/submissions', authMiddleware, async (req, res) => {
+app.get('/api/submissions', adminAuthMiddleware, async (req, res) => {
   try {
     const submissions = await db.select().from(formSubmissions).orderBy(desc(formSubmissions.submittedAt));
     res.json(submissions);
@@ -594,7 +594,7 @@ app.get('/api/submissions', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/submissions/:id', authMiddleware, async (req, res) => {
+app.get('/api/submissions/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const [submission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, parseInt(req.params.id)));
     
@@ -634,7 +634,7 @@ app.get('/api/quote-slip-submissions/:id', adminAuthMiddleware, async (req, res)
   }
 });
 
-app.get('/api/export/pdf/:id', authMiddleware, async (req, res) => {
+app.get('/api/export/pdf/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const [submission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, parseInt(req.params.id)));
     

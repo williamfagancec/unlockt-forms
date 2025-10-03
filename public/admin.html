@@ -322,7 +322,7 @@
             </div>
             <div class="form-card-actions">
               <a href="/admin/letter-of-appointment" class="btn-primary">View Submissions</a>
-              <a href="/admin/letter-of-appointment/export" class="btn-secondary" onclick="exportLOA(event)">Export</a>
+              <a href="/letter-of-appointment" class="btn-secondary">View Form</a>
             </div>
           </div>
         </div>
@@ -349,7 +349,7 @@
             </div>
             <div class="form-card-actions">
               <a href="/admin/quote-slip" class="btn-primary">View Submissions</a>
-              <a href="/admin/quote-slip/export" class="btn-secondary" onclick="exportQS(event)">Export</a>
+              <a href="/quote-slip" class="btn-secondary">View Form</a>
             </div>
           </div>
         </div>
@@ -417,26 +417,6 @@
       } catch (error) {
         console.error('Logout error:', error);
         window.location.href = '/admin-login.html';
-      }
-    }
-
-    async function exportLOA(e) {
-      e.preventDefault();
-      try {
-        window.location.href = '/api/export/letter-of-appointment';
-      } catch (error) {
-        console.error('Export error:', error);
-        alert('Failed to export data');
-      }
-    }
-
-    async function exportQS(e) {
-      e.preventDefault();
-      try {
-        window.location.href = '/api/export/quote-slip';
-      } catch (error) {
-        console.error('Export error:', error);
-        alert('Failed to export data');
       }
     }
 
