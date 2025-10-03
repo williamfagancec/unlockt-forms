@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unlockt Letter of Appointment</title>
+  <title>Unlockt Forms</title>
   <style>
     * {
       margin: 0;
@@ -15,12 +15,15 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: linear-gradient(135deg, #a8d5ba 0%, #c8e6d5 100%);
       min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
     }
 
     .container {
-      max-width: 800px;
-      margin: 0 auto;
+      max-width: 600px;
+      width: 100%;
     }
 
     .logo-container {
@@ -34,10 +37,11 @@
 
     .logo {
       max-width: 450px;
+      width: 100%;
       height: auto;
     }
 
-    .form-container {
+    .forms-container {
       background: white;
       padding: 40px;
       border-radius: 8px;
@@ -45,465 +49,55 @@
     }
 
     h1 {
-      font-size: 18px;
+      font-size: 24px;
       font-weight: 600;
       color: #333;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .issuer-info {
-      font-size: 11px;
-      color: #666;
-      text-align: center;
       margin-bottom: 30px;
-      line-height: 1.6;
+      text-align: center;
     }
 
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .required {
-      color: #d32f2f;
-    }
-
-    input[type="text"],
-    input[type="date"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus,
-    input[type="date"]:focus {
-      outline: none;
-      border-color: #4CAF50;
-    }
-
-    .helper-text {
-      font-size: 11px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .address-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-top: 10px;
-    }
-
-    .address-grid .full-width {
-      grid-column: 1 / -1;
-    }
-
-    .checkbox-group {
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 4px;
-      margin: 20px 0;
-    }
-
-    .checkbox-group h3 {
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .checkbox-item {
-      margin-bottom: 12px;
+    .form-links {
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    .checkbox-item input[type="checkbox"] {
-      margin-right: 10px;
-      margin-top: 3px;
-      flex-shrink: 0;
-    }
-
-    .checkbox-item label {
-      margin: 0;
-      font-weight: 400;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #555;
-    }
-
-    .confirmation-box {
-      background: white;
-      padding: 15px;
-      margin: 20px 0;
-    }
-
-    .confirmation-box h3 {
-      font-size: 13px;
-      font-weight: 500;
-      color: #666;
-      margin-bottom: 15px;
-    }
-
-    .confirmation-box .checkbox-item label {
-      font-weight: 400;
-      color: #333;
-    }
-
-    .submit-divider {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 30px 0 20px 0;
-    }
-
-    button[type="submit"] {
-      width: auto;
-      min-width: 300px;
-      padding: 16px 40px;
+    .form-link {
+      display: block;
+      padding: 20px;
       background: linear-gradient(135deg, #5a9f8f 0%, #3d8072 100%);
       color: white;
-      border: none;
+      text-decoration: none;
       border-radius: 8px;
-      font-size: 18px;
+      text-align: center;
+      font-size: 16px;
       font-weight: 500;
-      cursor: pointer;
       transition: all 0.3s;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: block;
-      margin: 0 auto;
     }
 
-    button[type="submit"]:hover {
+    .form-link:hover {
       background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
     }
 
-    button[type="submit"]:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .file-upload-container {
-      margin-bottom: 20px;
-    }
-
-    .file-upload-box {
-      border: 2px dashed #ccc;
-      border-radius: 4px;
-      padding: 40px 20px;
-      text-align: center;
-      background: #fafafa;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .file-upload-box:hover {
-      border-color: #999;
-      background: #f5f5f5;
-    }
-
-    .file-upload-box.dragover {
-      border-color: #4CAF50;
-      background: #e8f5e9;
-    }
-
-    .upload-icon {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 15px;
-      background: #8b95a5;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-    }
-
-    .file-upload-box h4 {
-      font-size: 14px;
-      font-weight: 500;
-      color: #666;
-      margin-bottom: 5px;
-    }
-
-    .file-upload-box p {
-      font-size: 12px;
-      color: #999;
-      margin: 0;
-    }
-
-    .file-upload-box input[type="file"] {
-      display: none;
-    }
-
-    .file-preview {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      background: #f0f0f0;
-      border-radius: 4px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .file-preview.active {
-      display: flex;
-    }
-
-    .file-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .file-icon {
-      width: 32px;
-      height: 32px;
-      background: #4CAF50;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .file-details {
-      text-align: left;
-    }
-
-    .file-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 2px;
-    }
-
-    .file-size {
-      font-size: 11px;
-      color: #999;
-    }
-
-    .delete-file-btn {
-      background: #f44336;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .delete-file-btn:hover {
-      background: #d32f2f;
-    }
-
-    .signature-container {
-      margin-bottom: 20px;
-    }
-
-    .signature-wrapper {
-      border: 2px solid #ddd;
-      border-radius: 4px;
-      background: #fafafa;
-      padding: 15px;
-      position: relative;
-    }
-
-    .signature-canvas {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: white;
-      display: block;
-      cursor: crosshair;
-      width: 100%;
-      touch-action: none;
-    }
-
-    .signature-placeholder {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #999;
-      font-size: 14px;
-      pointer-events: none;
-      font-style: italic;
-    }
-
-    .signature-placeholder.hidden {
-      display: none;
-    }
-
-    .signature-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .signature-controls button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .clear-signature-btn {
-      background: #ff9800;
-      color: white;
-    }
-
-    .clear-signature-btn:hover {
-      background: #f57c00;
-    }
-
-    .submit-signature-btn {
-      background: #4CAF50;
-      color: white;
-    }
-
-    .submit-signature-btn:hover {
-      background: #45a049;
-    }
-
-    .signature-preview-container {
-      display: none;
-      margin-top: 15px;
-      padding: 15px;
-      background: #f5f5f5;
-      border-radius: 4px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .signature-preview-container.active {
-      display: flex;
-    }
-
-    .signature-preview-img {
-      max-width: 400px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: white;
-    }
-
-    .delete-signature-btn {
-      background: #f44336;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .delete-signature-btn:hover {
-      background: #d32f2f;
-    }
-
-    .signature-drawing-area {
-      display: block;
-    }
-
-    .signature-drawing-area.hidden {
-      display: none;
-    }
-
-    .signature-error {
-      display: none;
-      color: #d32f2f;
-      font-size: 12px;
-      margin-top: 5px;
-    }
-
-    .signature-error.active {
-      display: block;
-    }
-
-    .appointment-text {
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 4px;
-      margin: 20px 0;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #333;
-    }
-
-    .appointment-text p {
-      margin-bottom: 12px;
-    }
-
-    .appointment-text strong {
-      font-weight: 600;
-      color: #222;
-    }
-
-    .appointment-text ul {
-      margin: 10px 0 15px 20px;
-      padding-left: 0;
-    }
-
-    .appointment-text li {
-      margin-bottom: 6px;
-    }
-
-    .resilium-logo-container {
-      margin: 20px 0;
-      text-align: left;
-    }
-
-    .resilium-logo {
-      max-width: 300px;
-      height: auto;
-    }
-
-    .success-message {
-      display: none;
-      background: #d4edda;
-      color: #155724;
-      padding: 15px;
-      border-radius: 4px;
-      margin-bottom: 20px;
+    .admin-link {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
       text-align: center;
     }
 
-    .error-message {
-      display: none;
-      background: #f8d7da;
-      color: #721c24;
-      padding: 15px;
-      border-radius: 4px;
-      margin-bottom: 20px;
+    .admin-link a {
+      color: #5a9f8f;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
     }
 
-    @media (max-width: 600px) {
-      .address-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-container {
-        padding: 20px;
-      }
+    .admin-link a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -513,371 +107,23 @@
       <img src="/unlockt-logo.png" alt="Unlockt - live smarter" class="logo">
     </div>
 
-    <div class="form-container">
-      <h1>Unlockt Letter of Appointment</h1>
-      <div class="issuer-info">
-        Issued by: Unlockt Insurance Solutions Pty Ltd | ABN 75 684 319 784 | ASIC Authorised Representative No. 1316562<br>
-        Authorised representatives of | Resilium Insurance Broking Pty Ltd ABN 92 169 975 973 AFSL No. 480382
+    <div class="forms-container">
+      <h1>Select a Form</h1>
+      
+      <div class="form-links">
+        <a href="/letter-of-appointment" class="form-link">
+          Letter of Appointment
+        </a>
+        
+        <a href="/quote-slip" class="form-link">
+          Quote Slip & Declaration
+        </a>
       </div>
 
-      <div class="success-message" id="successMessage">
-        Thank you! Your form has been submitted successfully.
+      <div class="admin-link">
+        <a href="/admin">Admin Dashboard →</a>
       </div>
-
-      <div class="error-message" id="errorMessage"></div>
-
-      <form id="appointmentForm">
-        <div class="form-group">
-          <label for="strataManagement">Strata Management <span class="required">*</span></label>
-          <input type="text" id="strataManagement" name="strataManagement" placeholder="Company Name" required>
-        </div>
-
-        <div class="form-group">
-          <label for="strataPlanNumber">Strata Plan Number (s) <span class="required">*</span></label>
-          <input type="text" id="strataPlanNumber" name="strataPlanNumber" placeholder="SP" required>
-          <div class="helper-text">Please write SP before number</div>
-        </div>
-
-        <div class="form-group">
-          <label>Address</label>
-          <div class="address-grid">
-            <div class="full-width">
-              <input type="text" name="streetAddress" placeholder="Street Address">
-            </div>
-            <div class="full-width">
-              <input type="text" name="streetAddressLine2" placeholder="Street Address Line 2">
-            </div>
-            <div>
-              <input type="text" name="city" placeholder="City">
-            </div>
-            <div>
-              <input type="text" name="state" placeholder="State">
-            </div>
-            <div class="full-width">
-              <input type="text" name="postal" placeholder="Postal">
-            </div>
-          </div>
-        </div>
-
-        <div class="checkbox-group">
-          <h3>Type a question</h3>
-          <div class="checkbox-item">
-            <input type="checkbox" id="q1" name="questionCheckbox1" value="true">
-            <label for="q1">We, the representatives of the Owners Corporation for the above-named Strata Plan, hereby appoint Unlockt Insurance Solutions Pty Ltd (as an authorised representative of Resilium Insurance Broking Pty Ltd) as the Insurance Advisor.</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="q2" name="questionCheckbox2" value="true">
-            <label for="q2">Unlockt is authorised to seek insurance quotations on our behalf, review and advise on insurance terms and coverage, liaise with insurers and our strata manager, provide a written report to our Owners Corporation or its authorised delegate. This appointment is effective from the date below and remains valid until withdrawn in writing by the Owners Corporation. We acknowledge this appointment may only be withdrawn with the authorised by the Owners Corporation, either following a meeting resolution, or delegation to the strata manager.</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="q3" name="questionCheckbox3" value="true">
-            <label for="q3">Unlockt will not bind cover unless it is authorised by the Owners Corporation or its authorised delegate. This appointment is effective from the date below and remains valid until withdrawn in writing by the Owners Corporation. We acknowledge this appointment may only be withdrawn with the authorised by the Owners Corporation, either following a meeting resolution, or delegation to the strata manager.</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="q4" name="questionCheckbox4" value="true">
-            <label for="q4">We acknowledge that Unlockt is authorised to provide financial services in relation to insurance for your scheme. The Strata Manager is not authorised to provide these services.</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="q5" name="questionCheckbox5" value="true">
-            <label for="q5">The Strata Manager, while authorised for general strata matters, has not provided insurance advice or arranged(sic) in insurance products. All insurance services have been provided solely by Unlockt, as an authorised representative of Resilium Insurance Broking.</label>
-          </div>
-        </div>
-
-        <div class="confirmation-box">
-          <h3>To Confirm <span class="required">*</span></h3>
-          <div class="checkbox-item">
-            <input type="checkbox" id="confirmation" name="confirmationCheckbox" value="true" required>
-            <label for="confirmation">I confirm the Owners Corporation has been informed of the Insurance Advisor's role, commission structure, and any potential conflicts of interest, and has authorised me to receive and acknowledge these disclosures on its behalf.</label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="submissionDate">Date <span class="required">*</span></label>
-          <input type="date" id="submissionDate" name="submissionDate" required>
-        </div>
-
-        <div class="file-upload-container">
-          <label>Upload Common Seal <span class="required">*</span></label>
-          <div class="file-upload-box" id="commonSealUploadBox">
-            <input type="file" id="commonSealFile" name="commonSealFile" accept="*/*" required>
-            <div class="upload-icon">☁️</div>
-            <h4>Upload a File</h4>
-            <p>Drag and drop files here</p>
-          </div>
-          <div class="file-preview" id="commonSealPreview">
-            <div class="file-info">
-              <div class="file-icon">📄</div>
-              <div class="file-details">
-                <div class="file-name" id="commonSealFileName"></div>
-                <div class="file-size" id="commonSealFileSize"></div>
-              </div>
-            </div>
-            <button type="button" class="delete-file-btn" id="deleteCommonSeal">Delete</button>
-          </div>
-        </div>
-
-        <div class="file-upload-container">
-          <label>Company Letter Head <span class="required">*</span></label>
-          <div class="file-upload-box" id="letterHeadUploadBox">
-            <input type="file" id="letterHeadFile" name="letterHeadFile" accept="*/*" required>
-            <div class="upload-icon">☁️</div>
-            <h4>Upload a File</h4>
-            <p>Drag and drop files here</p>
-          </div>
-          <div class="file-preview" id="letterHeadPreview">
-            <div class="file-info">
-              <div class="file-icon">📄</div>
-              <div class="file-details">
-                <div class="file-name" id="letterHeadFileName"></div>
-                <div class="file-size" id="letterHeadFileSize"></div>
-              </div>
-            </div>
-            <button type="button" class="delete-file-btn" id="deleteLetterHead">Delete</button>
-          </div>
-        </div>
-
-        <div class="signature-container">
-          <label>Sign Here <span class="required">*</span></label>
-          <div class="signature-drawing-area" id="signatureDrawingArea">
-            <div class="signature-wrapper">
-              <canvas id="signatureCanvas" class="signature-canvas" width="700" height="200"></canvas>
-              <div class="signature-placeholder" id="signaturePlaceholder">Sign here</div>
-            </div>
-            <div class="signature-controls">
-              <button type="button" class="submit-signature-btn" id="submitSignature">Submit</button>
-              <button type="button" class="clear-signature-btn" id="clearSignature">Clear</button>
-            </div>
-          </div>
-          <div class="signature-preview-container" id="signaturePreviewContainer">
-            <img src="" alt="Signature" class="signature-preview-img" id="signaturePreviewImg">
-            <button type="button" class="delete-signature-btn" id="deleteSignature">Delete</button>
-          </div>
-          <div class="signature-error" id="signatureError">Signature is required</div>
-          <input type="hidden" id="signatureData" name="signatureData">
-        </div>
-
-        <div class="appointment-text">
-          <p><strong>To Whom It May Concern,</strong></p>
-          <p><strong>Re: Appointment of Insurance Risk Advisor (Broker) – Strata Plan Noted above</strong></p>
-          <p>I/we hereby authorise you to provide the above noted Authorised Representative with any information and/or documentation they require regarding my above insurance.</p>
-          <p>I/we am/are aware of the provisions contained in the Privacy Act and release you from those provisions in respect of information provided to the above noted Authorised Representative.</p>
-          <p>Unlockt Insurance Solutions Pty Ltd. | ABN 75 684 319 784 | ASIC Authorised Representative No: 1316562 Authorised representatives of | Resilium Insurance Broking Pty Ltd ABN 92 169 975 973 AFSL No: 460382</p>
-          <p><strong>Scope of Appointment:</strong></p>
-          <p>Unlockt is authorised to:</p>
-          <ul>
-            <li>Seek insurance quotations on our behalf</li>
-            <li>Review and advise on insurance terms and coverage</li>
-            <li>Liaise with insurers, underwriters, and our strata manager</li>
-            <li>Provide a written proposal and advice for decision-making</li>
-            <li>Assist with mid-term variations, claims, and renewals as instructed</li>
-          </ul>
-          <p>Unlockt is not authorised to bind cover unless instructed in writing by the Owners Corporation or its authorised delegate.</p>
-          <p><strong>Duration:</strong></p>
-          <p>This appointment is effective from the date below and remains valid until revoked in writing.</p>
-          <p><strong>Authorisation:</strong></p>
-          <p>This appointment has been authorised by the Owners Corporation via committee resolution, general meeting resolution, or strata manager delegation.</p>
-        </div>
-
-        <div class="resilium-logo-container">
-          <img src="/resilium-logo.png" alt="Resilium Insurance Broking" class="resilium-logo">
-        </div>
-
-        <hr class="submit-divider">
-
-        <button type="submit">Submit to Unlockt</button>
-      </form>
     </div>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-  <script>
-    let signaturePad;
-    const canvas = document.getElementById('signatureCanvas');
-    const placeholder = document.getElementById('signaturePlaceholder');
-    const signatureError = document.getElementById('signatureError');
-    const signatureDataInput = document.getElementById('signatureData');
-
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * ratio;
-      canvas.height = rect.height * ratio;
-      canvas.getContext('2d').scale(ratio, ratio);
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    signaturePad = new SignaturePad(canvas, {
-      backgroundColor: 'rgb(255, 255, 255)',
-      penColor: 'rgb(0, 0, 0)',
-      minWidth: 1,
-      maxWidth: 3,
-      velocityFilterWeight: 0.7,
-      minDistance: 5,
-      throttle: 0
-    });
-
-    const signatureDrawingArea = document.getElementById('signatureDrawingArea');
-    const signaturePreviewContainer = document.getElementById('signaturePreviewContainer');
-    const signaturePreviewImg = document.getElementById('signaturePreviewImg');
-
-    signaturePad.addEventListener('beginStroke', () => {
-      placeholder.classList.add('hidden');
-      signatureError.classList.remove('active');
-    });
-
-    document.getElementById('clearSignature').addEventListener('click', () => {
-      signaturePad.clear();
-      placeholder.classList.remove('hidden');
-      signatureError.classList.remove('active');
-    });
-
-    document.getElementById('submitSignature').addEventListener('click', () => {
-      if (signaturePad.isEmpty()) {
-        signatureError.classList.add('active');
-        return;
-      }
-
-      const data = signaturePad.toDataURL('image/png');
-      signatureDataInput.value = data;
-      signaturePreviewImg.src = data;
-      
-      signatureDrawingArea.classList.add('hidden');
-      signaturePreviewContainer.classList.add('active');
-      signatureError.classList.remove('active');
-    });
-
-    document.getElementById('deleteSignature').addEventListener('click', () => {
-      signaturePad.clear();
-      placeholder.classList.remove('hidden');
-      signatureDataInput.value = '';
-      signaturePreviewImg.src = '';
-      
-      signatureDrawingArea.classList.remove('hidden');
-      signaturePreviewContainer.classList.remove('active');
-      signatureError.classList.remove('active');
-    });
-
-    function setupFileUpload(inputId, boxId, previewId, fileNameId, fileSizeId, deleteId) {
-      const input = document.getElementById(inputId);
-      const box = document.getElementById(boxId);
-      const preview = document.getElementById(previewId);
-      const fileName = document.getElementById(fileNameId);
-      const fileSize = document.getElementById(fileSizeId);
-      const deleteBtn = document.getElementById(deleteId);
-
-      function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-      }
-
-      function handleFile(file) {
-        if (file) {
-          fileName.textContent = file.name;
-          fileSize.textContent = formatFileSize(file.size);
-          preview.classList.add('active');
-          box.style.display = 'none';
-        }
-      }
-
-      box.addEventListener('click', () => input.click());
-
-      input.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          handleFile(e.target.files[0]);
-        }
-      });
-
-      box.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        box.classList.add('dragover');
-      });
-
-      box.addEventListener('dragleave', () => {
-        box.classList.remove('dragover');
-      });
-
-      box.addEventListener('drop', (e) => {
-        e.preventDefault();
-        box.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-          input.files = files;
-          handleFile(files[0]);
-        }
-      });
-
-      deleteBtn.addEventListener('click', () => {
-        input.value = '';
-        preview.classList.remove('active');
-        box.style.display = 'block';
-      });
-    }
-
-    setupFileUpload('commonSealFile', 'commonSealUploadBox', 'commonSealPreview', 
-                    'commonSealFileName', 'commonSealFileSize', 'deleteCommonSeal');
-    setupFileUpload('letterHeadFile', 'letterHeadUploadBox', 'letterHeadPreview', 
-                    'letterHeadFileName', 'letterHeadFileSize', 'deleteLetterHead');
-
-    document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      if (!signatureDataInput.value) {
-        signatureError.textContent = 'Please submit your signature before submitting the form';
-        signatureError.classList.add('active');
-        signatureError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-
-      signatureError.classList.remove('active');
-      
-      const formData = new FormData(e.target);
-
-      const submitButton = e.target.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
-      submitButton.textContent = 'Submitting...';
-
-      try {
-        const response = await fetch('/api/submit-form', {
-          method: 'POST',
-          body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          document.getElementById('successMessage').style.display = 'block';
-          document.getElementById('errorMessage').style.display = 'none';
-          e.target.reset();
-          signaturePad.clear();
-          placeholder.classList.remove('hidden');
-          signatureDataInput.value = '';
-          signaturePreviewImg.src = '';
-          signatureDrawingArea.classList.remove('hidden');
-          signaturePreviewContainer.classList.remove('active');
-          document.getElementById('commonSealPreview').classList.remove('active');
-          document.getElementById('letterHeadPreview').classList.remove('active');
-          document.getElementById('commonSealUploadBox').style.display = 'block';
-          document.getElementById('letterHeadUploadBox').style.display = 'block';
-          window.scrollTo(0, 0);
-        } else {
-          throw new Error(result.error || 'Submission failed');
-        }
-      } catch (error) {
-        document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('errorMessage').style.display = 'block';
-        document.getElementById('successMessage').style.display = 'none';
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Submit Form';
-      }
-    });
-  </script>
 </body>
 </html>
