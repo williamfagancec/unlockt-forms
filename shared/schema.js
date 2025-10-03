@@ -74,6 +74,13 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   discloseInsuranceDeclined: boolean('disclose_insurance_declined').default(false),
   discloseAsbestosPresent: boolean('disclose_asbestos_present').default(false),
   discloseHeritageListed: boolean('disclose_heritage_listed').default(false),
+  numberOfLifts: varchar('number_of_lifts', { length: 20 }),
+  acpEpsPresent: varchar('acp_eps_present', { length: 10 }),
+  acpEpsName: varchar('acp_eps_name', { length: 255 }),
+  currentStandardExcess: varchar('current_standard_excess', { length: 100 }),
+  coverOfficeBearers: boolean('cover_office_bearers').default(false),
+  coverMachineryBreakdown: boolean('cover_machinery_breakdown').default(false),
+  coverCatastrophe: boolean('cover_catastrophe').default(false),
   submittedAt: timestamp('submitted_at').defaultNow()
 }, (table) => ({
   submittedAtIdx: index('quote_slip_submissions_submitted_at_idx').on(table.submittedAt),
