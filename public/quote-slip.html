@@ -844,6 +844,59 @@
           </div>
         </div>
 
+        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Declaration</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="declarationAuthorised" style="margin-top: 3px; cursor: pointer;">
+            <span style="color: #2c3e50; line-height: 1.6;">I am authorised to act on behalf of the Owners Corporation for insurance purposes</span>
+          </label>
+
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="declarationAppointUnlockt" style="margin-top: 3px; cursor: pointer;">
+            <span style="color: #2c3e50; line-height: 1.6;">I appoint Unlockt Insurance Solutions Pty Ltd, as the insurance risk advisor to act on behalf of the Owners Corporation for the purpose of sourcing renewal terms.</span>
+          </label>
+
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="declarationAccurateInfo" style="margin-top: 3px; cursor: pointer;">
+            <span style="color: #2c3e50; line-height: 1.6;">I understand that the provision of accurate and complete information is essential for insurance placement and compliance with the duty of disclosure.</span>
+          </label>
+
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="declarationStrataManager" style="margin-top: 3px; cursor: pointer;">
+            <span style="color: #2c3e50; line-height: 1.6;">The Strata Manager, while authorised for general strata matters. All insurance services have been provided solely by Unlockt, as an authorised representative of Resilium Insurance Broking.</span>
+          </label>
+
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="declarationTrueAnswers" style="margin-top: 3px; cursor: pointer;">
+            <span style="color: #2c3e50; line-height: 1.6;">I declare the answers below are true and correct to the best of my knowledge.</span>
+          </label>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+          <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 5px;">
+            Name <span style="color: #ff4444;">*</span>
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
+            <div>
+              <input type="text" id="declarationFullName" name="declarationFullName" placeholder="Full Name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+            </div>
+            <div>
+              <input type="text" id="declarationPosition" name="declarationPosition" placeholder="Position" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+          <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 15px;">
+            Confirm <span style="color: #ff4444;">*</span>
+          </label>
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+            <input type="radio" name="confirmDisclosures" value="confirmed" required style="margin-top: 3px; cursor: pointer;">
+            <span style="color: #2c3e50; line-height: 1.6;">I confirm the Owners Corporation has been informed of the broker's role, commission structure, and any potential conflicts of interest, and has authorised me to receive and acknowledge these disclosures on its behalf.</span>
+          </label>
+        </div>
+
         <hr class="submit-divider">
 
         <button type="submit">Submit to Unlockt</button>

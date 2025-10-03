@@ -96,6 +96,14 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   commercialTenantListFile: varchar('commercial_tenant_list_file', { length: 500 }),
   mostRecentValuationFile: varchar('most_recent_valuation_file', { length: 500 }),
   preventativeMaintenanceProgramFile: varchar('preventative_maintenance_program_file', { length: 500 }),
+  declarationAuthorised: boolean('declaration_authorised'),
+  declarationAppointUnlockt: boolean('declaration_appoint_unlockt'),
+  declarationAccurateInfo: boolean('declaration_accurate_info'),
+  declarationStrataManager: boolean('declaration_strata_manager'),
+  declarationTrueAnswers: boolean('declaration_true_answers'),
+  declarationFullName: varchar('declaration_full_name', { length: 255 }),
+  declarationPosition: varchar('declaration_position', { length: 255 }),
+  confirmDisclosures: varchar('confirm_disclosures', { length: 50 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 }, (table) => ({
   submittedAtIdx: index('quote_slip_submissions_submitted_at_idx').on(table.submittedAt),

@@ -363,7 +363,15 @@ app.post('/api/submit-quote-slip', upload.fields([
       asbestosReportFile: req.files?.asbestosReportFile?.[0]?.filename || null,
       commercialTenantListFile: req.files?.commercialTenantListFile?.[0]?.filename || null,
       mostRecentValuationFile: req.files?.mostRecentValuationFile?.[0]?.filename || null,
-      preventativeMaintenanceProgramFile: req.files?.preventativeMaintenanceProgramFile?.[0]?.filename || null
+      preventativeMaintenanceProgramFile: req.files?.preventativeMaintenanceProgramFile?.[0]?.filename || null,
+      declarationAuthorised: req.body.declarationAuthorised === 'on',
+      declarationAppointUnlockt: req.body.declarationAppointUnlockt === 'on',
+      declarationAccurateInfo: req.body.declarationAccurateInfo === 'on',
+      declarationStrataManager: req.body.declarationStrataManager === 'on',
+      declarationTrueAnswers: req.body.declarationTrueAnswers === 'on',
+      declarationFullName: req.body.declarationFullName || null,
+      declarationPosition: req.body.declarationPosition || null,
+      confirmDisclosures: req.body.confirmDisclosures || null
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();
