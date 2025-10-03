@@ -577,6 +577,94 @@
           </label>
         </div>
 
+        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Insert Below Values</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+          <div>
+            <label for="coverOfficeBearersValue" style="display: block; text-align: center; font-weight: 600; margin-bottom: 8px; color: #5f6368;">Office Bearers</label>
+            <select id="coverOfficeBearersValue" name="coverOfficeBearersValue" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Select</option>
+            </select>
+          </div>
+          <div>
+            <label for="coverMachineryBreakdownValue" style="display: block; text-align: center; font-weight: 600; margin-bottom: 8px; color: #5f6368;">Machinery Breakdown</label>
+            <select id="coverMachineryBreakdownValue" name="coverMachineryBreakdownValue" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Select</option>
+            </select>
+          </div>
+          <div>
+            <label for="coverCatastropheValue" style="display: block; text-align: center; font-weight: 600; margin-bottom: 8px; color: #5f6368;">Catastrophe</label>
+            <select id="coverCatastropheValue" name="coverCatastropheValue" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Select</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+          <div>
+            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
+              To the best of your knowledge, are there any current or historical defects affecting the common property? E.g. structural issues, water ingress, cladding, fire protection systems <span style="color: #ff4444;">*</span>
+            </label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="defectsYes" name="defectsAffectingProperty" value="Yes" style="cursor: pointer;">
+                <span>Yes</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="defectsNo" name="defectsAffectingProperty" value="No" style="cursor: pointer;">
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
+              Is the Annual Fire Safety Statement (AFSS) Current and Compliant <span style="color: #ff4444;">*</span>
+            </label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="afssYes" name="afssCurrent" value="Yes" style="cursor: pointer;">
+                <span>Yes</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="afssNo" name="afssCurrent" value="No" style="cursor: pointer;">
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+          <div>
+            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
+              Is the building primarily used for Residential purposes less than 20% Commercial? <span style="color: #ff4444;">*</span>
+            </label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="residentialYes" name="residentialLessThan20Commercial" value="Yes" style="cursor: pointer;">
+                <span>Yes</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="residentialNo" name="residentialLessThan20Commercial" value="No" style="cursor: pointer;">
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
+              Are there any current or planned major works over $500,000 that may impact insurance? <span style="color: #ff4444;">*</span>
+            </label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="majorWorksYes" name="majorWorksOver500k" value="Yes" style="cursor: pointer;">
+                <span>Yes</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" id="majorWorksNo" name="majorWorksOver500k" value="No" style="cursor: pointer;">
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <hr class="submit-divider">
 
         <button type="submit">Submit to Unlockt</button>
