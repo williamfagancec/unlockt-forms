@@ -104,6 +104,7 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   declarationFullName: varchar('declaration_full_name', { length: 255 }),
   declarationPosition: varchar('declaration_position', { length: 255 }),
   confirmDisclosures: varchar('confirm_disclosures', { length: 50 }),
+  signatureFile: varchar('signature_file', { length: 500 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 }, (table) => ({
   submittedAtIdx: index('quote_slip_submissions_submitted_at_idx').on(table.submittedAt),

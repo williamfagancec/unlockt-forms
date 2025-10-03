@@ -298,7 +298,8 @@ app.post('/api/submit-quote-slip', upload.fields([
   body('strataManagementName').trim().notEmpty().withMessage('Strata Management Name is required'),
   body('contactPerson').trim().notEmpty().withMessage('Contact Person is required'),
   body('strataPlanNumber').trim().notEmpty().withMessage('Strata Plan Number is required'),
-  body('renewalDate').notEmpty().withMessage('Renewal Date is required')
+  body('renewalDate').notEmpty().withMessage('Renewal Date is required'),
+  body('signatureData').notEmpty().withMessage('Signature is required')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -306,6 +307,22 @@ app.post('/api/submit-quote-slip', upload.fields([
   }
 
   try {
+    let signatureFilename = null;
+    
+    if (req.body.signatureData) {
+      const base64Data = req.body.signatureData.replace(/^data:image\/png;base64,/, '');
+      const timestamp = Date.now();
+      const randomId = Math.round(Math.random() * 1E9);
+      signatureFilename = `signature-${timestamp}-${randomId}.png`;
+      const signaturePath = path.join('uploads', signatureFilename);
+      
+      if (!fs.existsSync('uploads')) {
+        fs.mkdirSync('uploads', { recursive: true });
+      }
+      
+      fs.writeFileSync(signaturePath, base64Data, 'base64');
+    }
+
     const formData = {
       strataManagementName: req.body.strataManagementName,
       contactPerson: req.body.contactPerson,
@@ -371,7 +388,8 @@ app.post('/api/submit-quote-slip', upload.fields([
       declarationTrueAnswers: req.body.declarationTrueAnswers === 'on',
       declarationFullName: req.body.declarationFullName || null,
       declarationPosition: req.body.declarationPosition || null,
-      confirmDisclosures: req.body.confirmDisclosures || null
+      confirmDisclosures: req.body.confirmDisclosures || null,
+      signatureFile: signatureFilename
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();

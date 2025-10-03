@@ -292,6 +292,165 @@
       margin-bottom: 20px;
     }
 
+    .duty-disclosure {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 30px;
+      border-left: 4px solid #5fa88a;
+    }
+
+    .duty-disclosure h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .duty-disclosure p {
+      color: #4a4a4a;
+      line-height: 1.8;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .duty-disclosure ul {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .duty-disclosure li {
+      color: #4a4a4a;
+      line-height: 1.8;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .signature-container {
+      margin-bottom: 30px;
+    }
+
+    .signature-wrapper {
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+      padding: 15px;
+      position: relative;
+    }
+
+    .signature-canvas {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      display: block;
+      cursor: crosshair;
+      width: 100%;
+      touch-action: none;
+    }
+
+    .signature-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #999;
+      font-size: 14px;
+      pointer-events: none;
+      font-style: italic;
+    }
+
+    .signature-placeholder.hidden {
+      display: none;
+    }
+
+    .signature-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .signature-controls button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .clear-signature-btn {
+      background: #ff9800;
+      color: white;
+    }
+
+    .clear-signature-btn:hover {
+      background: #f57c00;
+    }
+
+    .submit-signature-btn {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .submit-signature-btn:hover {
+      background: #45a049;
+    }
+
+    .signature-preview-container {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .signature-preview-container.active {
+      display: flex;
+    }
+
+    .signature-preview-img {
+      max-width: 400px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .delete-signature-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .delete-signature-btn:hover {
+      background: #d32f2f;
+    }
+
+    .signature-drawing-area {
+      display: block;
+    }
+
+    .signature-drawing-area.hidden {
+      display: none;
+    }
+
+    .signature-error {
+      display: none;
+      color: #d32f2f;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .signature-error.active {
+      display: block;
+    }
+
     @media (max-width: 600px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -302,6 +461,7 @@
       }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -897,6 +1057,44 @@
           </label>
         </div>
 
+        <div class="duty-disclosure">
+          <h3>DUTY OF DISCLOSURE</h3>
+          <p>Before you enter into an insurance contract, you have a duty to tell the insurer anything that you know, or could reasonably be expected to know, that may affect the insurer's decision to insure you and on what terms. You have this duty until the insurer agrees to insure you.</p>
+          <p>You have the same duty before you renew, extend, vary, or reinstate an insurance contract.</p>
+          <p>You do not need to tell the insurer anything that:</p>
+          <ul>
+            <li>reduces the risk they insure you for; or</li>
+            <li>is common knowledge; or</li>
+            <li>the insurer knows, or should know; or</li>
+            <li>the insurer waives your duty to tell them about.</li>
+          </ul>
+          <p>If you do not tell the insurer something:</p>
+          <p>If you do not tell the insurer anything you are required to, they may cancel your contract, or reduce the amount they will pay you if you make a claim, or both.</p>
+          <p>If your failure to tell the insurer is fraudulent, they may refuse to pay a claim and treat the contract as if it never existed.</p>
+        </div>
+
+        <div class="signature-container">
+          <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 10px;">
+            By signing the below I declare the information provided is true and correct to the best of my knowledge. <span style="color: #ff4444;">*</span>
+          </label>
+          <input type="hidden" id="signatureData" name="signatureData">
+          <div class="signature-drawing-area" id="signatureDrawingArea">
+            <div class="signature-wrapper">
+              <canvas id="signatureCanvas" class="signature-canvas" width="700" height="200"></canvas>
+              <div class="signature-placeholder" id="signaturePlaceholder">Sign here</div>
+            </div>
+            <div class="signature-controls">
+              <button type="button" class="submit-signature-btn" id="submitSignature">Submit</button>
+              <button type="button" class="clear-signature-btn" id="clearSignature">Clear</button>
+            </div>
+          </div>
+          <div class="signature-preview-container" id="signaturePreviewContainer">
+            <img id="signaturePreviewImg" class="signature-preview-img" alt="Signature Preview">
+            <button type="button" class="delete-signature-btn" id="deleteSignature">Delete</button>
+          </div>
+          <div class="signature-error" id="signatureError">Please submit your signature</div>
+        </div>
+
         <hr class="submit-divider">
 
         <button type="submit">Submit to Unlockt</button>
@@ -973,6 +1171,76 @@
     setupFileUpload('commercialTenantListFile', 'commercialTenantListUploadBox', 'commercialTenantListPreview', 'commercialTenantListFileName', 'commercialTenantListFileSize', 'commercialTenantListDelete');
     setupFileUpload('mostRecentValuationFile', 'mostRecentValuationUploadBox', 'mostRecentValuationPreview', 'mostRecentValuationFileName', 'mostRecentValuationFileSize', 'mostRecentValuationDelete');
     setupFileUpload('preventativeMaintenanceProgramFile', 'preventativeMaintenanceProgramUploadBox', 'preventativeMaintenanceProgramPreview', 'preventativeMaintenanceProgramFileName', 'preventativeMaintenanceProgramFileSize', 'preventativeMaintenanceProgramDelete');
+
+    let signaturePad;
+    const canvas = document.getElementById('signatureCanvas');
+    const placeholder = document.getElementById('signaturePlaceholder');
+    const signatureError = document.getElementById('signatureError');
+    const signatureDataInput = document.getElementById('signatureData');
+
+    function resizeCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      canvas.getContext('2d').scale(ratio, ratio);
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgb(255, 255, 255)',
+      penColor: 'rgb(0, 0, 0)',
+      minWidth: 1,
+      maxWidth: 3,
+      velocityFilterWeight: 0.7,
+      minDistance: 5,
+      throttle: 0
+    });
+
+    const signatureDrawingArea = document.getElementById('signatureDrawingArea');
+    const signaturePreviewContainer = document.getElementById('signaturePreviewContainer');
+    const signaturePreviewImg = document.getElementById('signaturePreviewImg');
+
+    signaturePad.addEventListener('beginStroke', () => {
+      placeholder.classList.add('hidden');
+      signatureError.classList.remove('active');
+    });
+
+    document.getElementById('clearSignature').addEventListener('click', () => {
+      signaturePad.clear();
+      placeholder.classList.remove('hidden');
+      signatureError.classList.remove('active');
+    });
+
+    document.getElementById('submitSignature').addEventListener('click', () => {
+      if (signaturePad.isEmpty()) {
+        signatureError.classList.add('active');
+        return;
+      }
+
+      const data = signaturePad.toDataURL('image/png');
+      signatureDataInput.value = data;
+      signaturePreviewImg.src = data;
+      
+      signatureDrawingArea.classList.add('hidden');
+      signaturePreviewContainer.classList.add('active');
+      signatureError.classList.remove('active');
+    });
+
+    document.getElementById('deleteSignature').addEventListener('click', () => {
+      signaturePad.clear();
+      placeholder.classList.remove('hidden');
+      signatureDataInput.value = '';
+      signaturePreviewImg.src = '';
+      
+      signatureDrawingArea.classList.remove('hidden');
+      signaturePreviewContainer.classList.remove('active');
+      signatureError.classList.remove('active');
+    });
 
     async function loadInsurers() {
       const select = document.getElementById('currentInsurer');
@@ -1056,6 +1324,15 @@
 
     document.getElementById('quoteSlipForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      if (!signatureDataInput.value) {
+        signatureError.textContent = 'Please submit your signature before submitting the form';
+        signatureError.classList.add('active');
+        signatureError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      signatureError.classList.remove('active');
       
       const formData = new FormData(e.target);
 
