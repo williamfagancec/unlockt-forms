@@ -635,8 +635,11 @@
     signaturePad = new SignaturePad(canvas, {
       backgroundColor: 'rgb(255, 255, 255)',
       penColor: 'rgb(0, 0, 0)',
-      minWidth: 0.5,
-      maxWidth: 2.5
+      minWidth: 1,
+      maxWidth: 3,
+      velocityFilterWeight: 0.7,
+      minDistance: 5,
+      throttle: 0
     });
 
     const signatureDrawingArea = document.getElementById('signatureDrawingArea');
