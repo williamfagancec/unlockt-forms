@@ -594,6 +594,31 @@ app.get('/api/submissions/:id', authMiddleware, async (req, res) => {
   }
 });
 
+app.get('/api/quote-slip-submissions', adminAuthMiddleware, async (req, res) => {
+  try {
+    const submissions = await db.select().from(quoteSlipSubmissions).orderBy(desc(quoteSlipSubmissions.submittedAt));
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching quote slip submissions:', error);
+    res.status(500).json({ error: 'Failed to fetch submissions' });
+  }
+});
+
+app.get('/api/quote-slip-submissions/:id', adminAuthMiddleware, async (req, res) => {
+  try {
+    const [submission] = await db.select().from(quoteSlipSubmissions).where(eq(quoteSlipSubmissions.id, parseInt(req.params.id)));
+    
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+    
+    res.json(submission);
+  } catch (error) {
+    console.error('Error fetching quote slip submission:', error);
+    res.status(500).json({ error: 'Failed to fetch submission' });
+  }
+});
+
 app.get('/api/export/pdf/:id', authMiddleware, async (req, res) => {
   try {
     const [submission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, parseInt(req.params.id)));
