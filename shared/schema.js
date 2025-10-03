@@ -1,4 +1,4 @@
-const { pgTable, serial, varchar, boolean, timestamp, date } = require('drizzle-orm/pg-core');
+const { pgTable, serial, varchar, boolean, timestamp, date, integer } = require('drizzle-orm/pg-core');
 
 const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -47,8 +47,17 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   submittedAt: timestamp('submitted_at').defaultNow()
 });
 
+const insurers = pgTable('insurers', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true),
+  displayOrder: integer('display_order').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
 module.exports = {
   users,
   formSubmissions,
-  quoteSlipSubmissions
+  quoteSlipSubmissions,
+  insurers
 };
