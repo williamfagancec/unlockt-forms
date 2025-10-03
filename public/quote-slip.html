@@ -912,6 +912,14 @@
     }
 
     setupFileUpload('cocFile', 'cocUploadBox', 'cocPreview', 'cocFileName', 'cocFileSize', 'deleteCoc');
+    setupFileUpload('defectsRelevantDocsFile', 'defectsRelevantDocsUploadBox', 'defectsRelevantDocsPreview', 'defectsRelevantDocsFileName', 'defectsRelevantDocsFileSize', 'defectsRelevantDocsDelete');
+    setupFileUpload('whsFile', 'whsUploadBox', 'whsPreview', 'whsFileName', 'whsFileSize', 'whsDelete');
+    setupFileUpload('claimsHistoryFile', 'claimsHistoryUploadBox', 'claimsHistoryPreview', 'claimsHistoryFileName', 'claimsHistoryFileSize', 'claimsHistoryDelete');
+    setupFileUpload('strataPlansFile', 'strataPlansUploadBox', 'strataPlansPreview', 'strataPlansFileName', 'strataPlansFileSize', 'strataPlansDelete');
+    setupFileUpload('asbestosReportFile', 'asbestosReportUploadBox', 'asbestosReportPreview', 'asbestosReportFileName', 'asbestosReportFileSize', 'asbestosReportDelete');
+    setupFileUpload('commercialTenantListFile', 'commercialTenantListUploadBox', 'commercialTenantListPreview', 'commercialTenantListFileName', 'commercialTenantListFileSize', 'commercialTenantListDelete');
+    setupFileUpload('mostRecentValuationFile', 'mostRecentValuationUploadBox', 'mostRecentValuationPreview', 'mostRecentValuationFileName', 'mostRecentValuationFileSize', 'mostRecentValuationDelete');
+    setupFileUpload('preventativeMaintenanceProgramFile', 'preventativeMaintenanceProgramUploadBox', 'preventativeMaintenanceProgramPreview', 'preventativeMaintenanceProgramFileName', 'preventativeMaintenanceProgramFileSize', 'preventativeMaintenanceProgramDelete');
 
     async function loadInsurers() {
       const select = document.getElementById('currentInsurer');
