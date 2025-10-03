@@ -685,12 +685,12 @@ app.get('/api/export/pdf/:id', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/export/xlsx', authMiddleware, async (req, res) => {
+app.get('/api/export/letter-of-appointment', adminAuthMiddleware, async (req, res) => {
   try {
     const submissions = await db.select().from(formSubmissions).orderBy(desc(formSubmissions.submittedAt));
     
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Form Submissions');
+    const worksheet = workbook.addWorksheet('Letter of Appointment');
     
     worksheet.columns = [
       { header: 'ID', key: 'id', width: 10 },
@@ -701,6 +701,9 @@ app.get('/api/export/xlsx', authMiddleware, async (req, res) => {
       { header: 'City', key: 'city', width: 15 },
       { header: 'State', key: 'state', width: 15 },
       { header: 'Postal', key: 'postal', width: 10 },
+      { header: 'Contact Person', key: 'contactPerson', width: 25 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Phone', key: 'phone', width: 15 },
       { header: 'Q1: Representatives', key: 'questionCheckbox1', width: 15 },
       { header: 'Q2: Quotations', key: 'questionCheckbox2', width: 15 },
       { header: 'Q3: Not Bind Cover', key: 'questionCheckbox3', width: 15 },
@@ -723,6 +726,9 @@ app.get('/api/export/xlsx', authMiddleware, async (req, res) => {
         city: sub.city,
         state: sub.state,
         postal: sub.postal,
+        contactPerson: sub.contactPerson,
+        email: sub.email,
+        phone: sub.phone,
         questionCheckbox1: sub.questionCheckbox1 ? 'Yes' : 'No',
         questionCheckbox2: sub.questionCheckbox2 ? 'Yes' : 'No',
         questionCheckbox3: sub.questionCheckbox3 ? 'Yes' : 'No',
@@ -735,7 +741,97 @@ app.get('/api/export/xlsx', authMiddleware, async (req, res) => {
     });
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=unlockt-submissions.xlsx');
+    res.setHeader('Content-Disposition', 'attachment; filename=letter-of-appointment-submissions.xlsx');
+    
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('XLSX generation error:', error);
+    res.status(500).json({ error: 'Failed to generate XLSX' });
+  }
+});
+
+app.get('/api/export/quote-slip', adminAuthMiddleware, async (req, res) => {
+  try {
+    const submissions = await db.select().from(quoteSlipSubmissions).orderBy(desc(quoteSlipSubmissions.submittedAt));
+    
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Quote Slip');
+    
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Strata Management Name', key: 'strataManagementName', width: 30 },
+      { header: 'Contact Person', key: 'contactPerson', width: 25 },
+      { header: 'Strata Plan Number', key: 'strataPlanNumber', width: 20 },
+      { header: 'Address', key: 'address', width: 30 },
+      { header: 'City', key: 'city', width: 15 },
+      { header: 'State', key: 'state', width: 15 },
+      { header: 'Postal', key: 'postal', width: 10 },
+      { header: 'Renewal Date', key: 'renewalDate', width: 15 },
+      { header: 'Current Insurer', key: 'currentInsurer', width: 25 },
+      { header: 'Current Building Sum Insured', key: 'currentBuildingSumInsured', width: 25 },
+      { header: 'Requested Sum Insured', key: 'requestedSumInsured', width: 25 },
+      { header: 'Roof Type', key: 'roofType', width: 20 },
+      { header: 'External Wall Type', key: 'externalWallType', width: 20 },
+      { header: 'Floor Type', key: 'floorType', width: 20 },
+      { header: 'Building Type', key: 'buildingType', width: 20 },
+      { header: 'Year Built', key: 'yearBuilt', width: 12 },
+      { header: 'Number of Lots', key: 'numberOfLots', width: 15 },
+      { header: 'Number of Floors', key: 'numberOfFloors', width: 15 },
+      { header: 'Number of Lifts', key: 'numberOfLifts', width: 15 },
+      { header: 'ACP/EPS Present', key: 'acpEpsPresent', width: 15 },
+      { header: 'Current Standard Excess', key: 'currentStandardExcess', width: 20 },
+      { header: 'Flood Cover Required', key: 'requiredCoverFlood', width: 15 },
+      { header: 'Insurance Declined', key: 'discloseInsuranceDeclined', width: 15 },
+      { header: 'Asbestos Present', key: 'discloseAsbestosPresent', width: 15 },
+      { header: 'Heritage Listed', key: 'discloseHeritageListed', width: 15 },
+      { header: 'Defects Affecting Property', key: 'defectsAffectingProperty', width: 25 },
+      { header: 'AFSS Current', key: 'afssCurrent', width: 15 },
+      { header: 'Declaration Full Name', key: 'declarationFullName', width: 25 },
+      { header: 'Declaration Position', key: 'declarationPosition', width: 25 },
+      { header: 'Submitted At', key: 'submittedAt', width: 20 }
+    ];
+    
+    worksheet.getRow(1).font = { bold: true };
+    
+    submissions.forEach(sub => {
+      worksheet.addRow({
+        id: sub.id,
+        strataManagementName: sub.strataManagementName,
+        contactPerson: sub.contactPerson,
+        strataPlanNumber: sub.strataPlanNumber,
+        address: sub.address,
+        city: sub.city,
+        state: sub.state,
+        postal: sub.postal,
+        renewalDate: sub.renewalDate,
+        currentInsurer: sub.currentInsurer,
+        currentBuildingSumInsured: sub.currentBuildingSumInsured,
+        requestedSumInsured: sub.requestedSumInsured,
+        roofType: sub.roofType,
+        externalWallType: sub.externalWallType,
+        floorType: sub.floorType,
+        buildingType: sub.buildingType,
+        yearBuilt: sub.yearBuilt,
+        numberOfLots: sub.numberOfLots,
+        numberOfFloors: sub.numberOfFloors,
+        numberOfLifts: sub.numberOfLifts,
+        acpEpsPresent: sub.acpEpsPresent,
+        currentStandardExcess: sub.currentStandardExcess,
+        requiredCoverFlood: sub.requiredCoverFlood ? 'Yes' : 'No',
+        discloseInsuranceDeclined: sub.discloseInsuranceDeclined ? 'Yes' : 'No',
+        discloseAsbestosPresent: sub.discloseAsbestosPresent ? 'Yes' : 'No',
+        discloseHeritageListed: sub.discloseHeritageListed ? 'Yes' : 'No',
+        defectsAffectingProperty: sub.defectsAffectingProperty,
+        afssCurrent: sub.afssCurrent,
+        declarationFullName: sub.declarationFullName,
+        declarationPosition: sub.declarationPosition,
+        submittedAt: new Date(sub.submittedAt).toLocaleString()
+      });
+    });
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=quote-slip-submissions.xlsx');
     
     await workbook.xlsx.write(res);
     res.end();

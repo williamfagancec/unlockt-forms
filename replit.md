@@ -2,138 +2,270 @@
 
 ## Project Overview
 
-This is a secure form collection system for Unlockt Insurance Solutions that allows:
-- **Public form submission** (no authentication required)
-- **Authenticated admin dashboard** using MS Entra ID SSO
-- **Export capabilities** (PDF and XLSX) for authenticated users
-- **Azure-ready deployment** configuration
+This is a secure form collection system for Unlockt Insurance Solutions that features:
+- **Public form submission** - No authentication required for Letter of Appointment and Quote Slip & Declaration forms
+- **Local admin authentication** - Username/password based admin portal (MS Entra ID SSO postponed for future implementation)
+- **Comprehensive admin dashboard** - View and manage all form submissions with statistics
+- **Export capabilities** - XLSX export for bulk data analysis
+- **Azure-ready deployment** - Configured for Azure App Service with future MS Fabric integration planned
 
 ## Tech Stack
 
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL (Neon-backed on Replit, Azure Database for PostgreSQL in production)
-- **Authentication**: Microsoft Entra ID (Azure AD) using MSAL Node
+- **Authentication**: Local username/password with bcrypt hashing
 - **ORM**: Drizzle ORM
 - **Session Management**: Express Session
 - **Export Libraries**: PDFKit (PDF), ExcelJS (XLSX)
+- **File Uploads**: Multer for document handling
+- **Signature Capture**: SignaturePad for digital signatures
 
 ## Project Structure
 
 ```
 /
-├── index.js                 # Main Express server
+├── index.js                      # Main Express server
 ├── server/
-│   └── db.js               # Database connection
+│   └── db.js                    # Database connection
 ├── shared/
-│   └── schema.js           # Drizzle ORM schema
+│   └── schema.js                # Drizzle ORM schema (all tables)
 ├── public/
-│   ├── index.html          # Public form
-│   └── admin.html          # Admin dashboard
-├── azure-deployment.md     # Azure deployment guide
-├── .env.example            # Environment variables template
-├── drizzle.config.ts       # Drizzle configuration
-└── package.json           # Dependencies
+│   ├── index.html               # Landing page
+│   ├── letter-of-appointment.html   # Letter of Appointment form
+│   ├── quote-slip.html          # Quote Slip & Declaration form
+│   ├── admin-login.html         # Admin login page
+│   ├── admin.html               # Admin dashboard
+│   └── admin/
+│       ├── letter-of-appointment.html       # LOA submissions list
+│       ├── letter-of-appointment-detail.html # LOA detail view
+│       ├── quote-slip.html      # Quote Slip submissions list
+│       └── quote-slip-detail.html # Quote Slip detail view
+├── scripts/
+│   └── create-admin.js          # Script to create admin users
+├── uploads/                     # Uploaded files and signatures
+├── drizzle.config.ts            # Drizzle configuration
+└── package.json                 # Dependencies
 ```
 
 ## Recent Changes
 
-**Date: October 2, 2025**
+**Date: October 3, 2025**
+- Implemented local username/password authentication for admin portal
+- Created adminUsers database table with role-based access (administrator/reviewer/read-only)
+- Built comprehensive admin dashboard with statistics for both form types
+- Created submission list views for Letter of Appointment and Quote Slip forms
+- Added detailed submission view pages with all fields displayed
+- Implemented XLSX export for both form types
+- Added Quote Slip & Declaration form with 8 document upload widgets
+- Integrated SignaturePad library for digital signature capture
+- Set up admin user creation script with bcrypt password hashing
+
+**Previous Updates (October 2, 2025)**
 - Created PostgreSQL database with Drizzle ORM
-- Built public-facing Unlockt Letter of Appointment form
-- Implemented MS Entra ID SSO authentication
-- Created authenticated admin dashboard
-- Added PDF export for individual submissions
-- Added XLSX export for bulk data
-- Configured Azure deployment (App Service + PostgreSQL)
-- Set up GitHub Actions workflow for CI/CD
+- Built public-facing Letter of Appointment form
+- Built Quote Slip & Declaration form
+- Added database-driven dropdowns (insurers, roof types, wall types, floor types, building types)
+- Configured Azure deployment structure
 
 ## Key Features
 
 ### 1. Public Form Submission
-- No authentication required for form submission
-- Client-side and server-side validation
-- Stores in PostgreSQL database
-- Matches Unlockt brand design with green gradient
+Both forms are publicly accessible without authentication:
 
-### 2. Admin Dashboard
-- Requires MS Entra ID authentication
-- View all form submissions
-- Real-time statistics (total, today, this week)
-- Export individual submissions as PDF
-- Export all submissions as XLSX
+**Letter of Appointment**
+- Strata management and property information
+- 5 appointment questions with checkboxes
+- Contact information
+- Digital signature with SignaturePad
+- File upload for common seal and letterhead
 
-### 3. Data Export
-- **PDF**: Individual submission letters with full formatting
-- **XLSX**: Bulk export of all submissions with all fields
+**Quote Slip & Declaration**
+- Comprehensive building and insurance information
+- Database-driven dropdown selections
+- 8 document upload widgets in 2-column grid layout
+- Facilities checkboxes (pools, gym, EV chargers, etc.)
+- Cover options (office bearers, machinery breakdown, catastrophe)
+- Disclosure questions
+- Digital signature and declaration section
+- Drag-and-drop file upload functionality
 
-### 4. Security
-- MS Entra ID SSO for admin access
+### 2. Admin Authentication
+- Local username/password authentication
+- Password hashing with bcrypt (12 salt rounds)
+- Role-based access control (administrator, reviewer, read-only)
+- Session-based authentication with httpOnly cookies
+- Active/inactive user management
+- Last login tracking
+
+**Default Admin Credentials:**
+- Username: `admin`
+- Password: `Admin@123456`
+- Email: `admin@unlockt.com`
+- Role: `administrator`
+
+### 3. Admin Dashboard
+- Overview of all submissions across both form types
+- Real-time statistics:
+  - Total submissions (combined)
+  - Today's submissions
+  - This week's submissions
+  - This month's submissions
+- Form-specific statistics for each type
+- Navigation to submission lists
+- Export buttons for XLSX downloads
+
+### 4. Submission Management
+**List Views:**
+- Searchable table of all submissions
+- Filter by strata plan, management name, address, etc.
+- Click to view detailed submission
+
+**Detail Views:**
+- Complete display of all form fields
+- Formatted display of checkboxes, dates, and currency
+- Links to view uploaded documents
+- Download PDF for Letter of Appointment submissions
+
+### 5. Data Export
+- **XLSX Export**: Comprehensive spreadsheet export for both form types
+  - All form fields included
+  - Boolean values converted to Yes/No
+  - Formatted for data analysis
+
+### 6. Security
+- Bcrypt password hashing (12 rounds)
 - Session management with httpOnly cookies
 - Input validation and sanitization
 - Prepared statements (SQL injection protection via ORM)
+- Admin authentication required for all admin routes
+- Secure file upload handling
 
-## Environment Variables
+## Database Schema
 
-Required for production:
+### adminUsers Table
+- `id`: Serial primary key
+- `username`: Unique username for login
+- `email`: User email address
+- `passwordHash`: Bcrypt hashed password
+- `role`: administrator, reviewer, or read-only
+- `isActive`: Boolean flag for account status
+- `createdAt`: Account creation timestamp
+- `lastLoginAt`: Last login timestamp
 
+### formSubmissions Table (Letter of Appointment)
+- All Letter of Appointment form fields
+- Contact information
+- 5 appointment question checkboxes
+- Signature and document files
+- Submission timestamp
+
+### quoteSlipSubmissions Table (Quote Slip & Declaration)
+- Strata and building information
+- Insurance details (current insurer, sum insured, renewal date)
+- Building characteristics (roof, walls, floors, type, year built)
+- Facilities checkboxes (11 types)
+- Cover options with values
+- Disclosure questions
+- 8 document upload fields
+- Declaration checkboxes and signature
+- Submission timestamp
+
+### Dropdown Data Tables
+- `insurers`: Insurance company names
+- `roofTypes`: Building roof types
+- `externalWallTypes`: External wall materials
+- `floorTypes`: Floor construction types
+- `buildingTypes`: Building classifications
+
+All dropdown tables include:
+- `name`, `displayOrder`, `isActive` fields for easy management
+
+## Admin User Management
+
+### Creating Admin Users
+Use the admin creation script:
+```bash
+node scripts/create-admin.js [username] [password] [email] [role]
 ```
-DATABASE_URL=postgresql://...
-AZURE_CLIENT_ID=your_client_id
-AZURE_TENANT_ID=your_tenant_id
-AZURE_CLIENT_SECRET=your_client_secret
-REDIRECT_URI=https://your-domain/auth/redirect
-POST_LOGOUT_REDIRECT_URI=https://your-domain
-SESSION_SECRET=random_secret_key
-NODE_ENV=production
+
+Example:
+```bash
+node scripts/create-admin.js reviewer Pass@123 reviewer@unlockt.com reviewer
 ```
+
+### Roles
+- **administrator**: Full access (view, export, user management)
+- **reviewer**: View and export submissions (future implementation)
+- **read-only**: View submissions only (future implementation)
+
+## API Endpoints
+
+### Authentication
+- `POST /api/admin/login` - Admin login
+- `GET /api/admin/check-session` - Check authentication status
+- `POST /api/admin/logout` - Admin logout
+
+### Statistics
+- `GET /api/admin/letter-of-appointment/stats` - LOA statistics
+- `GET /api/admin/quote-slip/stats` - Quote Slip statistics
+
+### Submissions
+- `GET /api/submissions` - List all Letter of Appointment submissions
+- `GET /api/submissions/:id` - Get specific LOA submission
+- `GET /api/quote-slip-submissions` - List all Quote Slip submissions
+- `GET /api/quote-slip-submissions/:id` - Get specific Quote Slip submission
+
+### Exports
+- `GET /api/export/letter-of-appointment` - Export LOA submissions to XLSX
+- `GET /api/export/quote-slip` - Export Quote Slip submissions to XLSX
+- `GET /api/export/pdf/:id` - Export individual LOA submission as PDF
+
+### Dropdowns
+- `GET /api/insurers` - Get active insurers
+- `GET /api/roof-types` - Get active roof types
+- `GET /api/external-wall-types` - Get active wall types
+- `GET /api/floor-types` - Get active floor types
+- `GET /api/building-types` - Get active building types
 
 ## Running Locally
 
 1. Database is already configured (Replit PostgreSQL)
 2. Install dependencies: `npm install`
 3. Run server: `npm start`
-4. Access public form: `http://localhost:5000/`
-5. Access admin: `http://localhost:5000/admin` (requires Azure credentials)
+4. Access forms:
+   - Landing: `http://localhost:5000/`
+   - Letter of Appointment: `http://localhost:5000/letter-of-appointment`
+   - Quote Slip: `http://localhost:5000/quote-slip`
+5. Access admin portal: `http://localhost:5000/admin-login.html`
+   - Login with: `admin` / `Admin@123456`
 
-## Database Schema
+## Future Enhancements
 
-### Users Table
-- Stores authenticated users from MS Entra ID
-- Links Entra ID to local user record
-
-### Form Submissions Table
-- All form fields from the Letter of Appointment
-- Anonymous submissions (no user association)
-- Timestamps for submission tracking
-
-## Azure Deployment
-
-See `azure-deployment.md` for complete deployment guide including:
-- MS Entra ID app registration
-- Azure App Service setup
-- Azure Database for PostgreSQL configuration
-- Key Vault integration
-- GitHub Actions CI/CD
-
-## Future Integrations
-
-### Microsoft Fabric Data Lake
-- Export submissions to Azure Data Lake Storage
-- Set up Fabric workspace for analytics
-- Create transformation pipelines
-- Build Power BI reports
+### Planned Features
+1. **MS Entra ID SSO Integration** - Replace local authentication
+2. **Microsoft Fabric Data Lake** - Export submissions for analytics
+3. **Role-based permissions** - Implement reviewer and read-only access levels
+4. **Email notifications** - Notify admins of new submissions
+5. **Submission status tracking** - Mark submissions as reviewed/processed
+6. **Advanced filtering** - Filter submissions by date range, status, etc.
+7. **Bulk actions** - Select multiple submissions for bulk export/deletion
+8. **User management UI** - Admin interface to create/manage admin users
 
 ## User Preferences
 
-- **Authentication**: MS Entra ID SSO only (no other auth methods)
+- **Authentication**: Local username/password (MS Entra ID SSO for future implementation)
 - **Deployment**: Azure App Service (VM mode for stateful sessions)
 - **Database**: PostgreSQL (Azure Database for PostgreSQL in production)
-- **Export formats**: PDF (individual), XLSX (bulk)
+- **Export formats**: XLSX (bulk), PDF (individual - LOA only)
+- **Design**: Green gradient theme matching Unlockt brand
 
 ## Notes
 
 - Form submissions are public (anyone can submit)
-- Only authenticated users can view submissions
-- Azure credentials must be configured for authentication to work
-- Application uses session-based authentication (not JWT)
-- Designed for Azure deployment with Key Vault integration
+- Only authenticated admin users can view submissions
+- Uploaded files stored in `/uploads` directory
+- Signatures stored as PNG images
+- All admin routes protected with authentication middleware
+- Session expires after 24 hours of inactivity
+- Password changes should be implemented after first login
+- Application designed for Azure deployment with Key Vault integration
