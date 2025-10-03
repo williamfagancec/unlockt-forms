@@ -85,10 +85,6 @@ const authMiddleware = (req, res, next) => {
   next();
 };
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 app.get('/letter-of-appointment', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'letter-of-appointment.html'));
 });
@@ -176,6 +172,10 @@ const adminPageMiddleware = async (req, res, next) => {
   req.adminUser = user;
   next();
 };
+
+app.get('/', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 
 app.get('/admin', adminPageMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
