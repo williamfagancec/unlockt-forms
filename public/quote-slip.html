@@ -675,6 +675,175 @@
           </div>
         </div>
 
+        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Document Uploads</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+          <div class="file-upload-container">
+            <label>Defects If applicable - Upload Relevant Docs</label>
+            <div class="file-upload-box" id="defectsRelevantDocsUploadBox">
+              <input type="file" id="defectsRelevantDocsFile" name="defectsRelevantDocsFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="defectsRelevantDocsPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="defectsRelevantDocsFileName"></div>
+                  <div class="file-size" id="defectsRelevantDocsFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="defectsRelevantDocsDelete">Delete</button>
+            </div>
+          </div>
+
+          <div class="file-upload-container">
+            <label>WHS (If applicable)</label>
+            <div class="file-upload-box" id="whsUploadBox">
+              <input type="file" id="whsFile" name="whsFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="whsPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="whsFileName"></div>
+                  <div class="file-size" id="whsFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="whsDelete">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+          <div class="file-upload-container">
+            <label>Claims History (Last 5 years)</label>
+            <div class="file-upload-box" id="claimsHistoryUploadBox">
+              <input type="file" id="claimsHistoryFile" name="claimsHistoryFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="claimsHistoryPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="claimsHistoryFileName"></div>
+                  <div class="file-size" id="claimsHistoryFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="claimsHistoryDelete">Delete</button>
+            </div>
+          </div>
+
+          <div class="file-upload-container">
+            <label>Strata Plans</label>
+            <div class="file-upload-box" id="strataPlansUploadBox">
+              <input type="file" id="strataPlansFile" name="strataPlansFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="strataPlansPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="strataPlansFileName"></div>
+                  <div class="file-size" id="strataPlansFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="strataPlansDelete">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+          <div class="file-upload-container">
+            <label>Asbestos Report</label>
+            <div class="file-upload-box" id="asbestosReportUploadBox">
+              <input type="file" id="asbestosReportFile" name="asbestosReportFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="asbestosReportPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="asbestosReportFileName"></div>
+                  <div class="file-size" id="asbestosReportFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="asbestosReportDelete">Delete</button>
+            </div>
+          </div>
+
+          <div class="file-upload-container">
+            <label>Commercial Tenant List (If applicable)</label>
+            <div class="file-upload-box" id="commercialTenantListUploadBox">
+              <input type="file" id="commercialTenantListFile" name="commercialTenantListFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="commercialTenantListPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="commercialTenantListFileName"></div>
+                  <div class="file-size" id="commercialTenantListFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="commercialTenantListDelete">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+          <div class="file-upload-container">
+            <label>Most Recent Valuation</label>
+            <div class="file-upload-box" id="mostRecentValuationUploadBox">
+              <input type="file" id="mostRecentValuationFile" name="mostRecentValuationFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="mostRecentValuationPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="mostRecentValuationFileName"></div>
+                  <div class="file-size" id="mostRecentValuationFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="mostRecentValuationDelete">Delete</button>
+            </div>
+          </div>
+
+          <div class="file-upload-container">
+            <label>Preventative Maintenance Program (Unlockt to provide)</label>
+            <div class="file-upload-box" id="preventativeMaintenanceProgramUploadBox">
+              <input type="file" id="preventativeMaintenanceProgramFile" name="preventativeMaintenanceProgramFile" accept="*/*">
+              <div class="upload-icon">☁️</div>
+              <h4>Browse Files</h4>
+              <p>Drag and drop files here</p>
+            </div>
+            <div class="file-preview" id="preventativeMaintenanceProgramPreview">
+              <div class="file-info">
+                <div class="file-icon">📄</div>
+                <div class="file-details">
+                  <div class="file-name" id="preventativeMaintenanceProgramFileName"></div>
+                  <div class="file-size" id="preventativeMaintenanceProgramFileSize"></div>
+                </div>
+              </div>
+              <button type="button" class="delete-btn" id="preventativeMaintenanceProgramDelete">Delete</button>
+            </div>
+          </div>
+        </div>
+
         <hr class="submit-divider">
 
         <button type="submit">Submit to Unlockt</button>
