@@ -352,6 +352,7 @@ app.get('/api/export/pdf/:id', authMiddleware, async (req, res) => {
     doc.text(`2. Seek insurance quotations: ${submission.questionCheckbox2 ? 'Yes' : 'No'}`);
     doc.text(`3. Unlockt will not bind cover: ${submission.questionCheckbox3 ? 'Yes' : 'No'}`);
     doc.text(`4. Financial services authorization: ${submission.questionCheckbox4 ? 'Yes' : 'No'}`);
+    doc.text(`5. Strata Manager insurance advice confirmation: ${submission.questionCheckbox5 ? 'Yes' : 'No'}`);
     doc.moveDown(0.5);
     
     doc.fontSize(11).text('Confirmation:', { bold: true });
@@ -392,6 +393,7 @@ app.get('/api/export/xlsx', authMiddleware, async (req, res) => {
       { header: 'Q2: Quotations', key: 'questionCheckbox2', width: 15 },
       { header: 'Q3: Not Bind Cover', key: 'questionCheckbox3', width: 15 },
       { header: 'Q4: Financial Services', key: 'questionCheckbox4', width: 20 },
+      { header: 'Q5: Strata Manager Advice', key: 'questionCheckbox5', width: 20 },
       { header: 'Confirmation', key: 'confirmationCheckbox', width: 15 },
       { header: 'Submission Date', key: 'submissionDate', width: 15 },
       { header: 'Submitted At', key: 'submittedAt', width: 20 }
@@ -413,6 +415,7 @@ app.get('/api/export/xlsx', authMiddleware, async (req, res) => {
         questionCheckbox2: sub.questionCheckbox2 ? 'Yes' : 'No',
         questionCheckbox3: sub.questionCheckbox3 ? 'Yes' : 'No',
         questionCheckbox4: sub.questionCheckbox4 ? 'Yes' : 'No',
+        questionCheckbox5: sub.questionCheckbox5 ? 'Yes' : 'No',
         confirmationCheckbox: sub.confirmationCheckbox ? 'Yes' : 'No',
         submissionDate: sub.submissionDate,
         submittedAt: new Date(sub.submittedAt).toLocaleString()
