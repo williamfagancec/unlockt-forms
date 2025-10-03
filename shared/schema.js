@@ -88,6 +88,14 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   afssCurrent: varchar('afss_current', { length: 10 }),
   residentialLessThan20Commercial: varchar('residential_less_than_20_commercial', { length: 10 }),
   majorWorksOver500k: varchar('major_works_over_500k', { length: 10 }),
+  defectsRelevantDocsFile: varchar('defects_relevant_docs_file', { length: 500 }),
+  whsFile: varchar('whs_file', { length: 500 }),
+  claimsHistoryFile: varchar('claims_history_file', { length: 500 }),
+  strataPlansFile: varchar('strata_plans_file', { length: 500 }),
+  asbestosReportFile: varchar('asbestos_report_file', { length: 500 }),
+  commercialTenantListFile: varchar('commercial_tenant_list_file', { length: 500 }),
+  mostRecentValuationFile: varchar('most_recent_valuation_file', { length: 500 }),
+  preventativeMaintenanceProgramFile: varchar('preventative_maintenance_program_file', { length: 500 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 }, (table) => ({
   submittedAtIdx: index('quote_slip_submissions_submitted_at_idx').on(table.submittedAt),
