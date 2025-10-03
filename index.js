@@ -340,7 +340,14 @@ app.post('/api/submit-quote-slip', upload.fields([
       currentStandardExcess: req.body.currentStandardExcess || null,
       coverOfficeBearers: req.body.coverOfficeBearers === 'on',
       coverMachineryBreakdown: req.body.coverMachineryBreakdown === 'on',
-      coverCatastrophe: req.body.coverCatastrophe === 'on'
+      coverCatastrophe: req.body.coverCatastrophe === 'on',
+      coverOfficeBearersValue: req.body.coverOfficeBearersValue || null,
+      coverMachineryBreakdownValue: req.body.coverMachineryBreakdownValue || null,
+      coverCatastropheValue: req.body.coverCatastropheValue || null,
+      defectsAffectingProperty: req.body.defectsAffectingProperty || null,
+      afssCurrent: req.body.afssCurrent || null,
+      residentialLessThan20Commercial: req.body.residentialLessThan20Commercial || null,
+      majorWorksOver500k: req.body.majorWorksOver500k || null
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();
