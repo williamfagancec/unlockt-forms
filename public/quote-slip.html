@@ -412,6 +412,55 @@
           </div>
         </div>
 
+        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Building Construction</h3>
+        <div class="form-row">
+          <div>
+            <label for="roofType">Roof</label>
+            <select id="roofType" name="roofType" disabled>
+              <option value="">Loading roof types...</option>
+            </select>
+          </div>
+          <div>
+            <label for="externalWallType">External Walls</label>
+            <select id="externalWallType" name="externalWallType" disabled>
+              <option value="">Loading wall types...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="floorType">Floor</label>
+            <select id="floorType" name="floorType" disabled>
+              <option value="">Loading floor types...</option>
+            </select>
+          </div>
+          <div>
+            <label for="buildingType">Type</label>
+            <select id="buildingType" name="buildingType" disabled>
+              <option value="">Loading building types...</option>
+            </select>
+          </div>
+        </div>
+
+        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Year Built / No. Units / No. Floors</h3>
+        <div class="form-row">
+          <div>
+            <label for="yearBuilt">Year Built</label>
+            <select id="yearBuilt" name="yearBuilt">
+              <option value="">Select</option>
+            </select>
+          </div>
+          <div>
+            <label for="numberOfLots">Number of Lots</label>
+            <input type="text" id="numberOfLots" name="numberOfLots" placeholder="">
+          </div>
+          <div>
+            <label for="numberOfFloors">Number of Floors</label>
+            <input type="text" id="numberOfFloors" name="numberOfFloors" placeholder="">
+          </div>
+        </div>
+
         <hr class="submit-divider">
 
         <button type="submit">Submit to Unlockt</button>
@@ -513,6 +562,53 @@
     }
 
     loadInsurers();
+
+    async function loadDropdown(apiEndpoint, selectId, defaultOption = 'Please Select') {
+      const select = document.getElementById(selectId);
+      
+      try {
+        const response = await fetch(apiEndpoint);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${selectId}`);
+        }
+        
+        const items = await response.json();
+        
+        select.innerHTML = `<option value="">${defaultOption}</option>`;
+        
+        items.forEach(item => {
+          const option = document.createElement('option');
+          option.value = item.name;
+          option.textContent = item.name;
+          select.appendChild(option);
+        });
+        
+        select.disabled = false;
+      } catch (error) {
+        console.error(`Error loading ${selectId}:`, error);
+        select.innerHTML = `<option value="">${defaultOption}</option>`;
+        select.disabled = false;
+      }
+    }
+
+    function generateYearOptions() {
+      const select = document.getElementById('yearBuilt');
+      const currentYear = new Date().getFullYear();
+      
+      for (let year = currentYear; year >= 1900; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        select.appendChild(option);
+      }
+    }
+
+    loadDropdown('/api/roof-types', 'roofType');
+    loadDropdown('/api/external-wall-types', 'externalWallType');
+    loadDropdown('/api/floor-types', 'floorType');
+    loadDropdown('/api/building-types', 'buildingType');
+    generateYearOptions();
 
     document.getElementById('quoteSlipForm').addEventListener('submit', async (e) => {
       e.preventDefault();
