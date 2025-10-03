@@ -184,6 +184,124 @@
       cursor: not-allowed;
     }
 
+    .file-upload-container {
+      margin-bottom: 20px;
+    }
+
+    .file-upload-box {
+      border: 2px dashed #ccc;
+      border-radius: 4px;
+      padding: 40px 20px;
+      text-align: center;
+      background: #fafafa;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .file-upload-box:hover {
+      border-color: #999;
+      background: #f5f5f5;
+    }
+
+    .file-upload-box.dragover {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 15px;
+      background: #8b95a5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .file-upload-box h4 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .file-upload-box p {
+      font-size: 12px;
+      color: #999;
+      margin: 0;
+    }
+
+    .file-upload-box input[type="file"] {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-preview.active {
+      display: flex;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-icon {
+      width: 32px;
+      height: 32px;
+      background: #4CAF50;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .file-details {
+      text-align: left;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: #999;
+    }
+
+    .delete-file-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .delete-file-btn:hover {
+      background: #d32f2f;
+    }
+
     .success-message {
       display: none;
       background: #d4edda;
@@ -303,31 +421,120 @@
           <input type="date" id="submissionDate" name="submissionDate" required>
         </div>
 
+        <div class="file-upload-container">
+          <label>Upload Common Seal <span class="required">*</span></label>
+          <div class="file-upload-box" id="commonSealUploadBox">
+            <input type="file" id="commonSealFile" name="commonSealFile" accept="*/*" required>
+            <div class="upload-icon">☁️</div>
+            <h4>Upload a File</h4>
+            <p>Drag and drop files here</p>
+          </div>
+          <div class="file-preview" id="commonSealPreview">
+            <div class="file-info">
+              <div class="file-icon">📄</div>
+              <div class="file-details">
+                <div class="file-name" id="commonSealFileName"></div>
+                <div class="file-size" id="commonSealFileSize"></div>
+              </div>
+            </div>
+            <button type="button" class="delete-file-btn" id="deleteCommonSeal">Delete</button>
+          </div>
+        </div>
+
+        <div class="file-upload-container">
+          <label>Company Letter Head <span class="required">*</span></label>
+          <div class="file-upload-box" id="letterHeadUploadBox">
+            <input type="file" id="letterHeadFile" name="letterHeadFile" accept="*/*" required>
+            <div class="upload-icon">☁️</div>
+            <h4>Upload a File</h4>
+            <p>Drag and drop files here</p>
+          </div>
+          <div class="file-preview" id="letterHeadPreview">
+            <div class="file-info">
+              <div class="file-icon">📄</div>
+              <div class="file-details">
+                <div class="file-name" id="letterHeadFileName"></div>
+                <div class="file-size" id="letterHeadFileSize"></div>
+              </div>
+            </div>
+            <button type="button" class="delete-file-btn" id="deleteLetterHead">Delete</button>
+          </div>
+        </div>
+
         <button type="submit">Submit Form</button>
       </form>
     </div>
   </div>
 
   <script>
+    function setupFileUpload(inputId, boxId, previewId, fileNameId, fileSizeId, deleteId) {
+      const input = document.getElementById(inputId);
+      const box = document.getElementById(boxId);
+      const preview = document.getElementById(previewId);
+      const fileName = document.getElementById(fileNameId);
+      const fileSize = document.getElementById(fileSizeId);
+      const deleteBtn = document.getElementById(deleteId);
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+      }
+
+      function handleFile(file) {
+        if (file) {
+          fileName.textContent = file.name;
+          fileSize.textContent = formatFileSize(file.size);
+          preview.classList.add('active');
+          box.style.display = 'none';
+        }
+      }
+
+      box.addEventListener('click', () => input.click());
+
+      input.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      box.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        box.classList.add('dragover');
+      });
+
+      box.addEventListener('dragleave', () => {
+        box.classList.remove('dragover');
+      });
+
+      box.addEventListener('drop', (e) => {
+        e.preventDefault();
+        box.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          input.files = files;
+          handleFile(files[0]);
+        }
+      });
+
+      deleteBtn.addEventListener('click', () => {
+        input.value = '';
+        preview.classList.remove('active');
+        box.style.display = 'block';
+      });
+    }
+
+    setupFileUpload('commonSealFile', 'commonSealUploadBox', 'commonSealPreview', 
+                    'commonSealFileName', 'commonSealFileSize', 'deleteCommonSeal');
+    setupFileUpload('letterHeadFile', 'letterHeadUploadBox', 'letterHeadPreview', 
+                    'letterHeadFileName', 'letterHeadFileSize', 'deleteLetterHead');
+
     document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const formData = new FormData(e.target);
-      const data = {
-        strataManagement: formData.get('strataManagement'),
-        strataPlanNumber: formData.get('strataPlanNumber'),
-        streetAddress: formData.get('streetAddress'),
-        streetAddressLine2: formData.get('streetAddressLine2'),
-        city: formData.get('city'),
-        state: formData.get('state'),
-        postal: formData.get('postal'),
-        questionCheckbox1: formData.get('questionCheckbox1') || 'false',
-        questionCheckbox2: formData.get('questionCheckbox2') || 'false',
-        questionCheckbox3: formData.get('questionCheckbox3') || 'false',
-        questionCheckbox4: formData.get('questionCheckbox4') || 'false',
-        confirmationCheckbox: formData.get('confirmationCheckbox') || 'false',
-        submissionDate: formData.get('submissionDate')
-      };
 
       const submitButton = e.target.querySelector('button[type="submit"]');
       submitButton.disabled = true;
@@ -336,10 +543,7 @@
       try {
         const response = await fetch('/api/submit-form', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
+          body: formData
         });
 
         const result = await response.json();
@@ -348,6 +552,10 @@
           document.getElementById('successMessage').style.display = 'block';
           document.getElementById('errorMessage').style.display = 'none';
           e.target.reset();
+          document.getElementById('commonSealPreview').classList.remove('active');
+          document.getElementById('letterHeadPreview').classList.remove('active');
+          document.getElementById('commonSealUploadBox').style.display = 'block';
+          document.getElementById('letterHeadUploadBox').style.display = 'block';
           window.scrollTo(0, 0);
         } else {
           throw new Error(result.error || 'Submission failed');

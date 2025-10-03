@@ -23,6 +23,8 @@ const formSubmissions = pgTable('form_submissions', {
   questionCheckbox4: boolean('question_checkbox_4').default(false),
   confirmationCheckbox: boolean('confirmation_checkbox').notNull(),
   submissionDate: date('submission_date').notNull(),
+  commonSealFile: varchar('common_seal_file', { length: 500 }),
+  letterHeadFile: varchar('letter_head_file', { length: 500 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 });
 

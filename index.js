@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const msal = require('@azure/msal-node');
+const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const { db } = require('./server/db');
 const { formSubmissions, users } = require('./shared/schema');
@@ -9,9 +10,29 @@ const { eq, desc } = require('drizzle-orm');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -145,7 +166,10 @@ app.get('/api/auth/status', (req, res) => {
   }
 });
 
-app.post('/api/submit-form', [
+app.post('/api/submit-form', upload.fields([
+  { name: 'commonSealFile', maxCount: 1 },
+  { name: 'letterHeadFile', maxCount: 1 }
+]), [
   body('strataManagement').trim().notEmpty().withMessage('Strata Management is required'),
   body('strataPlanNumber').trim().notEmpty().withMessage('Strata Plan Number is required'),
   body('confirmationCheckbox').equals('true').withMessage('Confirmation is required'),
@@ -170,7 +194,9 @@ app.post('/api/submit-form', [
       questionCheckbox3: req.body.questionCheckbox3 === 'true',
       questionCheckbox4: req.body.questionCheckbox4 === 'true',
       confirmationCheckbox: req.body.confirmationCheckbox === 'true',
-      submissionDate: req.body.submissionDate
+      submissionDate: req.body.submissionDate,
+      commonSealFile: req.files?.commonSealFile?.[0]?.filename || null,
+      letterHeadFile: req.files?.letterHeadFile?.[0]?.filename || null
     };
 
     const [submission] = await db.insert(formSubmissions).values(formData).returning();
