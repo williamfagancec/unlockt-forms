@@ -197,6 +197,10 @@ app.get('/admin/quote-slip/:id', adminPageMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin', 'quote-slip-detail.html'));
 });
 
+app.get('/admin/users', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'users.html'));
+});
+
 app.post('/api/admin/login', [
   body('username').trim().notEmpty().withMessage('Username is required'),
   body('password').notEmpty().withMessage('Password is required')
@@ -286,6 +290,135 @@ app.post('/api/admin/logout', (req, res) => {
     }
     res.json({ success: true });
   });
+});
+
+app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
+  try {
+    const users = await db.select({
+      id: adminUsers.id,
+      username: adminUsers.username,
+      email: adminUsers.email,
+      role: adminUsers.role,
+      isActive: adminUsers.isActive,
+      lastLoginAt: adminUsers.lastLoginAt,
+      createdAt: adminUsers.createdAt
+    }).from(adminUsers).orderBy(desc(adminUsers.createdAt));
+    
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+function generatePassword() {
+  const length = 12;
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+}
+
+async function sendOnboardingEmail(email, username, temporaryPassword, role) {
+  const emailContent = `
+Welcome to Unlockt Forms!
+
+Your admin account has been created with the following credentials:
+
+Username: ${username}
+Temporary Password: ${temporaryPassword}
+Role: ${role}
+
+Please log in at: ${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/admin-login.html` : 'http://localhost:5000/admin-login.html'}
+
+For security, please change your password after your first login.
+
+Best regards,
+Unlockt Insurance Solutions Team
+  `.trim();
+
+  console.log('=== ONBOARDING EMAIL ===');
+  console.log(`To: ${email}`);
+  console.log(`Subject: Welcome to Unlockt Forms - Your Account Details`);
+  console.log('---');
+  console.log(emailContent);
+  console.log('========================');
+  
+  return { success: true, message: 'Email logged to console (email service not configured)' };
+}
+
+app.post('/api/admin/users', adminAuthMiddleware, [
+  body('username').trim().notEmpty().withMessage('Username is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { username, email, role } = req.body;
+    
+    const existingUser = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    if (existingUser.length > 0) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    const existingEmail = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
+    if (existingEmail.length > 0) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    const temporaryPassword = generatePassword();
+    const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+
+    const [newUser] = await db.insert(adminUsers).values({
+      username,
+      email,
+      passwordHash,
+      role,
+      isActive: true
+    }).returning();
+
+    await sendOnboardingEmail(email, username, temporaryPassword, role);
+
+    res.json({
+      success: true,
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role
+      },
+      temporaryPassword
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await db.update(adminUsers)
+      .set({ isActive: !user.isActive })
+      .where(eq(adminUsers.id, userId));
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error toggling user status:', error);
+    res.status(500).json({ error: 'Failed to update user status' });
+  }
 });
 
 app.get('/auth/signin', (req, res) => {
