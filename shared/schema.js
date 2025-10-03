@@ -168,6 +168,22 @@ const buildingTypes = pgTable('building_types', {
   displayOrderIdx: index('building_types_display_order_idx').on(table.displayOrder)
 }));
 
+const adminUsers = pgTable('admin_users', {
+  id: serial('id').primaryKey(),
+  username: varchar('username', { length: 100 }).notNull().unique(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  role: varchar('role', { length: 50 }).notNull().default('viewer'),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastLoginAt: timestamp('last_login_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+}, (table) => ({
+  usernameIdx: index('admin_users_username_idx').on(table.username),
+  emailIdx: index('admin_users_email_idx').on(table.email),
+  isActiveIdx: index('admin_users_is_active_idx').on(table.isActive)
+}));
+
 module.exports = {
   users,
   formSubmissions,
@@ -176,5 +192,6 @@ module.exports = {
   roofTypes,
   externalWallTypes,
   floorTypes,
-  buildingTypes
+  buildingTypes,
+  adminUsers
 };

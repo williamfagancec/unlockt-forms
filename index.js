@@ -4,8 +4,9 @@ const session = require('express-session');
 const msal = require('@azure/msal-node');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 const { db } = require('./server/db');
-const { formSubmissions, users, quoteSlipSubmissions, insurers, roofTypes, externalWallTypes, floorTypes, buildingTypes } = require('./shared/schema');
+const { formSubmissions, users, quoteSlipSubmissions, insurers, roofTypes, externalWallTypes, floorTypes, buildingTypes, adminUsers } = require('./shared/schema');
 const { eq, desc } = require('drizzle-orm');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
@@ -147,6 +148,112 @@ app.get('/api/building-types', async (req, res) => {
     console.error('Error fetching building types:', error);
     res.status(500).json({ error: 'Failed to fetch building types' });
   }
+});
+
+const adminAuthMiddleware = async (req, res, next) => {
+  if (!req.session.adminUser) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
+  if (!user || !user.isActive) {
+    req.session.destroy();
+    return res.status(401).json({ error: 'User not found or inactive' });
+  }
+  
+  req.adminUser = user;
+  next();
+};
+
+app.post('/api/admin/login', [
+  body('username').trim().notEmpty().withMessage('Username is required'),
+  body('password').notEmpty().withMessage('Password is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { username, password } = req.body;
+    
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    
+    if (!user.isActive) {
+      return res.status(401).json({ error: 'Account is inactive' });
+    }
+    
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    
+    await db.update(adminUsers)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(adminUsers.id, user.id));
+    
+    req.session.adminUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
+    
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+app.get('/api/admin/check-session', async (req, res) => {
+  if (!req.session.adminUser) {
+    return res.json({ authenticated: false });
+  }
+  
+  try {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
+    
+    if (!user || !user.isActive) {
+      req.session.destroy();
+      return res.json({ authenticated: false });
+    }
+    
+    res.json({
+      authenticated: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Session check error:', error);
+    res.json({ authenticated: false });
+  }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.json({ success: true });
+  });
 });
 
 app.get('/auth/signin', (req, res) => {
