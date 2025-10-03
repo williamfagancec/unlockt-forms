@@ -25,6 +25,7 @@ const formSubmissions = pgTable('form_submissions', {
   submissionDate: date('submission_date').notNull(),
   commonSealFile: varchar('common_seal_file', { length: 500 }),
   letterHeadFile: varchar('letter_head_file', { length: 500 }),
+  signatureFile: varchar('signature_file', { length: 500 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 });
 

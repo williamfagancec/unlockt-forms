@@ -302,6 +302,78 @@
       background: #d32f2f;
     }
 
+    .signature-container {
+      margin-bottom: 20px;
+    }
+
+    .signature-wrapper {
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+      padding: 15px;
+      position: relative;
+    }
+
+    .signature-canvas {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      display: block;
+      cursor: crosshair;
+      width: 100%;
+      touch-action: none;
+    }
+
+    .signature-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #999;
+      font-size: 14px;
+      pointer-events: none;
+      font-style: italic;
+    }
+
+    .signature-placeholder.hidden {
+      display: none;
+    }
+
+    .signature-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .signature-controls button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .clear-signature-btn {
+      background: #ff9800;
+      color: white;
+    }
+
+    .clear-signature-btn:hover {
+      background: #f57c00;
+    }
+
+    .signature-error {
+      display: none;
+      color: #d32f2f;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .signature-error.active {
+      display: block;
+    }
+
     .success-message {
       display: none;
       background: #d4edda;
@@ -461,12 +533,69 @@
           </div>
         </div>
 
+        <div class="signature-container">
+          <label>Sign Here <span class="required">*</span></label>
+          <div class="signature-wrapper">
+            <canvas id="signatureCanvas" class="signature-canvas" width="700" height="200"></canvas>
+            <div class="signature-placeholder" id="signaturePlaceholder">Sign here</div>
+          </div>
+          <div class="signature-controls">
+            <button type="button" class="clear-signature-btn" id="clearSignature">Clear</button>
+          </div>
+          <div class="signature-error" id="signatureError">Signature is required</div>
+          <input type="hidden" id="signatureData" name="signatureData">
+        </div>
+
         <button type="submit">Submit Form</button>
       </form>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <script>
+    let signaturePad;
+    const canvas = document.getElementById('signatureCanvas');
+    const placeholder = document.getElementById('signaturePlaceholder');
+    const signatureError = document.getElementById('signatureError');
+    const signatureDataInput = document.getElementById('signatureData');
+
+    function resizeCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      canvas.getContext('2d').scale(ratio, ratio);
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgb(255, 255, 255)',
+      penColor: 'rgb(0, 0, 0)',
+      minWidth: 0.5,
+      maxWidth: 2.5
+    });
+
+    signaturePad.addEventListener('beginStroke', () => {
+      placeholder.classList.add('hidden');
+      signatureError.classList.remove('active');
+    });
+
+    signaturePad.addEventListener('endStroke', () => {
+      const data = signaturePad.toDataURL('image/png');
+      signatureDataInput.value = data;
+    });
+
+    document.getElementById('clearSignature').addEventListener('click', () => {
+      signaturePad.clear();
+      placeholder.classList.remove('hidden');
+      signatureDataInput.value = '';
+      signatureError.classList.remove('active');
+    });
+
     function setupFileUpload(inputId, boxId, previewId, fileNameId, fileSizeId, deleteId) {
       const input = document.getElementById(inputId);
       const box = document.getElementById(boxId);
@@ -534,6 +663,14 @@
     document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      if (signaturePad.isEmpty()) {
+        signatureError.classList.add('active');
+        signatureError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      signatureError.classList.remove('active');
+      
       const formData = new FormData(e.target);
 
       const submitButton = e.target.querySelector('button[type="submit"]');
@@ -552,6 +689,9 @@
           document.getElementById('successMessage').style.display = 'block';
           document.getElementById('errorMessage').style.display = 'none';
           e.target.reset();
+          signaturePad.clear();
+          placeholder.classList.remove('hidden');
+          signatureDataInput.value = '';
           document.getElementById('commonSealPreview').classList.remove('active');
           document.getElementById('letterHeadPreview').classList.remove('active');
           document.getElementById('commonSealUploadBox').style.display = 'block';

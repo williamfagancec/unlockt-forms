@@ -173,7 +173,8 @@ app.post('/api/submit-form', upload.fields([
   body('strataManagement').trim().notEmpty().withMessage('Strata Management is required'),
   body('strataPlanNumber').trim().notEmpty().withMessage('Strata Plan Number is required'),
   body('confirmationCheckbox').equals('true').withMessage('Confirmation is required'),
-  body('submissionDate').isDate().withMessage('Valid date is required')
+  body('submissionDate').isDate().withMessage('Valid date is required'),
+  body('signatureData').notEmpty().withMessage('Signature is required')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -181,6 +182,22 @@ app.post('/api/submit-form', upload.fields([
   }
 
   try {
+    let signatureFilename = null;
+    
+    if (req.body.signatureData) {
+      const base64Data = req.body.signatureData.replace(/^data:image\/png;base64,/, '');
+      const timestamp = Date.now();
+      const randomId = Math.round(Math.random() * 1E9);
+      signatureFilename = `signature-${timestamp}-${randomId}.png`;
+      const signaturePath = path.join('uploads', signatureFilename);
+      
+      if (!fs.existsSync('uploads')) {
+        fs.mkdirSync('uploads', { recursive: true });
+      }
+      
+      fs.writeFileSync(signaturePath, base64Data, 'base64');
+    }
+
     const formData = {
       strataManagement: req.body.strataManagement,
       strataPlanNumber: req.body.strataPlanNumber,
@@ -196,7 +213,8 @@ app.post('/api/submit-form', upload.fields([
       confirmationCheckbox: req.body.confirmationCheckbox === 'true',
       submissionDate: req.body.submissionDate,
       commonSealFile: req.files?.commonSealFile?.[0]?.filename || null,
-      letterHeadFile: req.files?.letterHeadFile?.[0]?.filename || null
+      letterHeadFile: req.files?.letterHeadFile?.[0]?.filename || null,
+      signatureFile: signatureFilename
     };
 
     const [submission] = await db.insert(formSubmissions).values(formData).returning();
