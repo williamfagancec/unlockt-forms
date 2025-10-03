@@ -99,6 +99,16 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+app.get('/api/insurers', async (req, res) => {
+  try {
+    const insurersList = await db.select().from(insurers).where(eq(insurers.isActive, true)).orderBy(insurers.displayOrder, insurers.name);
+    res.json(insurersList);
+  } catch (error) {
+    console.error('Error fetching insurers:', error);
+    res.status(500).json({ error: 'Failed to fetch insurers' });
+  }
+});
+
 app.get('/auth/signin', (req, res) => {
   if (!azureConfigured || !cca) {
     return res.status(503).send('Azure AD authentication is not configured. Please set AZURE_CLIENT_ID, AZURE_TENANT_ID, and AZURE_CLIENT_SECRET environment variables.');

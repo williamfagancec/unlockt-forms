@@ -396,13 +396,6 @@
             <label for="currentInsurer">Current Insurer</label>
             <select id="currentInsurer" name="currentInsurer">
               <option value="">Please Select</option>
-              <option value="Allianz">Allianz</option>
-              <option value="AIG">AIG</option>
-              <option value="CGU">CGU</option>
-              <option value="QBE">QBE</option>
-              <option value="Suncorp">Suncorp</option>
-              <option value="Zurich">Zurich</option>
-              <option value="Other">Other</option>
             </select>
           </div>
         </div>
@@ -486,6 +479,25 @@
     }
 
     setupFileUpload('cocFile', 'cocUploadBox', 'cocPreview', 'cocFileName', 'cocFileSize', 'deleteCoc');
+
+    async function loadInsurers() {
+      try {
+        const response = await fetch('/api/insurers');
+        const insurers = await response.json();
+        const select = document.getElementById('currentInsurer');
+        
+        insurers.forEach(insurer => {
+          const option = document.createElement('option');
+          option.value = insurer.name;
+          option.textContent = insurer.name;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading insurers:', error);
+      }
+    }
+
+    loadInsurers();
 
     document.getElementById('quoteSlipForm').addEventListener('submit', async (e) => {
       e.preventDefault();
