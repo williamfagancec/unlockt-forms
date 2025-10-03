@@ -238,7 +238,8 @@ app.post('/api/submit-quote-slip', upload.fields([
 ]), [
   body('strataManagementName').trim().notEmpty().withMessage('Strata Management Name is required'),
   body('contactPerson').trim().notEmpty().withMessage('Contact Person is required'),
-  body('strataPlanNumber').trim().notEmpty().withMessage('Strata Plan Number is required')
+  body('strataPlanNumber').trim().notEmpty().withMessage('Strata Plan Number is required'),
+  body('renewalDate').notEmpty().withMessage('Renewal Date is required')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -251,7 +252,15 @@ app.post('/api/submit-quote-slip', upload.fields([
       contactPerson: req.body.contactPerson,
       strataPlanNumber: req.body.strataPlanNumber,
       currentCocFile: req.files?.cocFile?.[0]?.filename || null,
-      address: req.body.address || null
+      address: req.body.address || null,
+      streetAddressLine2: req.body.streetAddressLine2 || null,
+      city: req.body.city || null,
+      state: req.body.state || null,
+      postal: req.body.postal || null,
+      renewalDate: req.body.renewalDate,
+      currentInsurer: req.body.currentInsurer || null,
+      currentBuildingSumInsured: req.body.currentBuildingSumInsured || null,
+      requestedSumInsured: req.body.requestedSumInsured || null
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();

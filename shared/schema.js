@@ -36,6 +36,14 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   strataPlanNumber: varchar('strata_plan_number', { length: 100 }).notNull(),
   currentCocFile: varchar('current_coc_file', { length: 500 }),
   address: varchar('address', { length: 500 }),
+  streetAddressLine2: varchar('street_address_line2', { length: 255 }),
+  city: varchar('city', { length: 100 }),
+  state: varchar('state', { length: 100 }),
+  postal: varchar('postal', { length: 20 }),
+  renewalDate: date('renewal_date').notNull(),
+  currentInsurer: varchar('current_insurer', { length: 255 }),
+  currentBuildingSumInsured: varchar('current_building_sum_insured', { length: 50 }),
+  requestedSumInsured: varchar('requested_sum_insured', { length: 50 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 });
 
