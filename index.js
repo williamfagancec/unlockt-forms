@@ -228,6 +228,7 @@ app.post('/api/submit-form', upload.fields([
       questionCheckbox2: req.body.questionCheckbox2 === 'true',
       questionCheckbox3: req.body.questionCheckbox3 === 'true',
       questionCheckbox4: req.body.questionCheckbox4 === 'true',
+      questionCheckbox5: req.body.questionCheckbox5 === 'true',
       confirmationCheckbox: req.body.confirmationCheckbox === 'true',
       submissionDate: req.body.submissionDate,
       commonSealFile: req.files?.commonSealFile?.[0]?.filename || null,
