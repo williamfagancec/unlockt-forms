@@ -643,56 +643,117 @@ app.get('/api/export/pdf/:id', adminAuthMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Submission not found' });
     }
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 0, size: 'A4' });
     
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=unlockt-submission-${submission.id}.pdf`);
     
     doc.pipe(res);
     
-    doc.fontSize(20).text('Unlockt Letter of Appointment', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(10).text('Issued by: Unlockt Insurance Solutions Pty Ltd | ABN 75 684 319 784 | ASIC Authorised Representative No. 1316562', { align: 'center' });
-    doc.text('Authorised representatives of | Resilium Insurance Broking Pty Ltd ABN 92 169 975 973 AFSL No. 480382', { align: 'center' });
-    doc.moveDown(2);
+    const brandGreen = '#5fa88a';
+    const darkGreen = '#4a8b6e';
+    const lightGray = '#f5f5f5';
+    const darkGray = '#333333';
+    const mediumGray = '#666666';
     
-    doc.fontSize(12).text(`Submission ID: ${submission.id}`, { underline: true });
-    doc.moveDown();
+    doc.rect(0, 0, doc.page.width, 120).fill(brandGreen);
     
-    doc.fontSize(11).text('Strata Management:', { bold: true });
-    doc.fontSize(10).text(submission.strataManagement || 'N/A');
-    doc.moveDown(0.5);
+    doc.fillColor('white')
+       .fontSize(28)
+       .font('Helvetica-Bold')
+       .text('Letter of Appointment', 50, 35, { align: 'left' });
     
-    doc.fontSize(11).text('Strata Plan Number:', { bold: true });
-    doc.fontSize(10).text(submission.strataPlanNumber || 'N/A');
-    doc.moveDown(0.5);
+    doc.fillColor('white')
+       .fontSize(10)
+       .font('Helvetica')
+       .text('Unlockt Insurance Solutions', 50, 75, { align: 'left' });
     
-    doc.fontSize(11).text('Address:', { bold: true });
-    doc.fontSize(10).text(`${submission.streetAddress || ''}`);
-    if (submission.streetAddressLine2) {
-      doc.text(submission.streetAddressLine2);
-    }
-    doc.text(`${submission.city || ''}, ${submission.state || ''} ${submission.postal || ''}`);
-    doc.moveDown(0.5);
+    doc.fontSize(8)
+       .fillColor('rgba(255, 255, 255, 0.9)')
+       .text('ABN 75 684 319 784 | ASIC AR No. 1316562', 50, 90, { align: 'left', width: 500 });
     
-    doc.fontSize(11).text('Appointment Questions:', { bold: true });
-    doc.fontSize(10).text(`1. Representatives appointed: ${submission.questionCheckbox1 ? 'Yes' : 'No'}`);
-    doc.text(`2. Seek insurance quotations: ${submission.questionCheckbox2 ? 'Yes' : 'No'}`);
-    doc.text(`3. Unlockt will not bind cover: ${submission.questionCheckbox3 ? 'Yes' : 'No'}`);
-    doc.text(`4. Financial services authorization: ${submission.questionCheckbox4 ? 'Yes' : 'No'}`);
-    doc.text(`5. Strata Manager insurance advice confirmation: ${submission.questionCheckbox5 ? 'Yes' : 'No'}`);
-    doc.moveDown(0.5);
+    let y = 150;
     
-    doc.fontSize(11).text('Confirmation:', { bold: true });
-    doc.fontSize(10).text(`Owners Corporation informed: ${submission.confirmationCheckbox ? 'Yes' : 'No'}`);
-    doc.moveDown(0.5);
+    doc.rect(50, y, doc.page.width - 100, 40).fill(lightGray);
+    doc.fillColor(darkGray)
+       .fontSize(12)
+       .font('Helvetica-Bold')
+       .text(`Submission ID: #${submission.id}`, 65, y + 12);
+    doc.fillColor(mediumGray)
+       .fontSize(9)
+       .font('Helvetica')
+       .text(`Submitted: ${new Date(submission.submittedAt).toLocaleString()}`, 65, y + 27);
     
-    doc.fontSize(11).text('Date:', { bold: true });
-    doc.fontSize(10).text(submission.submissionDate || 'N/A');
-    doc.moveDown(0.5);
+    y += 60;
     
-    doc.fontSize(11).text('Submitted:', { bold: true });
-    doc.fontSize(10).text(new Date(submission.submittedAt).toLocaleString());
+    const addSection = (title, y) => {
+      doc.fillColor(brandGreen)
+         .fontSize(14)
+         .font('Helvetica-Bold')
+         .text(title, 50, y);
+      doc.moveTo(50, y + 18).lineTo(doc.page.width - 50, y + 18).strokeColor(brandGreen).lineWidth(2).stroke();
+      return y + 30;
+    };
+    
+    const addField = (label, value, y) => {
+      doc.fillColor(mediumGray)
+         .fontSize(9)
+         .font('Helvetica-Bold')
+         .text(label, 50, y);
+      doc.fillColor(darkGray)
+         .fontSize(10)
+         .font('Helvetica')
+         .text(value || 'N/A', 50, y + 15, { width: doc.page.width - 100 });
+      return y + 38;
+    };
+    
+    y = addSection('Strata Information', y);
+    y = addField('Strata Management', submission.strataManagement, y);
+    y = addField('Strata Plan Number', submission.strataPlanNumber, y);
+    
+    y = addSection('Property Address', y);
+    const addressLines = [
+      submission.streetAddress,
+      submission.streetAddressLine2,
+      `${submission.city || ''}, ${submission.state || ''} ${submission.postal || ''}`
+    ].filter(line => line && line.trim() !== ', ').join('\n');
+    y = addField('Address', addressLines, y);
+    
+    y = addSection('Contact Information', y);
+    y = addField('Contact Person', submission.contactPerson, y);
+    y = addField('Email', submission.email, y);
+    y = addField('Phone', submission.phone, y);
+    
+    y = addSection('Appointment Questions', y);
+    doc.fillColor(darkGray).fontSize(10).font('Helvetica');
+    
+    const questions = [
+      { q: '1. Representatives appointed to negotiate and arrange contracts', a: submission.questionCheckbox1 },
+      { q: '2. Seek insurance quotations on behalf of Owner\'s Corporation', a: submission.questionCheckbox2 },
+      { q: '3. Unlockt will not bind insurance cover', a: submission.questionCheckbox3 },
+      { q: '4. Authorised to provide general financial services advice', a: submission.questionCheckbox4 },
+      { q: '5. Confirm appointment and arrangement in writing', a: submission.questionCheckbox5 }
+    ];
+    
+    questions.forEach(item => {
+      doc.fillColor(mediumGray).fontSize(9).text(item.q, 50, y, { continued: true });
+      doc.fillColor(item.a ? brandGreen : '#999999')
+         .font('Helvetica-Bold')
+         .text(`  ${item.a ? '✓ Yes' : '✗ No'}`, { align: 'left' });
+      y += 20;
+    });
+    
+    y += 10;
+    y = addSection('Declaration', y);
+    y = addField('Owners Corporation Informed', submission.confirmationCheckbox ? 'Yes' : 'No', y);
+    y = addField('Submission Date', submission.submissionDate || 'N/A', y);
+    
+    doc.rect(0, doc.page.height - 40, doc.page.width, 40).fill(lightGray);
+    doc.fillColor(mediumGray)
+       .fontSize(8)
+       .font('Helvetica')
+       .text('Authorised representatives of Resilium Insurance Broking Pty Ltd ABN 92 169 975 973 AFSL No. 480382', 
+             50, doc.page.height - 25, { align: 'center', width: doc.page.width - 100 });
     
     doc.end();
   } catch (error) {
