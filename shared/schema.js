@@ -29,7 +29,18 @@ const formSubmissions = pgTable('form_submissions', {
   submittedAt: timestamp('submitted_at').defaultNow()
 });
 
+const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
+  id: serial('id').primaryKey(),
+  strataManagementName: varchar('strata_management_name', { length: 255 }).notNull(),
+  contactPerson: varchar('contact_person', { length: 255 }).notNull(),
+  strataPlanNumber: varchar('strata_plan_number', { length: 100 }).notNull(),
+  currentCocFile: varchar('current_coc_file', { length: 500 }),
+  address: varchar('address', { length: 500 }),
+  submittedAt: timestamp('submitted_at').defaultNow()
+});
+
 module.exports = {
   users,
-  formSubmissions
+  formSubmissions,
+  quoteSlipSubmissions
 };

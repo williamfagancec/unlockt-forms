@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quote Slip & Declaration</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #a8d5ba 0%, #c8e6d5 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .logo-container {
+      background: white;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      max-width: 450px;
+      height: auto;
+    }
+
+    .form-container {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .issuer-info {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      line-height: 1.6;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .required {
+      color: #d32f2f;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .helper-text {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .file-upload-container {
+      margin-bottom: 20px;
+    }
+
+    .file-upload-box {
+      border: 2px dashed #ccc;
+      border-radius: 4px;
+      padding: 40px 20px;
+      text-align: center;
+      background: #fafafa;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .file-upload-box:hover {
+      border-color: #999;
+      background: #f5f5f5;
+    }
+
+    .file-upload-box.dragover {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 15px;
+      background: #8b95a5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .file-upload-box h4 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .file-upload-box p {
+      font-size: 12px;
+      color: #999;
+      margin: 0;
+    }
+
+    .file-upload-box input[type="file"] {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-preview.active {
+      display: flex;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-icon {
+      width: 32px;
+      height: 32px;
+      background: #4CAF50;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .file-details {
+      text-align: left;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: #999;
+    }
+
+    .delete-file-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .delete-file-btn:hover {
+      background: #d32f2f;
+    }
+
+    .submit-divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 30px 0 20px 0;
+    }
+
+    button[type="submit"] {
+      width: auto;
+      min-width: 300px;
+      padding: 16px 40px;
+      background: linear-gradient(135deg, #5a9f8f 0%, #3d8072 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: block;
+      margin: 0 auto;
+    }
+
+    button[type="submit"]:hover {
+      background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    button[type="submit"]:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .success-message {
+      display: none;
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .error-message {
+      display: none;
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .form-container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-container">
+      <img src="/unlockt-logo.png" alt="Unlockt - live smarter" class="logo">
+    </div>
+
+    <div class="form-container">
+      <h1>Quote Slip & Declaration</h1>
+      <div class="issuer-info">
+        Issued by: Unlockt Insurance Solutions Pty Ltd. | ABN 75 684 319 784 | ASIC Authorised Representative No: 1316562 Authorised representatives of | Resilium Insurance Broking Pty Ltd ABN 92 169 975 973 AFSL No: 460382
+      </div>
+
+      <div class="success-message" id="successMessage">
+        Thank you! Your form has been submitted successfully.
+      </div>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <form id="quoteSlipForm">
+        <div class="form-group">
+          <label style="font-weight: 600; font-size: 14px; margin-bottom: 15px;">Strata Management</label>
+          <div class="form-row">
+            <div>
+              <input type="text" id="strataManagementName" name="strataManagementName" placeholder="Name" required>
+            </div>
+            <div>
+              <input type="text" id="contactPerson" name="contactPerson" placeholder="Contact Person" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="strataPlanNumber">Strata Plan Number</label>
+          <input type="text" id="strataPlanNumber" name="strataPlanNumber" placeholder="SP" required style="max-width: 300px;">
+          <div class="helper-text">Please write SP / UP before number</div>
+        </div>
+
+        <div class="file-upload-container">
+          <label>Current COC</label>
+          <div class="file-upload-box" id="cocUploadBox">
+            <input type="file" id="cocFile" name="cocFile" accept="*/*">
+            <div class="upload-icon">☁️</div>
+            <h4>Browse Files</h4>
+            <p>Drag and drop files here</p>
+          </div>
+          <div class="file-preview" id="cocPreview">
+            <div class="file-info">
+              <div class="file-icon">📄</div>
+              <div class="file-details">
+                <div class="file-name" id="cocFileName"></div>
+                <div class="file-size" id="cocFileSize"></div>
+              </div>
+            </div>
+            <button type="button" class="delete-file-btn" id="deleteCoc">Delete</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Address - Leave blank if COC has been uploaded</label>
+          <input type="text" id="address" name="address" placeholder="">
+        </div>
+
+        <hr class="submit-divider">
+
+        <button type="submit">Submit to Unlockt</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function setupFileUpload(inputId, boxId, previewId, fileNameId, fileSizeId, deleteId) {
+      const input = document.getElementById(inputId);
+      const box = document.getElementById(boxId);
+      const preview = document.getElementById(previewId);
+      const fileName = document.getElementById(fileNameId);
+      const fileSize = document.getElementById(fileSizeId);
+      const deleteBtn = document.getElementById(deleteId);
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+      }
+
+      function handleFile(file) {
+        if (file) {
+          fileName.textContent = file.name;
+          fileSize.textContent = formatFileSize(file.size);
+          preview.classList.add('active');
+          box.style.display = 'none';
+        }
+      }
+
+      box.addEventListener('click', () => input.click());
+
+      input.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      box.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        box.classList.add('dragover');
+      });
+
+      box.addEventListener('dragleave', () => {
+        box.classList.remove('dragover');
+      });
+
+      box.addEventListener('drop', (e) => {
+        e.preventDefault();
+        box.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          input.files = files;
+          handleFile(files[0]);
+        }
+      });
+
+      deleteBtn.addEventListener('click', () => {
+        input.value = '';
+        preview.classList.remove('active');
+        box.style.display = 'block';
+      });
+    }
+
+    setupFileUpload('cocFile', 'cocUploadBox', 'cocPreview', 'cocFileName', 'cocFileSize', 'deleteCoc');
+
+    document.getElementById('quoteSlipForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+
+      const submitButton = e.target.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+
+      try {
+        const response = await fetch('/api/submit-quote-slip', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          document.getElementById('successMessage').style.display = 'block';
+          document.getElementById('errorMessage').style.display = 'none';
+          e.target.reset();
+          document.getElementById('cocPreview').classList.remove('active');
+          document.getElementById('cocUploadBox').style.display = 'block';
+          window.scrollTo(0, 0);
+        } else {
+          throw new Error(result.error || 'Submission failed');
+        }
+      } catch (error) {
+        document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
+        document.getElementById('errorMessage').style.display = 'block';
+        document.getElementById('successMessage').style.display = 'none';
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit to Unlockt';
+      }
+    });
+  </script>
+</body>
+</html>

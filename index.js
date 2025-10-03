@@ -5,7 +5,7 @@ const msal = require('@azure/msal-node');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const { db } = require('./server/db');
-const { formSubmissions, users } = require('./shared/schema');
+const { formSubmissions, users, quoteSlipSubmissions } = require('./shared/schema');
 const { eq, desc } = require('drizzle-orm');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
@@ -221,6 +221,35 @@ app.post('/api/submit-form', upload.fields([
     res.json({ success: true, submissionId: submission.id });
   } catch (error) {
     console.error('Form submission error:', error);
+    res.status(500).json({ error: 'Failed to submit form' });
+  }
+});
+
+app.post('/api/submit-quote-slip', upload.fields([
+  { name: 'cocFile', maxCount: 1 }
+]), [
+  body('strataManagementName').trim().notEmpty().withMessage('Strata Management Name is required'),
+  body('contactPerson').trim().notEmpty().withMessage('Contact Person is required'),
+  body('strataPlanNumber').trim().notEmpty().withMessage('Strata Plan Number is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const formData = {
+      strataManagementName: req.body.strataManagementName,
+      contactPerson: req.body.contactPerson,
+      strataPlanNumber: req.body.strataPlanNumber,
+      currentCocFile: req.files?.cocFile?.[0]?.filename || null,
+      address: req.body.address || null
+    };
+
+    const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();
+    res.json({ success: true, submissionId: submission.id });
+  } catch (error) {
+    console.error('Quote slip submission error:', error);
     res.status(500).json({ error: 'Failed to submit form' });
   }
 });
