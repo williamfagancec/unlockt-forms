@@ -52,6 +52,13 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   currentInsurer: varchar('current_insurer', { length: 255 }),
   currentBuildingSumInsured: varchar('current_building_sum_insured', { length: 100 }),
   requestedSumInsured: varchar('requested_sum_insured', { length: 100 }),
+  roofType: varchar('roof_type', { length: 255 }),
+  externalWallType: varchar('external_wall_type', { length: 255 }),
+  floorType: varchar('floor_type', { length: 255 }),
+  buildingType: varchar('building_type', { length: 255 }),
+  yearBuilt: varchar('year_built', { length: 10 }),
+  numberOfLots: varchar('number_of_lots', { length: 20 }),
+  numberOfFloors: varchar('number_of_floors', { length: 20 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 }, (table) => ({
   submittedAtIdx: index('quote_slip_submissions_submitted_at_idx').on(table.submittedAt),
@@ -71,9 +78,57 @@ const insurers = pgTable('insurers', {
   displayOrderIdx: index('insurers_display_order_idx').on(table.displayOrder)
 }));
 
+const roofTypes = pgTable('roof_types', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true).notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+}, (table) => ({
+  isActiveIdx: index('roof_types_is_active_idx').on(table.isActive),
+  displayOrderIdx: index('roof_types_display_order_idx').on(table.displayOrder)
+}));
+
+const externalWallTypes = pgTable('external_wall_types', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true).notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+}, (table) => ({
+  isActiveIdx: index('external_wall_types_is_active_idx').on(table.isActive),
+  displayOrderIdx: index('external_wall_types_display_order_idx').on(table.displayOrder)
+}));
+
+const floorTypes = pgTable('floor_types', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true).notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+}, (table) => ({
+  isActiveIdx: index('floor_types_is_active_idx').on(table.isActive),
+  displayOrderIdx: index('floor_types_display_order_idx').on(table.displayOrder)
+}));
+
+const buildingTypes = pgTable('building_types', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true).notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+}, (table) => ({
+  isActiveIdx: index('building_types_is_active_idx').on(table.isActive),
+  displayOrderIdx: index('building_types_display_order_idx').on(table.displayOrder)
+}));
+
 module.exports = {
   users,
   formSubmissions,
   quoteSlipSubmissions,
-  insurers
+  insurers,
+  roofTypes,
+  externalWallTypes,
+  floorTypes,
+  buildingTypes
 };
