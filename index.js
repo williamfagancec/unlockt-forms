@@ -507,6 +507,52 @@ app.post('/api/submit-quote-slip', upload.fields([
   }
 });
 
+app.get('/api/admin/letter-of-appointment/stats', adminAuthMiddleware, async (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const allSubmissions = await db.select().from(formSubmissions);
+    
+    const stats = {
+      total: allSubmissions.length,
+      today: allSubmissions.filter(s => new Date(s.submittedAt) >= today).length,
+      thisWeek: allSubmissions.filter(s => new Date(s.submittedAt) >= weekAgo).length,
+      thisMonth: allSubmissions.filter(s => new Date(s.submittedAt) >= monthAgo).length
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching LOA stats:', error);
+    res.status(500).json({ error: 'Failed to fetch statistics' });
+  }
+});
+
+app.get('/api/admin/quote-slip/stats', adminAuthMiddleware, async (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const allSubmissions = await db.select().from(quoteSlipSubmissions);
+    
+    const stats = {
+      total: allSubmissions.length,
+      today: allSubmissions.filter(s => new Date(s.submittedAt) >= today).length,
+      thisWeek: allSubmissions.filter(s => new Date(s.submittedAt) >= weekAgo).length,
+      thisMonth: allSubmissions.filter(s => new Date(s.submittedAt) >= monthAgo).length
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching quote slip stats:', error);
+    res.status(500).json({ error: 'Failed to fetch statistics' });
+  }
+});
+
 app.get('/api/submissions', authMiddleware, async (req, res) => {
   try {
     const submissions = await db.select().from(formSubmissions).orderBy(desc(formSubmissions.submittedAt));
