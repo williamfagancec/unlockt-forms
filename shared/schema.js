@@ -81,6 +81,13 @@ const quoteSlipSubmissions = pgTable('quote_slip_submissions', {
   coverOfficeBearers: boolean('cover_office_bearers').default(false),
   coverMachineryBreakdown: boolean('cover_machinery_breakdown').default(false),
   coverCatastrophe: boolean('cover_catastrophe').default(false),
+  coverOfficeBearersValue: varchar('cover_office_bearers_value', { length: 255 }),
+  coverMachineryBreakdownValue: varchar('cover_machinery_breakdown_value', { length: 255 }),
+  coverCatastropheValue: varchar('cover_catastrophe_value', { length: 255 }),
+  defectsAffectingProperty: varchar('defects_affecting_property', { length: 10 }),
+  afssCurrent: varchar('afss_current', { length: 10 }),
+  residentialLessThan20Commercial: varchar('residential_less_than_20_commercial', { length: 10 }),
+  majorWorksOver500k: varchar('major_works_over_500k', { length: 10 }),
   submittedAt: timestamp('submitted_at').defaultNow()
 }, (table) => ({
   submittedAtIdx: index('quote_slip_submissions_submitted_at_idx').on(table.submittedAt),
