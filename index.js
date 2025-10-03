@@ -285,7 +285,15 @@ app.post('/api/submit-form', upload.fields([
 });
 
 app.post('/api/submit-quote-slip', upload.fields([
-  { name: 'cocFile', maxCount: 1 }
+  { name: 'cocFile', maxCount: 1 },
+  { name: 'defectsRelevantDocsFile', maxCount: 1 },
+  { name: 'whsFile', maxCount: 1 },
+  { name: 'claimsHistoryFile', maxCount: 1 },
+  { name: 'strataPlansFile', maxCount: 1 },
+  { name: 'asbestosReportFile', maxCount: 1 },
+  { name: 'commercialTenantListFile', maxCount: 1 },
+  { name: 'mostRecentValuationFile', maxCount: 1 },
+  { name: 'preventativeMaintenanceProgramFile', maxCount: 1 }
 ]), [
   body('strataManagementName').trim().notEmpty().withMessage('Strata Management Name is required'),
   body('contactPerson').trim().notEmpty().withMessage('Contact Person is required'),
@@ -347,7 +355,15 @@ app.post('/api/submit-quote-slip', upload.fields([
       defectsAffectingProperty: req.body.defectsAffectingProperty || null,
       afssCurrent: req.body.afssCurrent || null,
       residentialLessThan20Commercial: req.body.residentialLessThan20Commercial || null,
-      majorWorksOver500k: req.body.majorWorksOver500k || null
+      majorWorksOver500k: req.body.majorWorksOver500k || null,
+      defectsRelevantDocsFile: req.files?.defectsRelevantDocsFile?.[0]?.filename || null,
+      whsFile: req.files?.whsFile?.[0]?.filename || null,
+      claimsHistoryFile: req.files?.claimsHistoryFile?.[0]?.filename || null,
+      strataPlansFile: req.files?.strataPlansFile?.[0]?.filename || null,
+      asbestosReportFile: req.files?.asbestosReportFile?.[0]?.filename || null,
+      commercialTenantListFile: req.files?.commercialTenantListFile?.[0]?.filename || null,
+      mostRecentValuationFile: req.files?.mostRecentValuationFile?.[0]?.filename || null,
+      preventativeMaintenanceProgramFile: req.files?.preventativeMaintenanceProgramFile?.[0]?.filename || null
     };
 
     const [submission] = await db.insert(quoteSlipSubmissions).values(formData).returning();
