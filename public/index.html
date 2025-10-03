@@ -363,6 +363,59 @@
       background: #f57c00;
     }
 
+    .submit-signature-btn {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .submit-signature-btn:hover {
+      background: #45a049;
+    }
+
+    .signature-preview-container {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .signature-preview-container.active {
+      display: flex;
+    }
+
+    .signature-preview-img {
+      max-width: 400px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .delete-signature-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .delete-signature-btn:hover {
+      background: #d32f2f;
+    }
+
+    .signature-drawing-area {
+      display: block;
+    }
+
+    .signature-drawing-area.hidden {
+      display: none;
+    }
+
     .signature-error {
       display: none;
       color: #d32f2f;
@@ -535,12 +588,19 @@
 
         <div class="signature-container">
           <label>Sign Here <span class="required">*</span></label>
-          <div class="signature-wrapper">
-            <canvas id="signatureCanvas" class="signature-canvas" width="700" height="200"></canvas>
-            <div class="signature-placeholder" id="signaturePlaceholder">Sign here</div>
+          <div class="signature-drawing-area" id="signatureDrawingArea">
+            <div class="signature-wrapper">
+              <canvas id="signatureCanvas" class="signature-canvas" width="700" height="200"></canvas>
+              <div class="signature-placeholder" id="signaturePlaceholder">Sign here</div>
+            </div>
+            <div class="signature-controls">
+              <button type="button" class="submit-signature-btn" id="submitSignature">Submit</button>
+              <button type="button" class="clear-signature-btn" id="clearSignature">Clear</button>
+            </div>
           </div>
-          <div class="signature-controls">
-            <button type="button" class="clear-signature-btn" id="clearSignature">Clear</button>
+          <div class="signature-preview-container" id="signaturePreviewContainer">
+            <img src="" alt="Signature" class="signature-preview-img" id="signaturePreviewImg">
+            <button type="button" class="delete-signature-btn" id="deleteSignature">Delete</button>
           </div>
           <div class="signature-error" id="signatureError">Signature is required</div>
           <input type="hidden" id="signatureData" name="signatureData">
@@ -579,20 +639,44 @@
       maxWidth: 2.5
     });
 
+    const signatureDrawingArea = document.getElementById('signatureDrawingArea');
+    const signaturePreviewContainer = document.getElementById('signaturePreviewContainer');
+    const signaturePreviewImg = document.getElementById('signaturePreviewImg');
+
     signaturePad.addEventListener('beginStroke', () => {
       placeholder.classList.add('hidden');
       signatureError.classList.remove('active');
     });
 
-    signaturePad.addEventListener('endStroke', () => {
-      const data = signaturePad.toDataURL('image/png');
-      signatureDataInput.value = data;
-    });
-
     document.getElementById('clearSignature').addEventListener('click', () => {
       signaturePad.clear();
       placeholder.classList.remove('hidden');
+      signatureError.classList.remove('active');
+    });
+
+    document.getElementById('submitSignature').addEventListener('click', () => {
+      if (signaturePad.isEmpty()) {
+        signatureError.classList.add('active');
+        return;
+      }
+
+      const data = signaturePad.toDataURL('image/png');
+      signatureDataInput.value = data;
+      signaturePreviewImg.src = data;
+      
+      signatureDrawingArea.classList.add('hidden');
+      signaturePreviewContainer.classList.add('active');
+      signatureError.classList.remove('active');
+    });
+
+    document.getElementById('deleteSignature').addEventListener('click', () => {
+      signaturePad.clear();
+      placeholder.classList.remove('hidden');
       signatureDataInput.value = '';
+      signaturePreviewImg.src = '';
+      
+      signatureDrawingArea.classList.remove('hidden');
+      signaturePreviewContainer.classList.remove('active');
       signatureError.classList.remove('active');
     });
 
@@ -663,7 +747,8 @@
     document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      if (signaturePad.isEmpty()) {
+      if (!signatureDataInput.value) {
+        signatureError.textContent = 'Please submit your signature before submitting the form';
         signatureError.classList.add('active');
         signatureError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
@@ -692,6 +777,9 @@
           signaturePad.clear();
           placeholder.classList.remove('hidden');
           signatureDataInput.value = '';
+          signaturePreviewImg.src = '';
+          signatureDrawingArea.classList.remove('hidden');
+          signaturePreviewContainer.classList.remove('active');
           document.getElementById('commonSealPreview').classList.remove('active');
           document.getElementById('letterHeadPreview').classList.remove('active');
           document.getElementById('commonSealUploadBox').style.display = 'block';
