@@ -394,9 +394,10 @@
           </div>
           <div>
             <label for="currentInsurer">Current Insurer</label>
-            <select id="currentInsurer" name="currentInsurer">
-              <option value="">Please Select</option>
+            <select id="currentInsurer" name="currentInsurer" disabled>
+              <option value="">Loading insurers...</option>
             </select>
+            <div class="helper-text" id="insurerError" style="color: #d32f2f; display: none;">Failed to load insurers. Please refresh the page.</div>
           </div>
         </div>
 
@@ -481,10 +482,19 @@
     setupFileUpload('cocFile', 'cocUploadBox', 'cocPreview', 'cocFileName', 'cocFileSize', 'deleteCoc');
 
     async function loadInsurers() {
+      const select = document.getElementById('currentInsurer');
+      const errorDiv = document.getElementById('insurerError');
+      
       try {
         const response = await fetch('/api/insurers');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch insurers');
+        }
+        
         const insurers = await response.json();
-        const select = document.getElementById('currentInsurer');
+        
+        select.innerHTML = '<option value="">Please Select</option>';
         
         insurers.forEach(insurer => {
           const option = document.createElement('option');
@@ -492,8 +502,13 @@
           option.textContent = insurer.name;
           select.appendChild(option);
         });
+        
+        select.disabled = false;
       } catch (error) {
         console.error('Error loading insurers:', error);
+        select.innerHTML = '<option value="">Please Select</option>';
+        select.disabled = false;
+        errorDiv.style.display = 'block';
       }
     }
 
