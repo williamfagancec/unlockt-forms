@@ -93,6 +93,20 @@
       border-color: #4CAF50;
     }
 
+    input[type="text"].error,
+    input[type="date"].error,
+    input[type="checkbox"].error {
+      border-color: #d32f2f;
+      border-width: 2px;
+    }
+
+    .checkbox-item.error {
+      background: #ffebee;
+      padding: 8px;
+      border-radius: 4px;
+      border: 2px solid #d32f2f;
+    }
+
     .helper-text {
       font-size: 11px;
       color: #666;
@@ -827,6 +841,47 @@
 
     document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      // Clear previous error highlights
+      document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+      
+      // Validate required fields
+      const requiredFields = [
+        { id: 'strataManagement', name: 'Strata Management' },
+        { id: 'strataPlanNumber', name: 'Strata Plan Number' },
+        { id: 'submissionDate', name: 'Submission Date' }
+      ];
+      
+      let firstError = null;
+      const errors = [];
+      
+      requiredFields.forEach(field => {
+        const input = document.getElementById(field.id);
+        if (!input.value.trim()) {
+          input.classList.add('error');
+          errors.push(field.name);
+          if (!firstError) firstError = input;
+        }
+      });
+      
+      // Check confirmation checkbox
+      const confirmCheckbox = document.getElementById('confirmationCheckbox');
+      if (!confirmCheckbox.checked) {
+        const checkboxItem = confirmCheckbox.closest('.checkbox-item');
+        checkboxItem.classList.add('error');
+        errors.push('Confirmation checkbox');
+        if (!firstError) firstError = confirmCheckbox;
+      }
+      
+      // If there are validation errors, scroll to first error and show message
+      if (errors.length > 0) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.textContent = `Please fill in all required fields: ${errors.join(', ')}`;
+        errorMessage.style.display = 'block';
+        window.scrollBy(0, -100); // Adjust scroll position to account for offset
+        return;
+      }
       
       if (!signatureDataInput.value) {
         signatureError.textContent = 'Please submit your signature before submitting the form';

@@ -49,7 +49,16 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 
 ## Recent Changes
 
-**Date: October 4, 2025 - Authentication System Rebuild**
+**Date: October 4, 2025 - Form Validation UX Enhancement**
+- **Added visual validation feedback** on both Letter of Appointment and Quote Slip forms
+  - Empty mandatory fields highlighted with red borders (2px solid #d32f2f)
+  - Unchecked required checkboxes highlighted with red background (#ffebee)
+  - Auto-scroll to first empty field with error message
+  - All validation errors cleared on re-submit attempt
+- **Enhanced user experience** with clear error messages listing all missing fields
+- **CSS improvements** for better error visibility on inputs, selects, and checkbox labels
+
+**Date: October 4, 2025 - Authentication System Rebuild & Production Database Fix**
 - **ROOT CAUSE IDENTIFIED**: Session cookie configuration was using incorrect logic for dev vs production environments
   - Previous: `isSecure = !isDevelopment || !!REPLIT_DOMAINS` made dev environment use `secure: true` with HTTP, preventing cookies from being sent
   - Fixed: `isProduction = !!REPLIT_DEPLOYMENT` correctly sets `secure: false` in dev (HTTP) and `secure: true` in production (HTTPS)
@@ -59,6 +68,8 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
   - Removed all unnecessary debug logging
 - **CRITICAL FIX**: Set `trust proxy: true` to trust Replit's multi-layer proxy chain for published deployments
 - **CRITICAL FIX**: Implemented PostgreSQL-backed session store (connect-pg-simple) to replace MemoryStore - sessions now persist across restarts
+- **AUTOMATIC ADMIN INITIALIZATION**: Added startup code to create default admin (admin@unlockt.com / Admin@123456) if no administrators exist - handles separate dev/production databases
+- Cleaned up all debug logging from authentication module
 - Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility, credentials: 'include' on all fetch requests)
 - Migrated authentication from username to email-based login with case-insensitive email handling
 - Replaced username field with firstName/lastName across entire application
