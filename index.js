@@ -145,16 +145,17 @@ async function initializeDropdownData() {
     if (existingInsurers.length === 0) {
       console.log('[INIT] Seeding insurers...');
       await db.insert(insurers).values([
-        { name: 'AAI Limited T/as Vero', displayOrder: 1, isActive: true },
-        { name: 'Allianz Australia Insurance Limited', displayOrder: 2, isActive: true },
-        { name: 'CGU Insurance Limited', displayOrder: 3, isActive: true },
-        { name: 'EBM Insurance Pty Ltd', displayOrder: 4, isActive: true },
-        { name: 'Guild Insurance Limited', displayOrder: 5, isActive: true },
-        { name: 'QBE Insurance (Australia) Limited', displayOrder: 6, isActive: true },
-        { name: 'Suncorp Metway Insurance Limited', displayOrder: 7, isActive: true },
-        { name: 'CHU Underwriting Agencies Pty Ltd', displayOrder: 8, isActive: true },
-        { name: 'Strata Community Insurance (Suncorp)', displayOrder: 9, isActive: true },
-        { name: 'Other', displayOrder: 10, isActive: true }
+        { name: 'CHU Underwriting Agencies', displayOrder: 1, isActive: true },
+        { name: 'Strata Unit Underwriters (SUU)', displayOrder: 2, isActive: true },
+        { name: 'Longitude Insurance', displayOrder: 3, isActive: true },
+        { name: 'SCI - Strata Community Insurance', displayOrder: 4, isActive: true },
+        { name: 'Flex Insurance', displayOrder: 5, isActive: true },
+        { name: 'Chubb', displayOrder: 6, isActive: true },
+        { name: 'QUS', displayOrder: 7, isActive: true },
+        { name: 'Axis', displayOrder: 8, isActive: true },
+        { name: 'Hutch', displayOrder: 9, isActive: true },
+        { name: 'Insurance Investment Solutions', displayOrder: 10, isActive: true },
+        { name: 'Other', displayOrder: 11, isActive: true }
       ]);
       console.log('[INIT] Insurers seeded successfully');
     }
@@ -164,12 +165,12 @@ async function initializeDropdownData() {
     if (existingRoofTypes.length === 0) {
       console.log('[INIT] Seeding roof types...');
       await db.insert(roofTypes).values([
-        { name: 'Concrete Tile', displayOrder: 1, isActive: true },
-        { name: 'Terracotta Tile', displayOrder: 2, isActive: true },
-        { name: 'Metal Deck', displayOrder: 3, isActive: true },
-        { name: 'Concrete Slab', displayOrder: 4, isActive: true },
-        { name: 'Slate', displayOrder: 5, isActive: true },
-        { name: 'Other', displayOrder: 6, isActive: true }
+        { name: 'Concrete Slab (Often used in high-rise apartments; durable and fire-resistant.)', displayOrder: 1, isActive: true },
+        { name: 'Metal Roof (Includes Colorbond or zincalume steel common in newer strata buildings.)', displayOrder: 2, isActive: true },
+        { name: 'Tiled Roof (Usually terracotta or concrete tiles; typical for low-rise residential blocks.)', displayOrder: 3, isActive: true },
+        { name: 'Asbestos Roof (Found in older buildings)', displayOrder: 4, isActive: true },
+        { name: 'Membrane Roof A waterproof membrane (e.g., bitumen or synthetic); often on flat concrete roofs.', displayOrder: 5, isActive: true },
+        { name: 'Slate Roof Rare in modern strata but may exist in heritage-listed buildings.', displayOrder: 6, isActive: true }
       ]);
       console.log('[INIT] Roof types seeded successfully');
     }
@@ -179,17 +180,17 @@ async function initializeDropdownData() {
     if (existingWallTypes.length === 0) {
       console.log('[INIT] Seeding external wall types...');
       await db.insert(externalWallTypes).values([
-        { name: 'Full Brick', displayOrder: 1, isActive: true },
-        { name: 'Brick Veneer', displayOrder: 2, isActive: true },
-        { name: 'Weatherboard', displayOrder: 3, isActive: true },
-        { name: 'Rendered Brick', displayOrder: 4, isActive: true },
-        { name: 'Fibre Cement', displayOrder: 5, isActive: true },
-        { name: 'Concrete Block', displayOrder: 6, isActive: true },
-        { name: 'Concrete Panel', displayOrder: 7, isActive: true },
-        { name: 'Steel Framed', displayOrder: 8, isActive: true },
-        { name: 'Curtain Wall', displayOrder: 9, isActive: true },
-        { name: 'Stone', displayOrder: 10, isActive: true },
-        { name: 'Other', displayOrder: 11, isActive: true }
+        { name: 'Brick Veneer Brick exterior over a timber/steel frame; common in low-rise strata buildings.', displayOrder: 1, isActive: true },
+        { name: 'Double Brick / Solid Brick Two layers of brick; found in older or premium residential buildings.', displayOrder: 2, isActive: true },
+        { name: 'Concrete / Precast Concrete Common in high-rise developments; strong fire and impact resistance.', displayOrder: 3, isActive: true },
+        { name: 'Cladding - Aluminium Composite Panels (ACP) A known fire risk; subject to underwriting scrutiny.', displayOrder: 4, isActive: true },
+        { name: 'Cladding - Non-Combustible Includes fibre cement or approved composite materials (e.g. CSR, James Hardie).', displayOrder: 5, isActive: true },
+        { name: 'Lightweight Panels / EPS Expanded Polystyrene; cost-effective but high-risk if not fire-rated.', displayOrder: 6, isActive: true },
+        { name: 'Timber Weatherboard Rare in strata but seen in older or coastal buildings.', displayOrder: 7, isActive: true },
+        { name: 'Tilt-Up Panels Concrete panels cast on site; common in mixed-use or commercial strata.', displayOrder: 8, isActive: true },
+        { name: 'Stone / Masonry Veneer Aesthetic finish with stone or stone-look panels over a frame.', displayOrder: 9, isActive: true },
+        { name: 'Rendered Masonry Cement-rendered blockwork or brick, usually painted.', displayOrder: 10, isActive: true },
+        { name: 'Glass Curtain Wall Full-glass façade; common in commercial or premium residential towers.', displayOrder: 11, isActive: true }
       ]);
       console.log('[INIT] External wall types seeded successfully');
     }
@@ -199,15 +200,15 @@ async function initializeDropdownData() {
     if (existingFloorTypes.length === 0) {
       console.log('[INIT] Seeding floor types...');
       await db.insert(floorTypes).values([
-        { name: 'Concrete', displayOrder: 1, isActive: true },
-        { name: 'Concrete & Timber', displayOrder: 2, isActive: true },
-        { name: 'Timber', displayOrder: 3, isActive: true },
-        { name: 'Reinforced Concrete', displayOrder: 4, isActive: true },
-        { name: 'Pre-stressed Concrete', displayOrder: 5, isActive: true },
-        { name: 'Post Tension Concrete', displayOrder: 6, isActive: true },
-        { name: 'Steel Framed', displayOrder: 7, isActive: true },
-        { name: 'Composite', displayOrder: 8, isActive: true },
-        { name: 'Other', displayOrder: 9, isActive: true }
+        { name: 'Concrete Slab Most common in medium-to-high rise strata buildings; provides fire resistance.', displayOrder: 1, isActive: true },
+        { name: 'Timber Flooring (Suspended) Typically found in older low-rise buildings; may increase noise transmission risk.', displayOrder: 2, isActive: true },
+        { name: 'Particleboard Flooring Often used in timber-framed buildings; less durable and may swell when wet.', displayOrder: 3, isActive: true },
+        { name: 'Tile over Concrete Standard in bathrooms, kitchens, and balconies; durable and water-resistant.', displayOrder: 4, isActive: true },
+        { name: 'Vinyl / Laminate over Concrete Modern finish; cost-effective but may not perform well with moisture exposure.', displayOrder: 5, isActive: true },
+        { name: 'Carpet over Concrete Common in older apartments or budget-conscious builds.', displayOrder: 6, isActive: true },
+        { name: 'Floating Floor Systems Installed over underlay; can be timber, laminate, or vinyl — may be sensitive to water.', displayOrder: 7, isActive: true },
+        { name: 'Raised Access Flooring Found in commercial strata; allows for cabling or airflow underneath.', displayOrder: 8, isActive: true },
+        { name: 'Tiled Timber Base Tiles laid over a timber or particleboard subfloor; risk of cracking/movement.', displayOrder: 9, isActive: true }
       ]);
       console.log('[INIT] Floor types seeded successfully');
     }
