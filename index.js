@@ -110,6 +110,35 @@ if (azureConfigured) {
 
 const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout } = require('./server/auth');
 
+// Initialize default admin user on startup
+async function initializeDefaultAdmin() {
+  try {
+    const existingAdmins = await db.select().from(adminUsers).where(eq(adminUsers.role, 'administrator'));
+    
+    if (existingAdmins.length === 0) {
+      console.log('[INIT] No admin users found, creating default admin...');
+      const passwordHash = await bcrypt.hash('Admin@123456', 12);
+      
+      await db.insert(adminUsers).values({
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@unlockt.com',
+        passwordHash: passwordHash,
+        role: 'administrator',
+        isActive: true
+      });
+      
+      console.log('[INIT] Default admin created: admin@unlockt.com / Admin@123456');
+    } else {
+      console.log('[INIT] Admin users already exist');
+    }
+  } catch (error) {
+    console.error('[INIT] Error initializing admin:', error);
+  }
+}
+
+initializeDefaultAdmin();
+
 app.get('/letter-of-appointment', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'letter-of-appointment.html'));
 });
