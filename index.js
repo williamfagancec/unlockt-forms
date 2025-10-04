@@ -365,9 +365,16 @@ async function getSendGridClient() {
 }
 
 async function sendOnboardingEmail(email, username, onboardingToken, role) {
-  const baseUrl = process.env.REPL_SLUG 
-    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
-    : 'http://localhost:5000';
+  let baseUrl;
+  
+  if (process.env.REPLIT_DOMAINS) {
+    const domains = process.env.REPLIT_DOMAINS.split(',');
+    baseUrl = `https://${domains[0]}`;
+  } else if (process.env.REPL_SLUG) {
+    baseUrl = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+  } else {
+    baseUrl = 'http://localhost:5000';
+  }
   
   const setupUrl = `${baseUrl}/setup-password?token=${onboardingToken}`;
 
