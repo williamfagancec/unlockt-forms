@@ -137,7 +137,103 @@ async function initializeDefaultAdmin() {
   }
 }
 
+// Initialize dropdown data on startup
+async function initializeDropdownData() {
+  try {
+    // Check and seed insurers
+    const existingInsurers = await db.select().from(insurers);
+    if (existingInsurers.length === 0) {
+      console.log('[INIT] Seeding insurers...');
+      await db.insert(insurers).values([
+        { name: 'AAI Limited T/as Vero', displayOrder: 1, isActive: true },
+        { name: 'Allianz Australia Insurance Limited', displayOrder: 2, isActive: true },
+        { name: 'CGU Insurance Limited', displayOrder: 3, isActive: true },
+        { name: 'EBM Insurance Pty Ltd', displayOrder: 4, isActive: true },
+        { name: 'Guild Insurance Limited', displayOrder: 5, isActive: true },
+        { name: 'QBE Insurance (Australia) Limited', displayOrder: 6, isActive: true },
+        { name: 'Suncorp Metway Insurance Limited', displayOrder: 7, isActive: true },
+        { name: 'CHU Underwriting Agencies Pty Ltd', displayOrder: 8, isActive: true },
+        { name: 'Strata Community Insurance (Suncorp)', displayOrder: 9, isActive: true },
+        { name: 'Other', displayOrder: 10, isActive: true }
+      ]);
+      console.log('[INIT] Insurers seeded successfully');
+    }
+
+    // Check and seed roof types
+    const existingRoofTypes = await db.select().from(roofTypes);
+    if (existingRoofTypes.length === 0) {
+      console.log('[INIT] Seeding roof types...');
+      await db.insert(roofTypes).values([
+        { name: 'Concrete Tile', displayOrder: 1, isActive: true },
+        { name: 'Terracotta Tile', displayOrder: 2, isActive: true },
+        { name: 'Metal Deck', displayOrder: 3, isActive: true },
+        { name: 'Concrete Slab', displayOrder: 4, isActive: true },
+        { name: 'Slate', displayOrder: 5, isActive: true },
+        { name: 'Other', displayOrder: 6, isActive: true }
+      ]);
+      console.log('[INIT] Roof types seeded successfully');
+    }
+
+    // Check and seed external wall types
+    const existingWallTypes = await db.select().from(externalWallTypes);
+    if (existingWallTypes.length === 0) {
+      console.log('[INIT] Seeding external wall types...');
+      await db.insert(externalWallTypes).values([
+        { name: 'Full Brick', displayOrder: 1, isActive: true },
+        { name: 'Brick Veneer', displayOrder: 2, isActive: true },
+        { name: 'Weatherboard', displayOrder: 3, isActive: true },
+        { name: 'Rendered Brick', displayOrder: 4, isActive: true },
+        { name: 'Fibre Cement', displayOrder: 5, isActive: true },
+        { name: 'Concrete Block', displayOrder: 6, isActive: true },
+        { name: 'Concrete Panel', displayOrder: 7, isActive: true },
+        { name: 'Steel Framed', displayOrder: 8, isActive: true },
+        { name: 'Curtain Wall', displayOrder: 9, isActive: true },
+        { name: 'Stone', displayOrder: 10, isActive: true },
+        { name: 'Other', displayOrder: 11, isActive: true }
+      ]);
+      console.log('[INIT] External wall types seeded successfully');
+    }
+
+    // Check and seed floor types
+    const existingFloorTypes = await db.select().from(floorTypes);
+    if (existingFloorTypes.length === 0) {
+      console.log('[INIT] Seeding floor types...');
+      await db.insert(floorTypes).values([
+        { name: 'Concrete', displayOrder: 1, isActive: true },
+        { name: 'Concrete & Timber', displayOrder: 2, isActive: true },
+        { name: 'Timber', displayOrder: 3, isActive: true },
+        { name: 'Reinforced Concrete', displayOrder: 4, isActive: true },
+        { name: 'Pre-stressed Concrete', displayOrder: 5, isActive: true },
+        { name: 'Post Tension Concrete', displayOrder: 6, isActive: true },
+        { name: 'Steel Framed', displayOrder: 7, isActive: true },
+        { name: 'Composite', displayOrder: 8, isActive: true },
+        { name: 'Other', displayOrder: 9, isActive: true }
+      ]);
+      console.log('[INIT] Floor types seeded successfully');
+    }
+
+    // Check and seed building types
+    const existingBuildingTypes = await db.select().from(buildingTypes);
+    if (existingBuildingTypes.length === 0) {
+      console.log('[INIT] Seeding building types...');
+      await db.insert(buildingTypes).values([
+        { name: 'Residential', displayOrder: 1, isActive: true },
+        { name: 'Mixed Use', displayOrder: 2, isActive: true },
+        { name: 'Commercial', displayOrder: 3, isActive: true },
+        { name: 'Industrial', displayOrder: 4, isActive: true },
+        { name: 'Other', displayOrder: 5, isActive: true }
+      ]);
+      console.log('[INIT] Building types seeded successfully');
+    }
+
+    console.log('[INIT] All dropdown data initialized');
+  } catch (error) {
+    console.error('[INIT] Error initializing dropdown data:', error);
+  }
+}
+
 initializeDefaultAdmin();
+initializeDropdownData();
 
 app.get('/letter-of-appointment', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'letter-of-appointment.html'));
