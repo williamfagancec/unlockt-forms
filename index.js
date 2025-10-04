@@ -372,22 +372,36 @@ async function sendOnboardingEmail(email, username, onboardingToken, role) {
   const setupUrl = `${baseUrl}/setup-password?token=${onboardingToken}`;
 
   const emailContent = `
-Welcome to Unlockt Forms!
+Welcome to Unlockt Forms Admin Portal
 
-Your admin account has been created for: ${email}
-Username: ${username}
-Role: ${role}
+Hello,
 
-To complete your account setup and create your password, please click the link below:
+An administrator has created an account for you in the Unlockt Forms management system.
+
+Your Account Details:
+- Email: ${email}
+- Username: ${username}
+- Role: ${role}
+
+To activate your account and create a secure password, please click the link below or copy it into your browser:
 
 ${setupUrl}
 
-This link will expire in 24 hours.
+Important Information:
+- This activation link will expire in 24 hours
+- You will be prompted to create a password that meets our security requirements
+- Once activated, you can login to manage form submissions and user accounts
 
-If you didn't request this account, please ignore this email.
+If you did not expect this account creation, please contact your administrator or ignore this email.
+
+For assistance, contact your system administrator.
 
 Best regards,
-Unlockt Insurance Solutions Team
+Unlockt Insurance Solutions
+Form Management System
+
+---
+This is an automated message from Unlockt Forms. Please do not reply to this email.
   `.trim();
 
   try {
@@ -395,29 +409,99 @@ Unlockt Insurance Solutions Team
     
     const msg = {
       to: email,
-      from: fromEmail,
-      subject: 'Welcome to Unlockt Forms - Complete Your Account Setup',
+      from: {
+        email: fromEmail,
+        name: 'Unlockt Forms'
+      },
+      subject: 'Complete Your Account Setup - Unlockt Forms',
       text: emailContent,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #5fa88a;">Welcome to Unlockt Forms!</h2>
-          <p>Your admin account has been created with the following details:</p>
-          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Username:</strong> ${username}</p>
-            <p><strong>Role:</strong> ${role}</p>
-          </div>
-          <p>To complete your account setup and create your secure password, click the button below:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${setupUrl}" style="background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: 600;">Complete Account Setup</a>
-          </div>
-          <p style="color: #999; font-size: 13px;">Or copy and paste this link into your browser:<br>
-          <a href="${setupUrl}" style="color: #5fa88a; word-break: break-all;">${setupUrl}</a></p>
-          <p style="color: #666; font-size: 14px; margin-top: 30px;">⏱ This link will expire in 24 hours.</p>
-          <p style="color: #999; font-size: 13px;">If you didn't request this account, please ignore this email.</p>
-          <p style="margin-top: 30px;">Best regards,<br><strong>Unlockt Insurance Solutions Team</strong></p>
-        </div>
-      `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <tr style="background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);">
+            <td style="padding: 30px 40px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Unlockt Forms</h1>
+              <p style="margin: 5px 0 0 0; color: #e8f5f0; font-size: 14px;">Admin Portal</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 20px;">Welcome to the Admin Portal</h2>
+              <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
+                Hello,
+              </p>
+              <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
+                An administrator has created an account for you in the Unlockt Forms management system.
+              </p>
+              <div style="background-color: #f8f9fa; border-left: 4px solid #5fa88a; padding: 15px 20px; margin: 20px 0;">
+                <p style="margin: 0 0 8px 0; color: #333333; font-size: 14px; font-weight: 600;">Your Account Details:</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Email:</strong> ${email}</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Username:</strong> ${username}</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Role:</strong> ${role}</p>
+              </div>
+              <p style="margin: 20px 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
+                To activate your account and create a secure password, please click the button below:
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${setupUrl}" style="display: inline-block; background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-size: 16px; font-weight: 600;">Activate Account</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 20px 0 10px 0; color: #999999; font-size: 13px; line-height: 1.5;">
+                Or copy and paste this link into your browser:
+              </p>
+              <p style="margin: 0 0 20px 0; color: #5fa88a; font-size: 13px; word-break: break-all;">
+                ${setupUrl}
+              </p>
+              <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #856404; font-size: 13px; line-height: 1.5;">
+                  <strong>Important:</strong> This activation link will expire in 24 hours. You will be prompted to create a password that meets our security requirements.
+                </p>
+              </div>
+              <p style="margin: 20px 0 10px 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                If you did not expect this account creation, please contact your administrator or ignore this email.
+              </p>
+            </td>
+          </tr>
+          <tr style="background-color: #f8f9fa;">
+            <td style="padding: 20px 40px; text-align: center; border-top: 1px solid #e0e0e0;">
+              <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px;">
+                <strong>Unlockt Insurance Solutions</strong>
+              </p>
+              <p style="margin: 0 0 5px 0; color: #999999; font-size: 12px;">
+                Form Management System
+              </p>
+              <p style="margin: 15px 0 0 0; color: #999999; font-size: 11px;">
+                This is an automated message. Please do not reply to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+      trackingSettings: {
+        clickTracking: {
+          enable: false
+        },
+        openTracking: {
+          enable: false
+        }
+      }
     };
 
     await client.send(msg);
