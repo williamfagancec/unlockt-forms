@@ -519,6 +519,143 @@ This is an automated message from Unlockt Forms. Please do not reply to this ema
   }
 }
 
+async function sendDeactivationEmail(email, username) {
+  const textContent = `
+Your Account Has Been Deactivated
+
+Hello ${username},
+
+Your Unlockt Forms admin account has been deactivated by an administrator.
+
+Account Details:
+- Email: ${email}
+- Username: ${username}
+- Status: Inactive
+
+What this means:
+- You can no longer access the admin portal
+- Your login credentials have been disabled
+- If you believe this was done in error, please contact your administrator
+
+If your account needs to be reactivated, an administrator will send you a new activation link.
+
+For assistance, please contact your system administrator.
+
+Best regards,
+Unlockt Insurance Solutions
+Form Management System
+
+---
+This is an automated message from Unlockt Forms. Please do not reply to this email.
+  `.trim();
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <tr style="background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);">
+            <td style="padding: 30px 40px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Unlockt Forms</h1>
+              <p style="margin: 5px 0 0 0; color: #e8f5f0; font-size: 14px;">Admin Portal</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 20px;">Account Deactivated</h2>
+              <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
+                Hello ${username},
+              </p>
+              <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
+                Your Unlockt Forms admin account has been deactivated by an administrator.
+              </p>
+              <div style="background-color: #f8f9fa; border-left: 4px solid #dc3545; padding: 15px 20px; margin: 20px 0;">
+                <p style="margin: 0 0 8px 0; color: #333333; font-size: 14px; font-weight: 600;">Account Details:</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Email:</strong> ${email}</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Username:</strong> ${username}</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Status:</strong> Inactive</p>
+              </div>
+              <div style="background-color: #f8d7da; border: 1px solid #dc3545; border-radius: 4px; padding: 12px 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #721c24; font-size: 13px; line-height: 1.5;">
+                  <strong>What this means:</strong><br>
+                  • You can no longer access the admin portal<br>
+                  • Your login credentials have been disabled<br>
+                  • If you believe this was done in error, please contact your administrator
+                </p>
+              </div>
+              <p style="margin: 20px 0 10px 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                If your account needs to be reactivated, an administrator will send you a new activation link.
+              </p>
+              <p style="margin: 20px 0 10px 0; color: #666666; font-size: 14px; line-height: 1.6;">
+                For assistance, please contact your system administrator.
+              </p>
+            </td>
+          </tr>
+          <tr style="background-color: #f8f9fa;">
+            <td style="padding: 20px 40px; text-align: center; border-top: 1px solid #e0e0e0;">
+              <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px;">
+                <strong>Unlockt Insurance Solutions</strong>
+              </p>
+              <p style="margin: 0 0 5px 0; color: #999999; font-size: 12px;">
+                Form Management System
+              </p>
+              <p style="margin: 15px 0 0 0; color: #999999; font-size: 11px;">
+                This is an automated message. Please do not reply to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  try {
+    const { client, fromEmail } = await getSendGridClient();
+    
+    const msg = {
+      to: email,
+      from: {
+        email: fromEmail,
+        name: 'Unlockt Forms'
+      },
+      subject: 'Account Deactivated - Unlockt Forms',
+      text: textContent,
+      html: htmlContent,
+      trackingSettings: {
+        clickTracking: {
+          enable: false
+        },
+        openTracking: {
+          enable: false
+        }
+      }
+    };
+
+    await client.send(msg);
+    console.log(`✓ Deactivation email sent to ${email}`);
+    return { success: true, message: 'Email sent successfully' };
+  } catch (error) {
+    console.error('Error sending deactivation email:', error);
+    console.log('=== FALLBACK: EMAIL CONTENT ===');
+    console.log(`To: ${email}`);
+    console.log(`Subject: Account Deactivated - Unlockt Forms`);
+    console.log('---');
+    console.log(textContent);
+    console.log('================================');
+    return { success: false, message: 'Failed to send email, logged to console' };
+  }
+}
+
 app.post('/api/admin/users', adminAuthMiddleware, [
   body('username').trim().notEmpty().withMessage('Username is required'),
   body('email').isEmail().withMessage('Valid email is required'),
@@ -583,11 +720,36 @@ app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) =>
       return res.status(404).json({ error: 'User not found' });
     }
 
-    await db.update(adminUsers)
-      .set({ isActive: !user.isActive })
-      .where(eq(adminUsers.id, userId));
+    const newStatus = !user.isActive;
 
-    res.json({ success: true });
+    if (newStatus) {
+      const onboardingToken = generateOnboardingToken();
+      const tokenHash = crypto.createHash('sha256').update(onboardingToken).digest('hex');
+      const tokenExpiry = new Date();
+      tokenExpiry.setHours(tokenExpiry.getHours() + 24);
+
+      await db.update(adminUsers)
+        .set({ 
+          isActive: true,
+          onboardingToken: tokenHash,
+          onboardingTokenExpiry: tokenExpiry,
+          updatedAt: new Date()
+        })
+        .where(eq(adminUsers.id, userId));
+
+      await sendOnboardingEmail(user.email, user.username, onboardingToken, user.role);
+    } else {
+      await db.update(adminUsers)
+        .set({ 
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(eq(adminUsers.id, userId));
+
+      await sendDeactivationEmail(user.email, user.username);
+    }
+
+    res.json({ success: true, status: newStatus ? 'activated' : 'deactivated' });
   } catch (error) {
     console.error('Error toggling user status:', error);
     res.status(500).json({ error: 'Failed to update user status' });
