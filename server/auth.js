@@ -72,15 +72,19 @@ async function handleLogin(req, res) {
       role: user.role
     };
     
+    console.log('[PROD DEBUG] About to save session for user:', user.email);
+    
     req.session.save((err) => {
       if (err) {
         console.error('[PROD DEBUG] Session save error:', err);
-        return res.status(500).json({ error: 'Failed to create session' });
+        return res.status(500).json({ error: 'Failed to create session', details: err.message });
       }
       
-      console.log('[PROD DEBUG] Session saved. Cookie will be:', {
+      const setCookieHeader = res.getHeader('Set-Cookie');
+      console.log('[PROD DEBUG] Session saved successfully!', {
         sessionID: req.sessionID,
-        setCookie: res.getHeader('Set-Cookie')
+        setCookieHeader: setCookieHeader,
+        hasCookie: !!setCookieHeader
       });
       
       res.json({

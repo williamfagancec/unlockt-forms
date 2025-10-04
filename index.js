@@ -52,12 +52,23 @@ const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
+const sessionStore = new pgSession({
+  pool: pgPool,
+  tableName: 'session',
+  createTableIfMissing: true
+});
+
+sessionStore.on('error', (err) => {
+  console.error('[SESSION STORE ERROR]', err);
+});
+
+console.log('[SESSION CONFIG] isProduction:', isProduction, 'Cookie settings:', {
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax'
+});
+
 app.use(session({
-  store: new pgSession({
-    pool: pgPool,
-    tableName: 'session',
-    createTableIfMissing: true
-  }),
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
