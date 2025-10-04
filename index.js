@@ -218,14 +218,24 @@ app.post('/api/admin/login', [
   body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
+  console.log('🔵 LOGIN REQUEST RECEIVED:', { 
+    email: req.body.email,
+    hasPassword: !!req.body.password,
+    headers: req.headers,
+    origin: req.get('origin')
+  });
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('❌ VALIDATION ERRORS:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
   try {
     const email = req.body.email.toLowerCase().trim();
     const { password } = req.body;
+    
+    console.log('🔍 Looking up user with email:', email);
     
     const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     
