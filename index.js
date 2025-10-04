@@ -46,14 +46,19 @@ app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', true);
 
-const isDevelopment = !process.env.REPLIT_DEPLOYMENT;
-const isSecure = !isDevelopment || !!process.env.REPLIT_DOMAINS;
+const isProduction = !!process.env.REPLIT_DEPLOYMENT;
+
+console.log('[SESSION CONFIG]', {
+  isProduction,
+  hasDeployment: !!process.env.REPLIT_DEPLOYMENT,
+  hasDomains: !!process.env.REPLIT_DOMAINS
+});
 
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
-app.use(session({
+const sessionConfig = {
   store: new pgSession({
     pool: pgPool,
     tableName: 'session',
@@ -64,12 +69,30 @@ app.use(session({
   saveUninitialized: false,
   proxy: true,
   cookie: {
-    secure: isSecure ? true : false,
+    secure: isProduction,
     httpOnly: true,
-    sameSite: isSecure ? 'none' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000
   }
-}));
+};
+
+console.log('[SESSION COOKIE CONFIG]', sessionConfig.cookie);
+
+app.use(session(sessionConfig));
+
+app.use((req, res, next) => {
+  const oldSend = res.send;
+  res.send = function(data) {
+    console.log('[RESPONSE HEADERS]', {
+      path: req.path,
+      setCookie: res.getHeader('Set-Cookie'),
+      secure: req.secure,
+      protocol: req.protocol
+    });
+    oldSend.apply(res, arguments);
+  };
+  next();
+});
 
 const azureConfigured = !!(process.env.AZURE_CLIENT_ID && process.env.AZURE_TENANT_ID && process.env.AZURE_CLIENT_SECRET);
 
