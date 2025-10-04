@@ -45,7 +45,7 @@ app.use('/uploads', express.static('uploads'));
 app.set('trust proxy', 1);
 
 const isDevelopment = !process.env.REPLIT_DEPLOYMENT;
-const isSecure = !isDevelopment || process.env.REPLIT_DOMAINS;
+const isSecure = !isDevelopment || !!process.env.REPLIT_DOMAINS;
 
 console.log('Session config:', { isDevelopment, isSecure, deployment: process.env.REPLIT_DEPLOYMENT });
 
