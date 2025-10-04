@@ -360,6 +360,47 @@
     </div>
   </div>
 
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Edit User</h2>
+      </div>
+      
+      <form id="editUserForm" onsubmit="updateUser(event)">
+        <input type="hidden" id="editUserId">
+        
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input type="text" class="form-input" id="editFirstName" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input type="text" class="form-input" id="editLastName" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" class="form-input" id="editEmail" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Role *</label>
+          <select class="form-select" id="editRole" required>
+            <option value="administrator">Administrator</option>
+            <option value="reviewer">Reviewer</option>
+            <option value="read-only">Read Only</option>
+          </select>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="submit" class="btn btn-primary">Update User</button>
+          <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     async function checkAuth() {
       try {
@@ -418,6 +459,20 @@
       document.getElementById('createUserForm').reset();
     }
 
+    function editUser(user) {
+      document.getElementById('editUserId').value = user.id;
+      document.getElementById('editFirstName').value = user.firstName;
+      document.getElementById('editLastName').value = user.lastName;
+      document.getElementById('editEmail').value = user.email;
+      document.getElementById('editRole').value = user.role;
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+      document.getElementById('editUserForm').reset();
+    }
+
     async function createUser(event) {
       event.preventDefault();
       
@@ -444,6 +499,37 @@
         loadUsers();
       } catch (error) {
         console.error('Error creating user:', error);
+        showAlert(error.message, 'error');
+      }
+    }
+
+    async function updateUser(event) {
+      event.preventDefault();
+      
+      const userId = document.getElementById('editUserId').value;
+      const firstName = document.getElementById('editFirstName').value;
+      const lastName = document.getElementById('editLastName').value;
+      const email = document.getElementById('editEmail').value;
+      const role = document.getElementById('editRole').value;
+
+      try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName, lastName, email, role })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update user');
+        }
+
+        showAlert('User updated successfully!', 'success');
+        closeEditModal();
+        loadUsers();
+      } catch (error) {
+        console.error('Error updating user:', error);
         showAlert(error.message, 'error');
       }
     }
