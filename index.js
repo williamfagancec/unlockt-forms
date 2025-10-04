@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 const isDevelopment = !process.env.REPLIT_DEPLOYMENT;
 const isSecure = !isDevelopment || !!process.env.REPLIT_DOMAINS;

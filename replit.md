@@ -50,6 +50,7 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 ## Recent Changes
 
 **Date: October 4, 2025**
+- **CRITICAL FIX**: Set `trust proxy: true` to trust Replit's multi-layer proxy chain - this allows Express to mark requests as secure and send session cookies in published deployments
 - **CRITICAL FIX**: Implemented PostgreSQL-backed session store (connect-pg-simple) to replace MemoryStore - sessions now persist in published deployments
 - Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility, credentials: 'include' on all fetch requests)
 - Migrated authentication from username to email-based login with case-insensitive email handling
