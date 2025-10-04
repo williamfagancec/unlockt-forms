@@ -719,6 +719,65 @@ app.post('/api/admin/users', adminAuthMiddleware, [
   }
 });
 
+app.put('/api/admin/users/:id', [
+  adminAuthMiddleware,
+  body('firstName').trim().notEmpty().withMessage('First name is required'),
+  body('lastName').trim().notEmpty().withMessage('Last name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const userId = parseInt(req.params.id);
+    const { firstName, lastName, email, role } = req.body;
+    
+    const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const [emailCheck] = await db.select().from(adminUsers).where(
+      and(
+        eq(adminUsers.email, email),
+        ne(adminUsers.id, userId)
+      )
+    );
+    if (emailCheck) {
+      return res.status(400).json({ error: 'Email already in use by another user' });
+    }
+
+    await db.update(adminUsers)
+      .set({ 
+        firstName,
+        lastName,
+        email,
+        role,
+        updatedAt: new Date()
+      })
+      .where(eq(adminUsers.id, userId));
+
+    const [updatedUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+
+    res.json({
+      success: true,
+      user: {
+        id: updatedUser.id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
 app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
