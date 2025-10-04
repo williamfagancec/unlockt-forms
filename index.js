@@ -208,7 +208,7 @@ app.get('/setup-password', (req, res) => {
 });
 
 app.post('/api/admin/login', [
-  body('username').trim().notEmpty().withMessage('Username is required'),
+  body('email').trim().isEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -217,12 +217,12 @@ app.post('/api/admin/login', [
   }
 
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     
     if (!user) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     
     if (!user.isActive) {
@@ -232,7 +232,7 @@ app.post('/api/admin/login', [
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     
     await db.update(adminUsers)
@@ -241,7 +241,8 @@ app.post('/api/admin/login', [
     
     req.session.adminUser = {
       id: user.id,
-      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role
     };
@@ -250,7 +251,8 @@ app.post('/api/admin/login', [
       success: true,
       user: {
         id: user.id,
-        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role
       }
@@ -302,7 +304,8 @@ app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
   try {
     const users = await db.select({
       id: adminUsers.id,
-      username: adminUsers.username,
+      firstName: adminUsers.firstName,
+      lastName: adminUsers.lastName,
       email: adminUsers.email,
       role: adminUsers.role,
       isActive: adminUsers.isActive,
@@ -364,7 +367,7 @@ async function getSendGridClient() {
   };
 }
 
-async function sendOnboardingEmail(email, username, onboardingToken, role) {
+async function sendOnboardingEmail(email, firstName, lastName, onboardingToken, role) {
   let baseUrl;
   
   if (process.env.REPLIT_DOMAINS) {
@@ -381,13 +384,13 @@ async function sendOnboardingEmail(email, username, onboardingToken, role) {
   const emailContent = `
 Welcome to Unlockt Forms Admin Portal
 
-Hello,
+Hello ${firstName} ${lastName},
 
 An administrator has created an account for you in the Unlockt Forms management system.
 
 Your Account Details:
+- Name: ${firstName} ${lastName}
 - Email: ${email}
-- Username: ${username}
 - Role: ${role}
 
 To activate your account and create a secure password, please click the link below or copy it into your browser:
@@ -444,15 +447,15 @@ This is an automated message from Unlockt Forms. Please do not reply to this ema
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 20px;">Welcome to the Admin Portal</h2>
               <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
-                Hello,
+                Hello ${firstName} ${lastName},
               </p>
               <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
                 An administrator has created an account for you in the Unlockt Forms management system.
               </p>
               <div style="background-color: #f8f9fa; border-left: 4px solid #5fa88a; padding: 15px 20px; margin: 20px 0;">
                 <p style="margin: 0 0 8px 0; color: #333333; font-size: 14px; font-weight: 600;">Your Account Details:</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Name:</strong> ${firstName} ${lastName}</p>
                 <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Email:</strong> ${email}</p>
-                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Username:</strong> ${username}</p>
                 <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Role:</strong> ${role}</p>
               </div>
               <p style="margin: 20px 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
@@ -526,17 +529,17 @@ This is an automated message from Unlockt Forms. Please do not reply to this ema
   }
 }
 
-async function sendDeactivationEmail(email, username) {
+async function sendDeactivationEmail(email, firstName, lastName) {
   const textContent = `
 Your Account Has Been Deactivated
 
-Hello ${username},
+Hello ${firstName} ${lastName},
 
 Your Unlockt Forms admin account has been deactivated by an administrator.
 
 Account Details:
+- Name: ${firstName} ${lastName}
 - Email: ${email}
-- Username: ${username}
 - Status: Inactive
 
 What this means:
@@ -578,15 +581,15 @@ This is an automated message from Unlockt Forms. Please do not reply to this ema
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 20px;">Account Deactivated</h2>
               <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
-                Hello ${username},
+                Hello ${firstName} ${lastName},
               </p>
               <p style="margin: 0 0 15px 0; color: #666666; font-size: 15px; line-height: 1.6;">
                 Your Unlockt Forms admin account has been deactivated by an administrator.
               </p>
               <div style="background-color: #f8f9fa; border-left: 4px solid #dc3545; padding: 15px 20px; margin: 20px 0;">
                 <p style="margin: 0 0 8px 0; color: #333333; font-size: 14px; font-weight: 600;">Account Details:</p>
+                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Name:</strong> ${firstName} ${lastName}</p>
                 <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Email:</strong> ${email}</p>
-                <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Username:</strong> ${username}</p>
                 <p style="margin: 5px 0; color: #666666; font-size: 14px;"><strong>Status:</strong> Inactive</p>
               </div>
               <div style="background-color: #f8d7da; border: 1px solid #dc3545; border-radius: 4px; padding: 12px 15px; margin: 20px 0;">
@@ -664,7 +667,8 @@ This is an automated message from Unlockt Forms. Please do not reply to this ema
 }
 
 app.post('/api/admin/users', adminAuthMiddleware, [
-  body('username').trim().notEmpty().withMessage('Username is required'),
+  body('firstName').trim().notEmpty().withMessage('First name is required'),
+  body('lastName').trim().notEmpty().withMessage('Last name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
   body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role')
 ], async (req, res) => {
@@ -674,12 +678,7 @@ app.post('/api/admin/users', adminAuthMiddleware, [
   }
 
   try {
-    const { username, email, role } = req.body;
-    
-    const existingUser = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
-    if (existingUser.length > 0) {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
+    const { firstName, lastName, email, role } = req.body;
 
     const existingEmail = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     if (existingEmail.length > 0) {
@@ -692,7 +691,8 @@ app.post('/api/admin/users', adminAuthMiddleware, [
     tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
     const [newUser] = await db.insert(adminUsers).values({
-      username,
+      firstName,
+      lastName,
       email,
       role,
       isActive: true,
@@ -700,13 +700,14 @@ app.post('/api/admin/users', adminAuthMiddleware, [
       onboardingTokenExpiry: tokenExpiry
     }).returning();
 
-    await sendOnboardingEmail(email, username, onboardingToken, role);
+    await sendOnboardingEmail(email, firstName, lastName, onboardingToken, role);
 
     res.json({
       success: true,
       user: {
         id: newUser.id,
-        username: newUser.username,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         email: newUser.email,
         role: newUser.role
       },
@@ -744,7 +745,7 @@ app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) =>
         })
         .where(eq(adminUsers.id, userId));
 
-      await sendOnboardingEmail(user.email, user.username, onboardingToken, user.role);
+      await sendOnboardingEmail(user.email, user.firstName, user.lastName, onboardingToken, user.role);
     } else {
       await db.update(adminUsers)
         .set({ 
@@ -753,7 +754,7 @@ app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) =>
         })
         .where(eq(adminUsers.id, userId));
 
-      await sendDeactivationEmail(user.email, user.username);
+      await sendDeactivationEmail(user.email, user.firstName, user.lastName);
     }
 
     res.json({ success: true, status: newStatus ? 'activated' : 'deactivated' });

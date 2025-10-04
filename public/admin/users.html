@@ -304,7 +304,7 @@
       <table class="users-table">
         <thead>
           <tr>
-            <th>Username</th>
+            <th>Name</th>
             <th>Email</th>
             <th>Role</th>
             <th>Status</th>
@@ -329,8 +329,13 @@
       
       <form id="createUserForm" onsubmit="createUser(event)">
         <div class="form-group">
-          <label class="form-label">Username *</label>
-          <input type="text" class="form-input" id="username" required>
+          <label class="form-label">First Name *</label>
+          <input type="text" class="form-input" id="firstName" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input type="text" class="form-input" id="lastName" required>
         </div>
 
         <div class="form-group">
@@ -385,7 +390,7 @@
 
         tbody.innerHTML = users.map(user => `
           <tr>
-            <td><strong>${user.username}</strong></td>
+            <td><strong>${user.firstName} ${user.lastName}</strong></td>
             <td>${user.email}</td>
             <td><span class="badge badge-${user.role.replace('-', '')}">${user.role}</span></td>
             <td><span class="badge badge-${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
@@ -415,7 +420,8 @@
     async function createUser(event) {
       event.preventDefault();
       
-      const username = document.getElementById('username').value;
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
       const email = document.getElementById('email').value;
       const role = document.getElementById('role').value;
 
@@ -423,7 +429,7 @@
         const response = await fetch('/api/admin/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, role })
+          body: JSON.stringify({ firstName, lastName, email, role })
         });
 
         const data = await response.json();

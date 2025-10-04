@@ -395,7 +395,7 @@
           return false;
         }
 
-        document.getElementById('userName').textContent = data.user.username;
+        document.getElementById('userName').textContent = `${data.user.firstName} ${data.user.lastName}`;
         return true;
       } catch (error) {
         console.error('Auth check error:', error);
