@@ -396,6 +396,7 @@
             <td><span class="badge badge-${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
             <td>${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
             <td>
+              <button class="btn btn-primary" onclick='editUser(${JSON.stringify(user)})' style="margin-right: 8px;">Edit</button>
               <button class="btn btn-danger" onclick="toggleUserStatus(${user.id}, ${user.isActive})">
                 ${user.isActive ? 'Deactivate' : 'Activate'}
               </button>
