@@ -215,7 +215,7 @@ app.get('/setup-password', (req, res) => {
 });
 
 app.post('/api/admin/login', [
-  body('email').trim().isEmail().withMessage('Valid email is required'),
+  body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -224,7 +224,8 @@ app.post('/api/admin/login', [
   }
 
   try {
-    const { email, password } = req.body;
+    const email = req.body.email.toLowerCase().trim();
+    const { password } = req.body;
     
     const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     
@@ -683,7 +684,7 @@ This is an automated message from Unlockt Forms. Please do not reply to this ema
 app.post('/api/admin/users', adminAuthMiddleware, [
   body('firstName').trim().notEmpty().withMessage('First name is required'),
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -692,7 +693,8 @@ app.post('/api/admin/users', adminAuthMiddleware, [
   }
 
   try {
-    const { firstName, lastName, email, role } = req.body;
+    const { firstName, lastName, role } = req.body;
+    const email = req.body.email.toLowerCase().trim();
 
     const existingEmail = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     if (existingEmail.length > 0) {
@@ -737,7 +739,7 @@ app.put('/api/admin/users/:id', [
   adminAuthMiddleware,
   body('firstName').trim().notEmpty().withMessage('First name is required'),
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -747,7 +749,8 @@ app.put('/api/admin/users/:id', [
 
   try {
     const userId = parseInt(req.params.id);
-    const { firstName, lastName, email, role } = req.body;
+    const { firstName, lastName, role } = req.body;
+    const email = req.body.email.toLowerCase().trim();
     
     const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
     if (!existingUser) {

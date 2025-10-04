@@ -6,22 +6,24 @@ const { eq } = require('drizzle-orm');
 
 async function createAdminUser() {
   try {
-    const username = process.argv[2] || 'admin';
-    const password = process.argv[3] || 'Admin@123456';
-    const email = process.argv[4] || 'admin@unlockt.com';
-    const role = process.argv[5] || 'administrator';
+    const firstName = process.argv[2] || 'Admin';
+    const lastName = process.argv[3] || 'User';
+    const email = (process.argv[4] || 'admin@unlockt.com').toLowerCase().trim();
+    const password = process.argv[5] || 'Admin@123456';
+    const role = process.argv[6] || 'administrator';
 
-    const [existing] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    const [existing] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     
     if (existing) {
-      console.log(`User '${username}' already exists!`);
+      console.log(`User with email '${email}' already exists!`);
       return;
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
     await db.insert(adminUsers).values({
-      username,
+      firstName,
+      lastName,
       email,
       passwordHash,
       role,
@@ -29,9 +31,9 @@ async function createAdminUser() {
     });
 
     console.log('✅ Admin user created successfully!');
-    console.log(`Username: ${username}`);
-    console.log(`Password: ${password}`);
+    console.log(`Name: ${firstName} ${lastName}`);
     console.log(`Email: ${email}`);
+    console.log(`Password: ${password}`);
     console.log(`Role: ${role}`);
     console.log('\n⚠️  Please save these credentials and change the password after first login!');
     

@@ -13,7 +13,7 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL (Neon-backed on Replit, Azure Database for PostgreSQL in production)
-- **Authentication**: Local username/password with bcrypt hashing
+- **Authentication**: Email/password with bcrypt hashing (case-insensitive email matching)
 - **ORM**: Drizzle ORM
 - **Session Management**: Express Session
 - **Export Libraries**: PDFKit (PDF), ExcelJS (XLSX)
@@ -50,13 +50,14 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 ## Recent Changes
 
 **Date: October 4, 2025**
-- Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility)
-- Migrated authentication from username to email-based login
+- Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility, credentials: 'include' on all fetch requests)
+- Migrated authentication from username to email-based login with case-insensitive email handling
 - Replaced username field with firstName/lastName across entire application
 - Added user editing functionality (edit firstName, lastName, email, role - passwords excluded)
 - Implemented magic link onboarding system with SHA-256 token hashing and 24-hour expiry
 - Enhanced email deliverability with professional HTML templates and SendGrid integration
 - Updated UI: smaller action buttons in horizontal layout
+- Fixed email normalization: all emails are lowercased before storage and lookup to prevent case-sensitivity issues
 
 **Date: October 3, 2025**
 - Implemented local username/password authentication for admin portal
@@ -107,9 +108,8 @@ Both forms are publicly accessible without authentication:
 - Last login tracking
 
 **Default Admin Credentials:**
-- Username: `admin`
+- Email: `admin@unlockt.com` (case-insensitive)
 - Password: `Admin@123456`
-- Email: `admin@unlockt.com`
 - Role: `administrator`
 
 ### 3. Admin Dashboard
