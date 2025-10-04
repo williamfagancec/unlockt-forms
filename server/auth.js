@@ -24,6 +24,17 @@ const loginValidation = [
 ];
 
 async function handleLogin(req, res) {
+  console.log('[PROD DEBUG] Login attempt:', {
+    protocol: req.protocol,
+    secure: req.secure,
+    hostname: req.hostname,
+    headers: {
+      'x-forwarded-proto': req.get('x-forwarded-proto'),
+      'x-forwarded-host': req.get('x-forwarded-host'),
+      origin: req.get('origin')
+    }
+  });
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -63,9 +74,14 @@ async function handleLogin(req, res) {
     
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error:', err);
+        console.error('[PROD DEBUG] Session save error:', err);
         return res.status(500).json({ error: 'Failed to create session' });
       }
+      
+      console.log('[PROD DEBUG] Session saved. Cookie will be:', {
+        sessionID: req.sessionID,
+        setCookie: res.getHeader('Set-Cookie')
+      });
       
       res.json({
         success: true,
@@ -79,13 +95,21 @@ async function handleLogin(req, res) {
       });
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[PROD DEBUG] Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 }
 
 async function handleCheckSession(req, res) {
+  console.log('[PROD DEBUG] Check session:', {
+    hasSession: !!req.session,
+    hasAdminUser: !!req.session?.adminUser,
+    sessionID: req.sessionID,
+    cookies: req.get('cookie')
+  });
+  
   if (!req.session || !req.session.adminUser) {
+    console.log('[PROD DEBUG] No valid session found');
     return res.json({ authenticated: false });
   }
   
