@@ -170,7 +170,8 @@ const buildingTypes = pgTable('building_types', {
 
 const adminUsers = pgTable('admin_users', {
   id: serial('id').primaryKey(),
-  username: varchar('username', { length: 100 }).notNull().unique(),
+  firstName: varchar('first_name', { length: 100 }).notNull(),
+  lastName: varchar('last_name', { length: 100 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }),
   role: varchar('role', { length: 50 }).notNull().default('viewer'),
@@ -181,7 +182,6 @@ const adminUsers = pgTable('admin_users', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 }, (table) => ({
-  usernameIdx: index('admin_users_username_idx').on(table.username),
   emailIdx: index('admin_users_email_idx').on(table.email),
   isActiveIdx: index('admin_users_is_active_idx').on(table.isActive),
   onboardingTokenIdx: index('admin_users_onboarding_token_idx').on(table.onboardingToken)
