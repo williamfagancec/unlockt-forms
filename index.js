@@ -98,12 +98,7 @@ if (azureConfigured) {
   cca = new msal.ConfidentialClientApplication(msalConfig);
 }
 
-const authMiddleware = (req, res, next) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
-  }
-  next();
-};
+const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout } = require('./server/auth');
 
 app.get('/letter-of-appointment', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'letter-of-appointment.html'));
@@ -163,38 +158,8 @@ app.get('/api/building-types', async (req, res) => {
   }
 });
 
-const adminAuthMiddleware = async (req, res, next) => {
-  if (!req.session.adminUser) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
-  if (!user || !user.isActive) {
-    req.session.destroy();
-    return res.status(401).json({ error: 'User not found or inactive' });
-  }
-  
-  req.adminUser = user;
-  next();
-};
-
-const adminPageMiddleware = async (req, res, next) => {
-  if (!req.session.adminUser) {
-    return res.redirect('/admin-login.html');
-  }
-  
-  const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
-  if (!user || !user.isActive) {
-    req.session.destroy();
-    return res.redirect('/admin-login.html');
-  }
-  
-  req.adminUser = user;
-  next();
-};
-
-app.get('/', adminPageMiddleware, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/admin', adminPageMiddleware, (req, res) => {
@@ -225,106 +190,11 @@ app.get('/setup-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'setup-password.html'));
 });
 
-app.post('/api/admin/login', [
-  body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+app.post('/api/admin/login', loginValidation, handleLogin);
 
-  try {
-    const email = req.body.email.toLowerCase().trim();
-    const { password } = req.body;
-    
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
-    
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-    
-    if (!user.isActive) {
-      return res.status(401).json({ error: 'Account is inactive' });
-    }
-    
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-    
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-    
-    await db.update(adminUsers)
-      .set({ lastLoginAt: new Date() })
-      .where(eq(adminUsers.id, user.id));
-    
-    req.session.adminUser = {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role
-    };
-    
-    req.session.save((err) => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.status(500).json({ error: 'Failed to create session' });
-      }
-      
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role
-        }
-      });
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
-  }
-});
+app.get('/api/admin/check-session', handleCheckSession);
 
-app.get('/api/admin/check-session', async (req, res) => {
-  if (!req.session.adminUser) {
-    return res.json({ authenticated: false });
-  }
-  
-  try {
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
-    
-    if (!user || !user.isActive) {
-      req.session.destroy();
-      return res.json({ authenticated: false });
-    }
-    
-    res.json({
-      authenticated: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    console.error('Session check error:', error);
-    res.json({ authenticated: false });
-  }
-});
-
-app.post('/api/admin/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Logout failed' });
-    }
-    res.json({ success: true });
-  });
-});
+app.post('/api/admin/logout', handleLogout);
 
 app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
   try {
