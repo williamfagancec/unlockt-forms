@@ -49,17 +49,22 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 
 ## Recent Changes
 
-**Date: October 4, 2025**
-- **CRITICAL FIX**: Set `trust proxy: true` to trust Replit's multi-layer proxy chain - this allows Express to mark requests as secure and send session cookies in published deployments
-- **CRITICAL FIX**: Implemented PostgreSQL-backed session store (connect-pg-simple) to replace MemoryStore - sessions now persist in published deployments
+**Date: October 4, 2025 - Authentication System Rebuild**
+- **ROOT CAUSE IDENTIFIED**: Session cookie configuration was using incorrect logic for dev vs production environments
+  - Previous: `isSecure = !isDevelopment || !!REPLIT_DOMAINS` made dev environment use `secure: true` with HTTP, preventing cookies from being sent
+  - Fixed: `isProduction = !!REPLIT_DEPLOYMENT` correctly sets `secure: false` in dev (HTTP) and `secure: true` in production (HTTPS)
+- **COMPLETE AUTHENTICATION REBUILD**: Extracted all authentication logic into dedicated `server/auth.js` module
+  - Clean separation of concerns with reusable auth middleware and handlers
+  - Simplified codebase with explicit session handling
+  - Removed all unnecessary debug logging
+- **CRITICAL FIX**: Set `trust proxy: true` to trust Replit's multi-layer proxy chain for published deployments
+- **CRITICAL FIX**: Implemented PostgreSQL-backed session store (connect-pg-simple) to replace MemoryStore - sessions now persist across restarts
 - Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility, credentials: 'include' on all fetch requests)
 - Migrated authentication from username to email-based login with case-insensitive email handling
 - Replaced username field with firstName/lastName across entire application
 - Added user editing functionality (edit firstName, lastName, email, role - passwords excluded)
 - Implemented magic link onboarding system with SHA-256 token hashing and 24-hour expiry
 - Enhanced email deliverability with professional HTML templates and SendGrid integration
-- Updated UI: smaller action buttons in horizontal layout
-- Fixed email normalization: all emails are lowercased before storage and lookup to prevent case-sensitivity issues
 
 **Date: October 3, 2025**
 - Implemented local username/password authentication for admin portal
