@@ -32,9 +32,20 @@
       align-items: center;
     }
 
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
     .header h1 {
       font-size: 24px;
       font-weight: 600;
+    }
+
+    .header-logo {
+      height: 40px;
+      width: auto;
     }
 
     .header-nav {
@@ -190,7 +201,10 @@
 <body>
   <div class="header">
     <div class="header-content">
-      <h1>Letter of Appointment Details</h1>
+      <div class="header-title">
+        <img src="/unlockt-logo.png" alt="Unlockt Logo" class="header-logo">
+        <h1>Letter of Appointment Details</h1>
+      </div>
       <div class="header-nav">
         <a href="/admin/letter-of-appointment" class="btn btn-back">← Back to List</a>
         <button class="btn btn-export" onclick="exportPDF()">Download PDF</button>
