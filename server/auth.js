@@ -44,26 +44,34 @@ async function handleLogin(req, res) {
     const email = req.body.email.toLowerCase().trim();
     const { password } = req.body;
     
+    console.log('[PROD DEBUG] Looking up user:', email);
     const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
     
     if (!user) {
+      console.log('[PROD DEBUG] User not found');
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     
+    console.log('[PROD DEBUG] User found, checking active status');
     if (!user.isActive) {
+      console.log('[PROD DEBUG] User inactive');
       return res.status(401).json({ error: 'Account is inactive' });
     }
     
+    console.log('[PROD DEBUG] Checking password');
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     
     if (!isValidPassword) {
+      console.log('[PROD DEBUG] Invalid password');
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     
+    console.log('[PROD DEBUG] Password valid, updating login timestamp');
     await db.update(adminUsers)
       .set({ lastLoginAt: new Date() })
       .where(eq(adminUsers.id, user.id));
     
+    console.log('[PROD DEBUG] Setting session data');
     req.session.adminUser = {
       id: user.id,
       firstName: user.firstName,
@@ -100,7 +108,8 @@ async function handleLogin(req, res) {
     });
   } catch (error) {
     console.error('[PROD DEBUG] Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error('[PROD DEBUG] Error stack:', error.stack);
+    res.status(500).json({ error: 'Login failed', details: error.message });
   }
 }
 
