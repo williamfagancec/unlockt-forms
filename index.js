@@ -12,6 +12,7 @@ const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const sgMail = require('@sendgrid/mail');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -321,7 +322,44 @@ function generatePassword() {
   return password;
 }
 
+async function getSendGridClient() {
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  const xReplitToken = process.env.REPL_IDENTITY 
+    ? 'repl ' + process.env.REPL_IDENTITY 
+    : process.env.WEB_REPL_RENEWAL 
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+    : null;
+
+  if (!xReplitToken) {
+    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  }
+
+  const connectionSettings = await fetch(
+    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
+    {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    }
+  ).then(res => res.json()).then(data => data.items?.[0]);
+
+  if (!connectionSettings || (!connectionSettings.settings.api_key || !connectionSettings.settings.from_email)) {
+    throw new Error('SendGrid not connected');
+  }
+
+  sgMail.setApiKey(connectionSettings.settings.api_key);
+  return {
+    client: sgMail,
+    fromEmail: connectionSettings.settings.from_email
+  };
+}
+
 async function sendOnboardingEmail(email, username, temporaryPassword, role) {
+  const loginUrl = process.env.REPL_SLUG 
+    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/admin-login.html` 
+    : 'http://localhost:5000/admin-login.html';
+
   const emailContent = `
 Welcome to Unlockt Forms!
 
@@ -331,7 +369,7 @@ Username: ${username}
 Temporary Password: ${temporaryPassword}
 Role: ${role}
 
-Please log in at: ${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/admin-login.html` : 'http://localhost:5000/admin-login.html'}
+Please log in at: ${loginUrl}
 
 For security, please change your password after your first login.
 
@@ -339,14 +377,43 @@ Best regards,
 Unlockt Insurance Solutions Team
   `.trim();
 
-  console.log('=== ONBOARDING EMAIL ===');
-  console.log(`To: ${email}`);
-  console.log(`Subject: Welcome to Unlockt Forms - Your Account Details`);
-  console.log('---');
-  console.log(emailContent);
-  console.log('========================');
-  
-  return { success: true, message: 'Email logged to console (email service not configured)' };
+  try {
+    const { client, fromEmail } = await getSendGridClient();
+    
+    const msg = {
+      to: email,
+      from: fromEmail,
+      subject: 'Welcome to Unlockt Forms - Your Account Details',
+      text: emailContent,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #5fa88a;">Welcome to Unlockt Forms!</h2>
+          <p>Your admin account has been created with the following credentials:</p>
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Username:</strong> ${username}</p>
+            <p><strong>Temporary Password:</strong> ${temporaryPassword}</p>
+            <p><strong>Role:</strong> ${role}</p>
+          </div>
+          <p>Please log in at: <a href="${loginUrl}" style="color: #5fa88a;">${loginUrl}</a></p>
+          <p style="color: #666; font-size: 14px;">For security, please change your password after your first login.</p>
+          <p style="margin-top: 30px;">Best regards,<br><strong>Unlockt Insurance Solutions Team</strong></p>
+        </div>
+      `
+    };
+
+    await client.send(msg);
+    console.log(`✓ Onboarding email sent to ${email}`);
+    return { success: true, message: 'Email sent successfully' };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    console.log('=== FALLBACK: EMAIL CONTENT ===');
+    console.log(`To: ${email}`);
+    console.log(`Subject: Welcome to Unlockt Forms - Your Account Details`);
+    console.log('---');
+    console.log(emailContent);
+    console.log('================================');
+    return { success: false, message: 'Failed to send email, logged to console' };
+  }
 }
 
 app.post('/api/admin/users', adminAuthMiddleware, [
