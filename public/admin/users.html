@@ -432,7 +432,7 @@
           throw new Error(data.error || 'Failed to create user');
         }
 
-        showAlert(`User created successfully! Temporary password: ${data.temporaryPassword}`, 'success');
+        showAlert('User created successfully! An onboarding email has been sent with setup instructions.', 'success');
         closeCreateModal();
         loadUsers();
       } catch (error) {
