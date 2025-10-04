@@ -42,6 +42,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
+app.use((req, res, next) => {
+  if (req.path.includes('/api/admin/login')) {
+    console.log('🟢 RAW LOGIN REQUEST:', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      contentType: req.get('content-type')
+    });
+  }
+  next();
+});
+
 app.set('trust proxy', 1);
 
 const isDevelopment = !process.env.REPLIT_DEPLOYMENT;
