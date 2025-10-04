@@ -5,9 +5,10 @@ const msal = require('@azure/msal-node');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { db } = require('./server/db');
 const { formSubmissions, users, quoteSlipSubmissions, insurers, roofTypes, externalWallTypes, floorTypes, buildingTypes, adminUsers } = require('./shared/schema');
-const { eq, desc } = require('drizzle-orm');
+const { eq, desc, and, gt } = require('drizzle-orm');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const path = require('path');
@@ -312,6 +313,10 @@ app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
   }
 });
 
+function generateOnboardingToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
 function generatePassword() {
   const length = 12;
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
@@ -355,23 +360,27 @@ async function getSendGridClient() {
   };
 }
 
-async function sendOnboardingEmail(email, username, temporaryPassword, role) {
-  const loginUrl = process.env.REPL_SLUG 
-    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/admin-login.html` 
-    : 'http://localhost:5000/admin-login.html';
+async function sendOnboardingEmail(email, username, onboardingToken, role) {
+  const baseUrl = process.env.REPL_SLUG 
+    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` 
+    : 'http://localhost:5000';
+  
+  const setupUrl = `${baseUrl}/setup-password?token=${onboardingToken}`;
 
   const emailContent = `
 Welcome to Unlockt Forms!
 
-Your admin account has been created with the following credentials:
-
+Your admin account has been created for: ${email}
 Username: ${username}
-Temporary Password: ${temporaryPassword}
 Role: ${role}
 
-Please log in at: ${loginUrl}
+To complete your account setup and create your password, please click the link below:
 
-For security, please change your password after your first login.
+${setupUrl}
+
+This link will expire in 24 hours.
+
+If you didn't request this account, please ignore this email.
 
 Best regards,
 Unlockt Insurance Solutions Team
@@ -383,19 +392,25 @@ Unlockt Insurance Solutions Team
     const msg = {
       to: email,
       from: fromEmail,
-      subject: 'Welcome to Unlockt Forms - Your Account Details',
+      subject: 'Welcome to Unlockt Forms - Complete Your Account Setup',
       text: emailContent,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #5fa88a;">Welcome to Unlockt Forms!</h2>
-          <p>Your admin account has been created with the following credentials:</p>
+          <p>Your admin account has been created with the following details:</p>
           <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Email:</strong> ${email}</p>
             <p><strong>Username:</strong> ${username}</p>
-            <p><strong>Temporary Password:</strong> ${temporaryPassword}</p>
             <p><strong>Role:</strong> ${role}</p>
           </div>
-          <p>Please log in at: <a href="${loginUrl}" style="color: #5fa88a;">${loginUrl}</a></p>
-          <p style="color: #666; font-size: 14px;">For security, please change your password after your first login.</p>
+          <p>To complete your account setup and create your secure password, click the button below:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${setupUrl}" style="background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: 600;">Complete Account Setup</a>
+          </div>
+          <p style="color: #999; font-size: 13px;">Or copy and paste this link into your browser:<br>
+          <a href="${setupUrl}" style="color: #5fa88a; word-break: break-all;">${setupUrl}</a></p>
+          <p style="color: #666; font-size: 14px; margin-top: 30px;">⏱ This link will expire in 24 hours.</p>
+          <p style="color: #999; font-size: 13px;">If you didn't request this account, please ignore this email.</p>
           <p style="margin-top: 30px;">Best regards,<br><strong>Unlockt Insurance Solutions Team</strong></p>
         </div>
       `
@@ -408,7 +423,7 @@ Unlockt Insurance Solutions Team
     console.error('Error sending email:', error);
     console.log('=== FALLBACK: EMAIL CONTENT ===');
     console.log(`To: ${email}`);
-    console.log(`Subject: Welcome to Unlockt Forms - Your Account Details`);
+    console.log(`Subject: Welcome to Unlockt Forms - Complete Your Account Setup`);
     console.log('---');
     console.log(emailContent);
     console.log('================================');
@@ -439,18 +454,20 @@ app.post('/api/admin/users', adminAuthMiddleware, [
       return res.status(400).json({ error: 'Email already exists' });
     }
 
-    const temporaryPassword = generatePassword();
-    const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+    const onboardingToken = generateOnboardingToken();
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
     const [newUser] = await db.insert(adminUsers).values({
       username,
       email,
-      passwordHash,
       role,
-      isActive: true
+      isActive: true,
+      onboardingToken,
+      onboardingTokenExpiry: tokenExpiry
     }).returning();
 
-    await sendOnboardingEmail(email, username, temporaryPassword, role);
+    await sendOnboardingEmail(email, username, onboardingToken, role);
 
     res.json({
       success: true,
@@ -460,7 +477,7 @@ app.post('/api/admin/users', adminAuthMiddleware, [
         email: newUser.email,
         role: newUser.role
       },
-      temporaryPassword
+      message: 'Onboarding email sent successfully'
     });
   } catch (error) {
     console.error('Error creating user:', error);
