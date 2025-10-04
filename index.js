@@ -228,7 +228,11 @@ app.post('/api/admin/login', [
   try {
     const { email, password } = req.body;
     
+    console.log('Login attempt for email:', email);
+    
     const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
+    
+    console.log('User found:', user ? `Yes (id: ${user.id})` : 'No');
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
