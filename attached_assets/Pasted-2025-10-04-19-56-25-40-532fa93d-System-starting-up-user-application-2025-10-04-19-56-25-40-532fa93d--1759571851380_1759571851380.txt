@@ -1,0 +1,124 @@
+2025-10-04 19:56:25.40
+532fa93d
+System
+starting up user application
+2025-10-04 19:56:25.40
+532fa93d
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-10-04 19:56:28.81
+7d0276da
+System
+system: received signal terminated
+2025-10-04 19:56:28.83
+7d0276da
+System
+command finished with error [node index.js]: signal: terminated
+2025-10-04 19:56:28.89
+7d0276da
+System
+main done, exiting
+2025-10-04 19:56:32.00
+532fa93d
+User
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️ load multiple .env files with { path: ['.env.local', '.env'] }
+2025-10-04 19:56:37.80
+532fa93d
+User
+[SESSION CONFIG] isProduction: true Cookie settings: { secure: true, sameSite: 'none' }
+2025-10-04 19:56:37.83
+532fa93d
+User
+Server running on http://0.0.0.0:5000
+2025-10-04 19:56:37.83
+532fa93d
+User
+Public form: /
+2025-10-04 19:56:37.83
+532fa93d
+User
+Admin dashboard: /admin
+2025-10-04 19:56:37.83
+532fa93d
+User
+⚠️ WARNING: Azure AD credentials not configured!
+2025-10-04 19:56:37.83
+532fa93d
+User
+Set AZURE_CLIENT_ID, AZURE_TENANT_ID, and AZURE_CLIENT_SECRET environment variables.
+2025-10-04 19:56:45.40
+532fa93d
+User
+[PROD DEBUG] Check session: {
+2025-10-04 19:56:45.40
+532fa93d
+User
+hasSession: true,
+2025-10-04 19:56:45.40
+532fa93d
+User
+hasAdminUser: false,
+2025-10-04 19:56:45.40
+532fa93d
+User
+sessionID: 'p5TFl8leCdDQhZwFxt7eUu0aQnlcQuZN',
+2025-10-04 19:56:45.40
+532fa93d
+User
+cookies: undefined
+2025-10-04 19:56:45.40
+532fa93d
+User
+}
+2025-10-04 19:56:45.40
+532fa93d
+User
+[PROD DEBUG] No valid session found
+2025-10-04 19:56:56.39
+532fa93d
+User
+[PROD DEBUG] Login attempt: {
+2025-10-04 19:56:56.39
+532fa93d
+User
+protocol: 'https',
+2025-10-04 19:56:56.39
+532fa93d
+User
+secure: true,
+2025-10-04 19:56:56.39
+532fa93d
+User
+hostname: 'unlockt-forms-v-2-williamfagan1.replit.app',
+2025-10-04 19:56:56.39
+532fa93d
+User
+headers: {
+2025-10-04 19:56:56.39
+532fa93d
+User
+'x-forwarded-proto': 'https',
+2025-10-04 19:56:56.39
+532fa93d
+User
+'x-forwarded-host': 'unlockt-forms-v-2-williamfagan1.replit.app',
+2025-10-04 19:56:56.39
+532fa93d
+User
+origin: 'https://unlockt-forms-v-2-williamfagan1.replit.app'
+2025-10-04 19:56:56.39
+532fa93d
+User
+}
+2025-10-04 19:56:56.39
+532fa93d
+User
+}
+2025-10-04 19:56:56.39
+532fa93d
+User
+[PROD DEBUG] Looking up user: william.fagan@customerexperience.com.au
+2025-10-04 19:56:59.08
+532fa93d
+User
+[PROD DEBUG] User not found

@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
-const { db } = require('./db');
+const { db, pool } = require('./db');
 const { adminUsers } = require('../shared/schema');
 const { eq } = require('drizzle-orm');
 
@@ -45,7 +45,13 @@ async function handleLogin(req, res) {
     const { password } = req.body;
     
     console.log('[PROD DEBUG] Looking up user:', email);
+    
+    // Try raw SQL first to bypass Drizzle
+    const rawResult = await pool.query('SELECT * FROM admin_users WHERE email = $1', [email]);
+    console.log('[PROD DEBUG] Raw SQL result:', rawResult.rows.length, 'rows found');
+    
     const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
+    console.log('[PROD DEBUG] Drizzle result:', user ? 'found' : 'not found');
     
     if (!user) {
       console.log('[PROD DEBUG] User not found');
