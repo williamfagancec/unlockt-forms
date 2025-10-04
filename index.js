@@ -44,15 +44,20 @@ app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', 1);
 
+const isDevelopment = !process.env.REPLIT_DEPLOYMENT;
+const isSecure = !isDevelopment || process.env.REPLIT_DOMAINS;
+
+console.log('Session config:', { isDevelopment, isSecure, deployment: process.env.REPLIT_DEPLOYMENT });
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   proxy: true,
   cookie: {
-    secure: true,
+    secure: isSecure ? true : false,
     httpOnly: true,
-    sameSite: 'none',
+    sameSite: isSecure ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
@@ -251,15 +256,22 @@ app.post('/api/admin/login', [
       role: user.role
     };
     
-    res.json({
-      success: true,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Failed to create session' });
       }
+      
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role
+        }
+      });
     });
   } catch (error) {
     console.error('Login error:', error);
