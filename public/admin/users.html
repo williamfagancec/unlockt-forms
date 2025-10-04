@@ -95,6 +95,17 @@
       background: #c82333;
     }
 
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
     .container {
       max-width: 1400px;
       margin: 0 auto;
@@ -437,10 +448,12 @@
             <td><span class="badge badge-${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
             <td>${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
             <td>
-              <button class="btn btn-primary" onclick='editUser(${JSON.stringify(user)})' style="margin-right: 8px;">Edit</button>
-              <button class="btn btn-danger" onclick="toggleUserStatus(${user.id}, ${user.isActive})">
-                ${user.isActive ? 'Deactivate' : 'Activate'}
-              </button>
+              <div class="action-buttons">
+                <button class="btn btn-primary btn-sm" onclick='editUser(${JSON.stringify(user)})'>Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="toggleUserStatus(${user.id}, ${user.isActive})">
+                  ${user.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+              </div>
             </td>
           </tr>
         `).join('');
