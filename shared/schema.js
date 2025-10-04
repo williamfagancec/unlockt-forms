@@ -172,16 +172,19 @@ const adminUsers = pgTable('admin_users', {
   id: serial('id').primaryKey(),
   username: varchar('username', { length: 100 }).notNull().unique(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  passwordHash: varchar('password_hash', { length: 255 }),
   role: varchar('role', { length: 50 }).notNull().default('viewer'),
   isActive: boolean('is_active').default(true).notNull(),
+  onboardingToken: varchar('onboarding_token', { length: 255 }),
+  onboardingTokenExpiry: timestamp('onboarding_token_expiry'),
   lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 }, (table) => ({
   usernameIdx: index('admin_users_username_idx').on(table.username),
   emailIdx: index('admin_users_email_idx').on(table.email),
-  isActiveIdx: index('admin_users_is_active_idx').on(table.isActive)
+  isActiveIdx: index('admin_users_is_active_idx').on(table.isActive),
+  onboardingTokenIdx: index('admin_users_onboarding_token_idx').on(table.onboardingToken)
 }));
 
 module.exports = {
