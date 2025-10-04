@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
+const { Pool } = require('@neondatabase/serverless');
 const msal = require('@azure/msal-node');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
@@ -47,7 +49,16 @@ app.set('trust proxy', 1);
 const isDevelopment = !process.env.REPLIT_DEPLOYMENT;
 const isSecure = !isDevelopment || !!process.env.REPLIT_DOMAINS;
 
+const pgPool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
 app.use(session({
+  store: new pgSession({
+    pool: pgPool,
+    tableName: 'session',
+    createTableIfMissing: true
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,

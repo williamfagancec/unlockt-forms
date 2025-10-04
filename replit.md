@@ -15,7 +15,7 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 - **Database**: PostgreSQL (Neon-backed on Replit, Azure Database for PostgreSQL in production)
 - **Authentication**: Email/password with bcrypt hashing (case-insensitive email matching)
 - **ORM**: Drizzle ORM
-- **Session Management**: Express Session
+- **Session Management**: Express Session with PostgreSQL session store (connect-pg-simple)
 - **Export Libraries**: PDFKit (PDF), ExcelJS (XLSX)
 - **File Uploads**: Multer for document handling
 - **Signature Capture**: SignaturePad for digital signatures
@@ -50,6 +50,7 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 ## Recent Changes
 
 **Date: October 4, 2025**
+- **CRITICAL FIX**: Implemented PostgreSQL-backed session store (connect-pg-simple) to replace MemoryStore - sessions now persist in published deployments
 - Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility, credentials: 'include' on all fetch requests)
 - Migrated authentication from username to email-based login with case-insensitive email handling
 - Replaced username field with firstName/lastName across entire application
@@ -100,12 +101,14 @@ Both forms are publicly accessible without authentication:
 - Drag-and-drop file upload functionality
 
 ### 2. Admin Authentication
-- Local username/password authentication
+- Local email/password authentication (case-insensitive)
 - Password hashing with bcrypt (12 salt rounds)
 - Role-based access control (administrator, reviewer, read-only)
+- PostgreSQL-backed session store for persistence in production deployments
 - Session-based authentication with httpOnly cookies
 - Active/inactive user management
 - Last login tracking
+- Magic link onboarding for new admin users
 
 **Default Admin Credentials:**
 - Email: `admin@unlockt.com` (case-insensitive)
