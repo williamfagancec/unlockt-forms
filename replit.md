@@ -49,6 +49,15 @@ This is a secure form collection system for Unlockt Insurance Solutions that fea
 
 ## Recent Changes
 
+**Date: October 4, 2025**
+- Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility)
+- Migrated authentication from username to email-based login
+- Replaced username field with firstName/lastName across entire application
+- Added user editing functionality (edit firstName, lastName, email, role - passwords excluded)
+- Implemented magic link onboarding system with SHA-256 token hashing and 24-hour expiry
+- Enhanced email deliverability with professional HTML templates and SendGrid integration
+- Updated UI: smaller action buttons in horizontal layout
+
 **Date: October 3, 2025**
 - Implemented local username/password authentication for admin portal
 - Created adminUsers database table with role-based access (administrator/reviewer/read-only)

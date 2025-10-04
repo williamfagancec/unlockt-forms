@@ -44,17 +44,15 @@ app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', 1);
 
-const isProduction = process.env.REPL_SLUG || process.env.NODE_ENV === 'production';
-
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   proxy: true,
   cookie: {
-    secure: isProduction,
+    secure: true,
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
