@@ -279,7 +279,7 @@
 
     async function checkAuth() {
       try {
-        const response = await fetch('/api/admin/check-session');
+        const response = await fetch('/api/admin/check-session', { credentials: 'include' });
         const data = await response.json();
 
         if (!data.authenticated) {
@@ -296,7 +296,7 @@
 
     async function loadSubmissions() {
       try {
-        const response = await fetch('/api/quote-slip-submissions');
+        const response = await fetch('/api/quote-slip-submissions', { credentials: 'include' });
         const submissions = await response.json();
 
         allSubmissions = submissions;

@@ -415,7 +415,7 @@
   <script>
     async function checkAuth() {
       try {
-        const response = await fetch('/api/admin/check-session');
+        const response = await fetch('/api/admin/check-session', { credentials: 'include' });
         const data = await response.json();
         if (!data.authenticated) {
           window.location.href = '/admin-login.html';
@@ -431,7 +431,7 @@
 
     async function loadUsers() {
       try {
-        const response = await fetch('/api/admin/users');
+        const response = await fetch('/api/admin/users', { credentials: 'include' });
         const users = await response.json();
         
         const tbody = document.getElementById('usersTable');
@@ -497,6 +497,7 @@
       try {
         const response = await fetch('/api/admin/users', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ firstName, lastName, email, role })
         });
@@ -529,6 +530,7 @@
         const response = await fetch(`/api/admin/users/${userId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ firstName, lastName, email, role })
         });
 
@@ -555,7 +557,8 @@
       try {
         const response = await fetch(`/api/admin/users/${userId}/toggle`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
         });
 
         if (!response.ok) {

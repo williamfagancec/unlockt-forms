@@ -451,7 +451,7 @@
 
     async function checkAuth() {
       try {
-        const response = await fetch('/api/admin/check-session');
+        const response = await fetch('/api/admin/check-session', { credentials: 'include' });
         const data = await response.json();
 
         if (!data.authenticated) {
@@ -471,7 +471,7 @@
       submissionId = pathParts[pathParts.length - 1];
 
       try {
-        const response = await fetch(`/api/quote-slip-submissions/${submissionId}`);
+        const response = await fetch(`/api/quote-slip-submissions/${submissionId}`, { credentials: 'include' });
         if (!response.ok) {
           throw new Error('Submission not found');
         }

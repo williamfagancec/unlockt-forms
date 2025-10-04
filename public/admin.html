@@ -387,7 +387,7 @@
   <script>
     async function checkAuth() {
       try {
-        const response = await fetch('/api/admin/check-session');
+        const response = await fetch('/api/admin/check-session', { credentials: 'include' });
         const data = await response.json();
 
         if (!data.authenticated) {
@@ -407,8 +407,8 @@
     async function loadStats() {
       try {
         const [loaResponse, qsResponse] = await Promise.all([
-          fetch('/api/admin/letter-of-appointment/stats'),
-          fetch('/api/admin/quote-slip/stats')
+          fetch('/api/admin/letter-of-appointment/stats', { credentials: 'include' }),
+          fetch('/api/admin/quote-slip/stats', { credentials: 'include' })
         ]);
 
         const loaStats = await loaResponse.json();
@@ -439,7 +439,7 @@
 
     async function logout() {
       try {
-        await fetch('/api/admin/logout', { method: 'POST' });
+        await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
         window.location.href = '/admin-login.html';
       } catch (error) {
         console.error('Logout error:', error);
