@@ -459,6 +459,7 @@ app.post('/api/admin/users', adminAuthMiddleware, [
     }
 
     const onboardingToken = generateOnboardingToken();
+    const tokenHash = crypto.createHash('sha256').update(onboardingToken).digest('hex');
     const tokenExpiry = new Date();
     tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
@@ -467,7 +468,7 @@ app.post('/api/admin/users', adminAuthMiddleware, [
       email,
       role,
       isActive: true,
-      onboardingToken,
+      onboardingToken: tokenHash,
       onboardingTokenExpiry: tokenExpiry
     }).returning();
 
@@ -519,16 +520,21 @@ app.post('/api/verify-onboarding-token', [
 
   try {
     const { token } = req.body;
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     
     const [user] = await db.select().from(adminUsers).where(
       and(
-        eq(adminUsers.onboardingToken, token),
+        eq(adminUsers.onboardingToken, tokenHash),
         gt(adminUsers.onboardingTokenExpiry, new Date())
       )
     );
 
     if (!user) {
       return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+
+    if (user.passwordHash) {
+      return res.status(400).json({ error: 'Account already activated' });
     }
 
     res.json({
@@ -561,10 +567,11 @@ app.post('/api/complete-onboarding', [
 
   try {
     const { token, password } = req.body;
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     
     const [user] = await db.select().from(adminUsers).where(
       and(
-        eq(adminUsers.onboardingToken, token),
+        eq(adminUsers.onboardingToken, tokenHash),
         gt(adminUsers.onboardingTokenExpiry, new Date())
       )
     );
@@ -574,7 +581,7 @@ app.post('/api/complete-onboarding', [
     }
 
     if (user.passwordHash) {
-      return res.status(400).json({ error: 'Account already set up' });
+      return res.status(400).json({ error: 'Account already activated. Please login instead.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -587,6 +594,8 @@ app.post('/api/complete-onboarding', [
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, user.id));
+
+    console.log(`✓ User ${user.username} completed onboarding`);
 
     res.json({
       success: true,
