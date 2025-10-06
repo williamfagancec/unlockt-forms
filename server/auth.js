@@ -43,14 +43,46 @@ async function handleLogin(req, res) {
       return res.status(401).json({ error: 'Account is inactive' });
     }
     
+    if (user.isFrozen) {
+      return res.status(423).json({ 
+        error: 'Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.' 
+      });
+    }
+    
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+      const shouldFreeze = newFailedAttempts >= 5;
+      
+      await db.update(adminUsers)
+        .set({ 
+          failedLoginAttempts: newFailedAttempts,
+          isFrozen: shouldFreeze,
+          frozenAt: shouldFreeze ? new Date() : undefined
+        })
+        .where(eq(adminUsers.id, user.id));
+      
+      if (shouldFreeze) {
+        console.log(`[SECURITY] Account frozen for user ${email} after 5 failed login attempts`);
+        return res.status(423).json({ 
+          error: 'Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.' 
+        });
+      }
+      
+      const remainingAttempts = 5 - newFailedAttempts;
+      return res.status(401).json({ 
+        error: `Invalid email or password. ${remainingAttempts} attempt(s) remaining before account is frozen.` 
+      });
     }
     
     await db.update(adminUsers)
-      .set({ lastLoginAt: new Date() })
+      .set({ 
+        lastLoginAt: new Date(),
+        failedLoginAttempts: 0,
+        isFrozen: false,
+        frozenAt: null
+      })
       .where(eq(adminUsers.id, user.id));
     
     req.session.adminUser = {
