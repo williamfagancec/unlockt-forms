@@ -970,6 +970,7 @@ app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) =>
       await db.update(adminUsers)
         .set({ 
           isActive: true,
+          passwordHash: null,
           onboardingToken: tokenHash,
           onboardingTokenExpiry: tokenExpiry,
           updatedAt: new Date()
