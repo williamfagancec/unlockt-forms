@@ -437,6 +437,9 @@ app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
       email: adminUsers.email,
       role: adminUsers.role,
       isActive: adminUsers.isActive,
+      isFrozen: adminUsers.isFrozen,
+      failedLoginAttempts: adminUsers.failedLoginAttempts,
+      frozenAt: adminUsers.frozenAt,
       lastLoginAt: adminUsers.lastLoginAt,
       createdAt: adminUsers.createdAt
     }).from(adminUsers).orderBy(desc(adminUsers.createdAt));
@@ -845,6 +848,45 @@ app.post('/api/admin/users', adminAuthMiddleware, [
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+app.post('/api/admin/users/:id/unfreeze', adminAuthMiddleware, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    await db.update(adminUsers)
+      .set({ 
+        isFrozen: false,
+        failedLoginAttempts: 0,
+        frozenAt: null
+      })
+      .where(eq(adminUsers.id, userId));
+    
+    console.log(`[SECURITY] Account unfrozen for user ${user.email} by admin ${req.session.adminUser.email}`);
+    
+    res.json({ 
+      success: true, 
+      message: 'Account unfrozen successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        isFrozen: false
+      }
+    });
+  } catch (error) {
+    console.error('Error unfreezing user:', error);
+    res.status(500).json({ error: 'Failed to unfreeze account' });
   }
 });
 
