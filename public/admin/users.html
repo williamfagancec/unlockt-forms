@@ -223,6 +223,25 @@
       color: #333;
     }
 
+    .badge-frozen {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .badge-normal {
+      background: #51cf66;
+      color: white;
+    }
+
+    .btn-warning {
+      background: #ff8c00;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #e67e00;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -319,13 +338,14 @@
             <th>Email</th>
             <th>Role</th>
             <th>Status</th>
+            <th>Account</th>
             <th>Last Login</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="usersTable">
           <tr>
-            <td colspan="6" class="loading">Loading users...</td>
+            <td colspan="7" class="loading">Loading users...</td>
           </tr>
         </tbody>
       </table>
@@ -436,7 +456,7 @@
         
         const tbody = document.getElementById('usersTable');
         if (users.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No users found</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No users found</td></tr>';
           return;
         }
 
@@ -446,13 +466,22 @@
             <td>${user.email}</td>
             <td><span class="badge badge-${user.role.replace('-', '')}">${user.role}</span></td>
             <td><span class="badge badge-${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
+            <td>
+              <span class="badge badge-${user.isFrozen ? 'frozen' : 'normal'}">
+                ${user.isFrozen ? '🔒 Frozen' : '✓ Normal'}
+              </span>
+              ${user.isFrozen ? `<br><small style="color: #999;">${user.failedLoginAttempts || 0} failed attempts</small>` : ''}
+            </td>
             <td>${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
             <td>
               <div class="action-buttons">
                 <button class="btn btn-primary btn-sm" onclick='editUser(${JSON.stringify(user)})'>Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="toggleUserStatus(${user.id}, ${user.isActive})">
-                  ${user.isActive ? 'Deactivate' : 'Activate'}
-                </button>
+                ${user.isFrozen ? 
+                  `<button class="btn btn-warning btn-sm" onclick="unfreezeUser(${user.id})">Unfreeze</button>` :
+                  `<button class="btn btn-danger btn-sm" onclick="toggleUserStatus(${user.id}, ${user.isActive})">
+                    ${user.isActive ? 'Deactivate' : 'Activate'}
+                  </button>`
+                }
               </div>
             </td>
           </tr>
@@ -569,6 +598,32 @@
         loadUsers();
       } catch (error) {
         console.error('Error toggling user status:', error);
+        showAlert(error.message, 'error');
+      }
+    }
+
+    async function unfreezeUser(userId) {
+      if (!confirm('Are you sure you want to unfreeze this account? This will reset failed login attempts and allow the user to login.')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/admin/users/${userId}/unfreeze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to unfreeze account');
+        }
+
+        showAlert('Account unfrozen successfully! User can now login.', 'success');
+        loadUsers();
+      } catch (error) {
+        console.error('Error unfreezing user:', error);
         showAlert(error.message, 'error');
       }
     }

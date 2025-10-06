@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { db } = require('./db');
 const { adminUsers } = require('../shared/schema');
-const { eq } = require('drizzle-orm');
+const { eq, sql } = require('drizzle-orm');
 
 const authMiddleware = (req, res, next) => {
   if (!req.session || !req.session.adminUser) {
@@ -52,19 +52,28 @@ async function handleLogin(req, res) {
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     
     if (!isValidPassword) {
-      const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+      const [updatedUser] = await db.update(adminUsers)
+        .set({ 
+          failedLoginAttempts: sql`COALESCE(${adminUsers.failedLoginAttempts}, 0) + 1`
+        })
+        .where(eq(adminUsers.id, user.id))
+        .returning({ 
+          id: adminUsers.id,
+          failedLoginAttempts: adminUsers.failedLoginAttempts 
+        });
+      
+      const newFailedAttempts = updatedUser.failedLoginAttempts;
       const shouldFreeze = newFailedAttempts >= 5;
       
-      await db.update(adminUsers)
-        .set({ 
-          failedLoginAttempts: newFailedAttempts,
-          isFrozen: shouldFreeze,
-          frozenAt: shouldFreeze ? new Date() : undefined
-        })
-        .where(eq(adminUsers.id, user.id));
-      
       if (shouldFreeze) {
-        console.log(`[SECURITY] Account frozen for user ${email} after 5 failed login attempts`);
+        await db.update(adminUsers)
+          .set({ 
+            isFrozen: true,
+            frozenAt: new Date()
+          })
+          .where(eq(adminUsers.id, user.id));
+        
+        console.log(`[SECURITY] Account frozen for user ${email} after ${newFailedAttempts} failed login attempts`);
         return res.status(423).json({ 
           error: 'Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.' 
         });
