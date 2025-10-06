@@ -72,6 +72,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  rolling: true,
   proxy: true,
   cookie: {
     secure: isProduction,
