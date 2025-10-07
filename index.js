@@ -118,18 +118,24 @@ async function initializeDefaultAdmin() {
     
     if (existingAdmins.length === 0) {
       console.log('[INIT] No admin users found, creating default admin...');
-      const passwordHash = await bcrypt.hash('Admin@123456', 12);
+      
+      const defaultFirstName = process.env.DEFAULT_ADMIN_FIRST_NAME || 'Raj';
+      const defaultLastName = process.env.DEFAULT_ADMIN_LAST_NAME || 'Mendes';
+      const defaultEmail = process.env.DEFAULT_ADMIN_EMAIL || 'raj.mendes@customerexperience.com.au';
+      const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'TestPassword123!';
+      
+      const passwordHash = await bcrypt.hash(defaultPassword, 12);
       
       await db.insert(adminUsers).values({
-        firstName: 'Admin',
-        lastName: 'User',
-        email: 'admin@unlockt.com',
+        firstName: defaultFirstName,
+        lastName: defaultLastName,
+        email: defaultEmail,
         passwordHash: passwordHash,
         role: 'administrator',
         isActive: true
       });
       
-      console.log('[INIT] Default admin created: admin@unlockt.com / Admin@123456');
+      console.log(`[INIT] Default admin created: ${defaultEmail}`);
     } else {
       console.log('[INIT] Admin users already exist');
     }
