@@ -94,29 +94,36 @@ async function handleLogin(req, res) {
       })
       .where(eq(adminUsers.id, user.id));
     
-    req.session.adminUser = {
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role
-    };
-    
-    req.session.save((err) => {
+    req.session.regenerate((err) => {
       if (err) {
-        console.error('Session save error:', err);
+        console.error('Session regeneration error:', err);
         return res.status(500).json({ error: 'Failed to create session' });
       }
       
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role
+      req.session.adminUser = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role
+      };
+      
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: 'Failed to create session' });
         }
+        
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role
+          }
+        });
       });
     });
   } catch (error) {
