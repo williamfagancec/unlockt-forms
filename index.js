@@ -114,18 +114,31 @@ const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidatio
 // Initialize default admin user on startup
 async function initializeDefaultAdmin() {
   try {
-    const existingAdmins = await db.select().from(adminUsers).where(eq(adminUsers.role, 'administrator'));
+    const defaultFirstName = process.env.DEFAULT_ADMIN_FIRST_NAME || 'Raj';
+    const defaultLastName = process.env.DEFAULT_ADMIN_LAST_NAME || 'Mendes';
+    const defaultEmail = process.env.DEFAULT_ADMIN_EMAIL || 'raj.mendes@customerexperience.com.au';
+    const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'TestPassword123!';
     
-    if (existingAdmins.length === 0) {
-      console.log('[INIT] No admin users found, creating default admin...');
-      
-      const defaultFirstName = process.env.DEFAULT_ADMIN_FIRST_NAME || 'Raj';
-      const defaultLastName = process.env.DEFAULT_ADMIN_LAST_NAME || 'Mendes';
-      const defaultEmail = process.env.DEFAULT_ADMIN_EMAIL || 'raj.mendes@customerexperience.com.au';
-      const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'TestPassword123!';
-      
-      const passwordHash = await bcrypt.hash(defaultPassword, 12);
-      
+    const passwordHash = await bcrypt.hash(defaultPassword, 12);
+    
+    const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.email, defaultEmail));
+    
+    if (existingUser) {
+      await db.update(adminUsers)
+        .set({
+          firstName: defaultFirstName,
+          lastName: defaultLastName,
+          passwordHash: passwordHash,
+          role: 'administrator',
+          isActive: true,
+          isFrozen: false,
+          failedLoginAttempts: 0,
+          frozenAt: null,
+          updatedAt: new Date()
+        })
+        .where(eq(adminUsers.email, defaultEmail));
+      console.log(`[INIT] Default admin updated: ${defaultEmail}`);
+    } else {
       await db.insert(adminUsers).values({
         firstName: defaultFirstName,
         lastName: defaultLastName,
@@ -134,10 +147,7 @@ async function initializeDefaultAdmin() {
         role: 'administrator',
         isActive: true
       });
-      
       console.log(`[INIT] Default admin created: ${defaultEmail}`);
-    } else {
-      console.log('[INIT] Admin users already exist');
     }
   } catch (error) {
     console.error('[INIT] Error initializing admin:', error);
