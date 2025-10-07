@@ -1023,11 +1023,20 @@ app.post('/api/verify-onboarding-token', [
       return res.status(400).json({ error: 'Account already activated' });
     }
 
+    if (req.session && req.session.adminUser) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Error destroying session during onboarding:', err);
+        }
+      });
+    }
+
     res.json({
       success: true,
       user: {
         id: user.id,
-        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role
       }
