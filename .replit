@@ -10,7 +10,7 @@ channel = "stable-24_11"
 
 [deployment]
 run = ["node", "index.js"]
-deploymentTarget = "vm"
+deploymentTarget = "autoscale"
 ignorePorts = false
 
 [agent]
@@ -68,6 +68,10 @@ externalPort = 6800
 [[ports]]
 localPort = 41225
 externalPort = 5000
+
+[[ports]]
+localPort = 42107
+externalPort = 8000
 
 [[ports]]
 localPort = 45153
