@@ -3,7 +3,6 @@ const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const msal = require('@azure/msal-node');
-const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -15,28 +14,10 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 const sgMail = require('@sendgrid/mail');
+const { upload, isAzureProduction, uploadFileToBlob, uploadSignatureToBlob } = require('./server/storage');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -1209,14 +1190,19 @@ app.post('/api/submit-form', upload.fields([
       const base64Data = req.body.signatureData.replace(/^data:image\/png;base64,/, '');
       const timestamp = Date.now();
       const randomId = Math.round(Math.random() * 1E9);
-      signatureFilename = `signature-${timestamp}-${randomId}.png`;
-      const signaturePath = path.join('uploads', signatureFilename);
-      
-      if (!fs.existsSync('uploads')) {
-        fs.mkdirSync('uploads', { recursive: true });
-      }
-      
-      fs.writeFileSync(signaturePath, base64Data, 'base64');
+      const filename = `signature-${timestamp}-${randomId}.png`;
+      signatureFilename = await uploadSignatureToBlob(base64Data, filename);
+    }
+
+    let commonSealFile = null;
+    let letterHeadFile = null;
+
+    if (req.files?.commonSealFile?.[0]) {
+      commonSealFile = await uploadFileToBlob(req.files.commonSealFile[0]);
+    }
+
+    if (req.files?.letterHeadFile?.[0]) {
+      letterHeadFile = await uploadFileToBlob(req.files.letterHeadFile[0]);
     }
 
     const formData = {
@@ -1234,8 +1220,8 @@ app.post('/api/submit-form', upload.fields([
       questionCheckbox5: req.body.questionCheckbox5 === 'true',
       confirmationCheckbox: req.body.confirmationCheckbox === 'true',
       submissionDate: req.body.submissionDate,
-      commonSealFile: req.files?.commonSealFile?.[0]?.filename || null,
-      letterHeadFile: req.files?.letterHeadFile?.[0]?.filename || null,
+      commonSealFile: commonSealFile,
+      letterHeadFile: letterHeadFile,
       signatureFile: signatureFilename
     };
 
@@ -1276,21 +1262,30 @@ app.post('/api/submit-quote-slip', upload.fields([
       const base64Data = req.body.signatureData.replace(/^data:image\/png;base64,/, '');
       const timestamp = Date.now();
       const randomId = Math.round(Math.random() * 1E9);
-      signatureFilename = `signature-${timestamp}-${randomId}.png`;
-      const signaturePath = path.join('uploads', signatureFilename);
-      
-      if (!fs.existsSync('uploads')) {
-        fs.mkdirSync('uploads', { recursive: true });
+      const filename = `signature-${timestamp}-${randomId}.png`;
+      signatureFilename = await uploadSignatureToBlob(base64Data, filename);
+    }
+
+    const uploadedFiles = {};
+    const fileFields = [
+      'cocFile', 'defectsRelevantDocsFile', 'whsFile', 'claimsHistoryFile', 
+      'strataPlansFile', 'asbestosReportFile', 'commercialTenantListFile', 
+      'mostRecentValuationFile', 'preventativeMaintenanceProgramFile'
+    ];
+
+    for (const field of fileFields) {
+      if (req.files?.[field]?.[0]) {
+        uploadedFiles[field] = await uploadFileToBlob(req.files[field][0]);
+      } else {
+        uploadedFiles[field] = null;
       }
-      
-      fs.writeFileSync(signaturePath, base64Data, 'base64');
     }
 
     const formData = {
       strataManagementName: req.body.strataManagementName,
       contactPerson: req.body.contactPerson,
       strataPlanNumber: req.body.strataPlanNumber,
-      currentCocFile: req.files?.cocFile?.[0]?.filename || null,
+      currentCocFile: uploadedFiles.cocFile,
       address: req.body.address || null,
       streetAddressLine2: req.body.streetAddressLine2 || null,
       city: req.body.city || null,
@@ -1336,14 +1331,14 @@ app.post('/api/submit-quote-slip', upload.fields([
       afssCurrent: req.body.afssCurrent || null,
       residentialLessThan20Commercial: req.body.residentialLessThan20Commercial || null,
       majorWorksOver500k: req.body.majorWorksOver500k || null,
-      defectsRelevantDocsFile: req.files?.defectsRelevantDocsFile?.[0]?.filename || null,
-      whsFile: req.files?.whsFile?.[0]?.filename || null,
-      claimsHistoryFile: req.files?.claimsHistoryFile?.[0]?.filename || null,
-      strataPlansFile: req.files?.strataPlansFile?.[0]?.filename || null,
-      asbestosReportFile: req.files?.asbestosReportFile?.[0]?.filename || null,
-      commercialTenantListFile: req.files?.commercialTenantListFile?.[0]?.filename || null,
-      mostRecentValuationFile: req.files?.mostRecentValuationFile?.[0]?.filename || null,
-      preventativeMaintenanceProgramFile: req.files?.preventativeMaintenanceProgramFile?.[0]?.filename || null,
+      defectsRelevantDocsFile: uploadedFiles.defectsRelevantDocsFile,
+      whsFile: uploadedFiles.whsFile,
+      claimsHistoryFile: uploadedFiles.claimsHistoryFile,
+      strataPlansFile: uploadedFiles.strataPlansFile,
+      asbestosReportFile: uploadedFiles.asbestosReportFile,
+      commercialTenantListFile: uploadedFiles.commercialTenantListFile,
+      mostRecentValuationFile: uploadedFiles.mostRecentValuationFile,
+      preventativeMaintenanceProgramFile: uploadedFiles.preventativeMaintenanceProgramFile,
       declarationAuthorised: req.body.declarationAuthorised === 'on',
       declarationAppointUnlockt: req.body.declarationAppointUnlockt === 'on',
       declarationAccurateInfo: req.body.declarationAccurateInfo === 'on',

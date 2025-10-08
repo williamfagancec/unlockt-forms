@@ -389,9 +389,10 @@
       document.getElementById('letterHeadFile').innerHTML = getFileHTML(submission.letterHeadFile, 'Letter Head');
       
       if (submission.signatureFile) {
+        const signatureURL = getFileURL(submission.signatureFile);
         document.getElementById('signatureFile').innerHTML = `
           <div style="margin-top: 10px;">
-            <img src="/uploads/${submission.signatureFile}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
+            <img src="${signatureURL}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
           </div>
         `;
       } else {
@@ -407,9 +408,18 @@
       }
     }
 
+    function getFileURL(filename) {
+      if (!filename) return null;
+      if (filename.startsWith('http://') || filename.startsWith('https://')) {
+        return filename;
+      }
+      return `/uploads/${filename}`;
+    }
+
     function getFileHTML(filename, label) {
       if (filename) {
-        return `<a href="/uploads/${filename}" target="_blank" style="color: #5fa88a; text-decoration: none; font-weight: 500;">📎 View ${label}</a>`;
+        const url = getFileURL(filename);
+        return `<a href="${url}" target="_blank" style="color: #5fa88a; text-decoration: none; font-weight: 500;">📎 View ${label}</a>`;
       } else {
         return '<span style="color: #999;">Not uploaded</span>';
       }

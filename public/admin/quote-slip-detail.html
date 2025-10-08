@@ -548,9 +548,10 @@
       document.getElementById('confirmDisclosures').textContent = s.confirmDisclosures || 'N/A';
       
       if (s.signatureFile) {
+        const signatureURL = getFileURL(s.signatureFile);
         document.getElementById('signatureFile').innerHTML = `
           <div style="margin-top: 10px;">
-            <img src="/uploads/${s.signatureFile}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
+            <img src="${signatureURL}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
           </div>
         `;
       } else {
@@ -638,9 +639,18 @@
       }
     }
 
+    function getFileURL(filename) {
+      if (!filename) return null;
+      if (filename.startsWith('http://') || filename.startsWith('https://')) {
+        return filename;
+      }
+      return `/uploads/${filename}`;
+    }
+
     function getFileHTML(filename) {
       if (!filename) return 'N/A';
-      return `<a href="/uploads/${filename}" class="file-link" target="_blank">View File</a>`;
+      const url = getFileURL(filename);
+      return `<a href="${url}" class="file-link" target="_blank">View File</a>`;
     }
 
     async function init() {
