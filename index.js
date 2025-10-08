@@ -1752,9 +1752,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log('Public form: /');
   console.log('Admin dashboard: /admin');
-  
-  if (!process.env.AZURE_CLIENT_ID || !process.env.AZURE_TENANT_ID) {
-    console.warn('\n⚠️  WARNING: Azure AD credentials not configured!');
-    console.warn('Set AZURE_CLIENT_ID, AZURE_TENANT_ID, and AZURE_CLIENT_SECRET environment variables.');
+
   }
 });
