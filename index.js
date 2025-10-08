@@ -503,12 +503,22 @@ async function getSendGridClient() {
 async function sendOnboardingEmail(email, firstName, lastName, onboardingToken, role) {
   let baseUrl;
   
-  if (process.env.REPLIT_DOMAINS) {
+  // Azure-compatible URL generation
+  if (process.env.WEBSITE_HOSTNAME) {
+    // Azure App Service
+    baseUrl = `https://${process.env.WEBSITE_HOSTNAME}`;
+  } else if (process.env.APP_BASE_URL) {
+    // Manual override for any environment
+    baseUrl = process.env.APP_BASE_URL;
+  } else if (process.env.REPLIT_DOMAINS) {
+    // Replit deployment
     const domains = process.env.REPLIT_DOMAINS.split(',');
     baseUrl = `https://${domains[0]}`;
   } else if (process.env.REPL_SLUG) {
+    // Replit development
     baseUrl = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
   } else {
+    // Local development fallback
     baseUrl = 'http://localhost:5000';
   }
   
