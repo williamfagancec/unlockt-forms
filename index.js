@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const { Pool } = require('@neondatabase/serverless');
 const msal = require('@azure/msal-node');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
@@ -51,9 +50,8 @@ const isProduction = process.env.NODE_ENV === 'production'
   || !!process.env.WEBSITE_INSTANCE_ID 
   || !!process.env.REPLIT_DEPLOYMENT;
 
-const pgPool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+// Import the database pool from db.js to reuse the same connection
+const { pool: pgPool } = require('./server/db');
 
 const sessionStore = new pgSession({
   pool: pgPool,
