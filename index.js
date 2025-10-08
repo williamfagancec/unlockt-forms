@@ -46,7 +46,10 @@ app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', true);
 
-const isProduction = !!process.env.REPLIT_DEPLOYMENT;
+// Azure-compatible production detection
+const isProduction = process.env.NODE_ENV === 'production' 
+  || !!process.env.WEBSITE_INSTANCE_ID 
+  || !!process.env.REPLIT_DEPLOYMENT;
 
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL
@@ -482,35 +485,18 @@ function generatePassword() {
 }
 
 async function getSendGridClient() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
+  // Azure-compatible SendGrid configuration
+  const apiKey = process.env.SENDGRID_API_KEY;
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL;
 
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  if (!apiKey || !fromEmail) {
+    throw new Error('SendGrid not configured. Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL environment variables.');
   }
 
-  const connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  if (!connectionSettings || (!connectionSettings.settings.api_key || !connectionSettings.settings.from_email)) {
-    throw new Error('SendGrid not connected');
-  }
-
-  sgMail.setApiKey(connectionSettings.settings.api_key);
+  sgMail.setApiKey(apiKey);
   return {
     client: sgMail,
-    fromEmail: connectionSettings.settings.from_email
+    fromEmail: fromEmail
   };
 }
 
@@ -1752,6 +1738,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log('Public form: /');
   console.log('Admin dashboard: /admin');
-
-  }
 });
