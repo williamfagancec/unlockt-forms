@@ -1,300 +1,55 @@
 # Unlockt Insurance Form Application
 
-## Project Overview
-
-This is a secure form collection system for Unlockt Insurance Solutions that features:
-- **Public form submission** - No authentication required for Letter of Appointment and Quote Slip & Declaration forms
-- **Local admin authentication** - Username/password based admin portal (MS Entra ID SSO postponed for future implementation)
-- **Comprehensive admin dashboard** - View and manage all form submissions with statistics
-- **Export capabilities** - XLSX export for bulk data analysis
-- **Azure-ready deployment** - Configured for Azure App Service with future MS Fabric integration planned
-
-## Tech Stack
-
-- **Backend**: Node.js + Express
-- **Database**: PostgreSQL (Neon-backed on Replit, Azure Database for PostgreSQL in production)
-- **Authentication**: Email/password with bcrypt hashing (case-insensitive email matching)
-- **ORM**: Drizzle ORM
-- **Session Management**: Express Session with PostgreSQL session store (connect-pg-simple)
-- **Export Libraries**: PDFKit (PDF), ExcelJS (XLSX)
-- **File Uploads**: Multer for document handling
-- **Signature Capture**: SignaturePad for digital signatures
-
-## Project Structure
-
-```
-/
-├── index.js                      # Main Express server
-├── server/
-│   └── db.js                    # Database connection
-├── shared/
-│   └── schema.js                # Drizzle ORM schema (all tables)
-├── public/
-│   ├── index.html               # Landing page
-│   ├── letter-of-appointment.html   # Letter of Appointment form
-│   ├── quote-slip.html          # Quote Slip & Declaration form
-│   ├── admin-login.html         # Admin login page
-│   ├── admin.html               # Admin dashboard
-│   └── admin/
-│       ├── letter-of-appointment.html       # LOA submissions list
-│       ├── letter-of-appointment-detail.html # LOA detail view
-│       ├── quote-slip.html      # Quote Slip submissions list
-│       └── quote-slip-detail.html # Quote Slip detail view
-├── scripts/
-│   └── create-admin.js          # Script to create admin users
-├── uploads/                     # Uploaded files and signatures
-├── drizzle.config.ts            # Drizzle configuration
-└── package.json                 # Dependencies
-```
-
-## Recent Changes
-
-**Date: October 4, 2025 - Form Validation UX Enhancement**
-- **Added visual validation feedback** on both Letter of Appointment and Quote Slip forms
-  - Empty mandatory fields highlighted with red borders (2px solid #d32f2f)
-  - Unchecked required checkboxes highlighted with red background (#ffebee)
-  - Auto-scroll to first empty field with error message
-  - All validation errors cleared on re-submit attempt
-- **Enhanced user experience** with clear error messages listing all missing fields
-- **CSS improvements** for better error visibility on inputs, selects, and checkbox labels
-
-**Date: October 4, 2025 - Authentication System Rebuild & Production Database Fix**
-- **ROOT CAUSE IDENTIFIED**: Session cookie configuration was using incorrect logic for dev vs production environments
-  - Previous: `isSecure = !isDevelopment || !!REPLIT_DOMAINS` made dev environment use `secure: true` with HTTP, preventing cookies from being sent
-  - Fixed: `isProduction = !!REPLIT_DEPLOYMENT` correctly sets `secure: false` in dev (HTTP) and `secure: true` in production (HTTPS)
-- **COMPLETE AUTHENTICATION REBUILD**: Extracted all authentication logic into dedicated `server/auth.js` module
-  - Clean separation of concerns with reusable auth middleware and handlers
-  - Simplified codebase with explicit session handling
-  - Removed all unnecessary debug logging
-- **CRITICAL FIX**: Set `trust proxy: true` to trust Replit's multi-layer proxy chain for published deployments
-- **CRITICAL FIX**: Implemented PostgreSQL-backed session store (connect-pg-simple) to replace MemoryStore - sessions now persist across restarts
-- **AUTOMATIC ADMIN INITIALIZATION**: Added startup code to create default admin (admin@unlockt.com / Admin@123456) if no administrators exist - handles separate dev/production databases
-- Cleaned up all debug logging from authentication module
-- Fixed session authentication for published apps (sameSite: 'none' for iframe compatibility, credentials: 'include' on all fetch requests)
-- Migrated authentication from username to email-based login with case-insensitive email handling
-- Replaced username field with firstName/lastName across entire application
-- Added user editing functionality (edit firstName, lastName, email, role - passwords excluded)
-- Implemented magic link onboarding system with SHA-256 token hashing and 24-hour expiry
-- Enhanced email deliverability with professional HTML templates and SendGrid integration
-
-**Date: October 3, 2025**
-- Implemented local username/password authentication for admin portal
-- Created adminUsers database table with role-based access (administrator/reviewer/read-only)
-- Built comprehensive admin dashboard with statistics for both form types
-- Created submission list views for Letter of Appointment and Quote Slip forms
-- Added detailed submission view pages with all fields displayed
-- Implemented XLSX export for both form types
-- Added Quote Slip & Declaration form with 8 document upload widgets
-- Integrated SignaturePad library for digital signature capture
-- Set up admin user creation script with bcrypt password hashing
-
-**Previous Updates (October 2, 2025)**
-- Created PostgreSQL database with Drizzle ORM
-- Built public-facing Letter of Appointment form
-- Built Quote Slip & Declaration form
-- Added database-driven dropdowns (insurers, roof types, wall types, floor types, building types)
-- Configured Azure deployment structure
-
-## Key Features
-
-### 1. Public Form Submission
-Both forms are publicly accessible without authentication:
-
-**Letter of Appointment**
-- Strata management and property information
-- 5 appointment questions with checkboxes
-- Contact information
-- Digital signature with SignaturePad
-- File upload for common seal and letterhead
-
-**Quote Slip & Declaration**
-- Comprehensive building and insurance information
-- Database-driven dropdown selections
-- 8 document upload widgets in 2-column grid layout
-- Facilities checkboxes (pools, gym, EV chargers, etc.)
-- Cover options (office bearers, machinery breakdown, catastrophe)
-- Disclosure questions
-- Digital signature and declaration section
-- Drag-and-drop file upload functionality
-
-### 2. Admin Authentication
-- Local email/password authentication (case-insensitive)
-- Password hashing with bcrypt (12 salt rounds)
-- Role-based access control (administrator, reviewer, read-only)
-- PostgreSQL-backed session store for persistence in production deployments
-- Session-based authentication with httpOnly cookies
-- Active/inactive user management
-- Last login tracking
-- Magic link onboarding for new admin users
-
-**Default Admin Credentials:**
-- Email: `admin@unlockt.com` (case-insensitive)
-- Password: `Admin@123456`
-- Role: `administrator`
-
-### 3. Admin Dashboard
-- Overview of all submissions across both form types
-- Real-time statistics:
-  - Total submissions (combined)
-  - Today's submissions
-  - This week's submissions
-  - This month's submissions
-- Form-specific statistics for each type
-- Navigation to submission lists
-- Export buttons for XLSX downloads
-
-### 4. Submission Management
-**List Views:**
-- Searchable table of all submissions
-- Filter by strata plan, management name, address, etc.
-- Click to view detailed submission
-
-**Detail Views:**
-- Complete display of all form fields
-- Formatted display of checkboxes, dates, and currency
-- Links to view uploaded documents
-- Download PDF for Letter of Appointment submissions
-
-### 5. Data Export
-- **XLSX Export**: Comprehensive spreadsheet export for both form types
-  - All form fields included
-  - Boolean values converted to Yes/No
-  - Formatted for data analysis
-
-### 6. Security
-- Bcrypt password hashing (12 rounds)
-- Session management with httpOnly cookies
-- Input validation and sanitization
-- Prepared statements (SQL injection protection via ORM)
-- Admin authentication required for all admin routes
-- Secure file upload handling
-
-## Database Schema
-
-### adminUsers Table
-- `id`: Serial primary key
-- `username`: Unique username for login
-- `email`: User email address
-- `passwordHash`: Bcrypt hashed password
-- `role`: administrator, reviewer, or read-only
-- `isActive`: Boolean flag for account status
-- `createdAt`: Account creation timestamp
-- `lastLoginAt`: Last login timestamp
-
-### formSubmissions Table (Letter of Appointment)
-- All Letter of Appointment form fields
-- Contact information
-- 5 appointment question checkboxes
-- Signature and document files
-- Submission timestamp
-
-### quoteSlipSubmissions Table (Quote Slip & Declaration)
-- Strata and building information
-- Insurance details (current insurer, sum insured, renewal date)
-- Building characteristics (roof, walls, floors, type, year built)
-- Facilities checkboxes (11 types)
-- Cover options with values
-- Disclosure questions
-- 8 document upload fields
-- Declaration checkboxes and signature
-- Submission timestamp
-
-### Dropdown Data Tables
-- `insurers`: Insurance company names
-- `roofTypes`: Building roof types
-- `externalWallTypes`: External wall materials
-- `floorTypes`: Floor construction types
-- `buildingTypes`: Building classifications
-
-All dropdown tables include:
-- `name`, `displayOrder`, `isActive` fields for easy management
-
-## Admin User Management
-
-### Creating Admin Users
-Use the admin creation script:
-```bash
-node scripts/create-admin.js [username] [password] [email] [role]
-```
-
-Example:
-```bash
-node scripts/create-admin.js reviewer Pass@123 reviewer@unlockt.com reviewer
-```
-
-### Roles
-- **administrator**: Full access (view, export, user management)
-- **reviewer**: View and export submissions (future implementation)
-- **read-only**: View submissions only (future implementation)
-
-## API Endpoints
-
-### Authentication
-- `POST /api/admin/login` - Admin login
-- `GET /api/admin/check-session` - Check authentication status
-- `POST /api/admin/logout` - Admin logout
-
-### Statistics
-- `GET /api/admin/letter-of-appointment/stats` - LOA statistics
-- `GET /api/admin/quote-slip/stats` - Quote Slip statistics
-
-### Submissions
-- `GET /api/submissions` - List all Letter of Appointment submissions
-- `GET /api/submissions/:id` - Get specific LOA submission
-- `GET /api/quote-slip-submissions` - List all Quote Slip submissions
-- `GET /api/quote-slip-submissions/:id` - Get specific Quote Slip submission
-
-### Exports
-- `GET /api/export/letter-of-appointment` - Export LOA submissions to XLSX
-- `GET /api/export/quote-slip` - Export Quote Slip submissions to XLSX
-- `GET /api/export/pdf/:id` - Export individual LOA submission as PDF
-
-### Dropdowns
-- `GET /api/insurers` - Get active insurers
-- `GET /api/roof-types` - Get active roof types
-- `GET /api/external-wall-types` - Get active wall types
-- `GET /api/floor-types` - Get active floor types
-- `GET /api/building-types` - Get active building types
-
-## Running Locally
-
-1. Database is already configured (Replit PostgreSQL)
-2. Install dependencies: `npm install`
-3. Run server: `npm start`
-4. Access forms:
-   - Landing: `http://localhost:5000/`
-   - Letter of Appointment: `http://localhost:5000/letter-of-appointment`
-   - Quote Slip: `http://localhost:5000/quote-slip`
-5. Access admin portal: `http://localhost:5000/admin-login.html`
-   - Login with: `admin` / `Admin@123456`
-
-## Future Enhancements
-
-### Planned Features
-1. **MS Entra ID SSO Integration** - Replace local authentication
-2. **Microsoft Fabric Data Lake** - Export submissions for analytics
-3. **Role-based permissions** - Implement reviewer and read-only access levels
-4. **Email notifications** - Notify admins of new submissions
-5. **Submission status tracking** - Mark submissions as reviewed/processed
-6. **Advanced filtering** - Filter submissions by date range, status, etc.
-7. **Bulk actions** - Select multiple submissions for bulk export/deletion
-8. **User management UI** - Admin interface to create/manage admin users
+## Overview
+This project is a secure, comprehensive form collection system for Unlockt Insurance Solutions. It facilitates the submission of "Letter of Appointment" and "Quote Slip & Declaration" forms. Its primary purpose is to provide a robust platform for collecting critical insurance data, enabling efficient processing and management by Unlockt staff. Key capabilities include public form submission, a secure admin portal for managing submissions, data export functionalities (XLSX, PDF), and a design optimized for Azure deployment with future integration into MS Fabric. The system aims to streamline the initial stages of the insurance application process and centralize client data.
 
 ## User Preferences
-
 - **Authentication**: Local username/password (MS Entra ID SSO for future implementation)
 - **Deployment**: Azure App Service (VM mode for stateful sessions)
 - **Database**: PostgreSQL (Azure Database for PostgreSQL in production)
 - **Export formats**: XLSX (bulk), PDF (individual - LOA only)
 - **Design**: Green gradient theme matching Unlockt brand
 
-## Notes
+## System Architecture
 
-- Form submissions are public (anyone can submit)
-- Only authenticated admin users can view submissions
-- Uploaded files stored in `/uploads` directory
-- Signatures stored as PNG images
-- All admin routes protected with authentication middleware
-- Session expires after 24 hours of inactivity
-- Password changes should be implemented after first login
-- Application designed for Azure deployment with Key Vault integration
+### UI/UX Decisions
+The application features distinct interfaces for public users and administrators. Public forms (`letter-of-appointment.html`, `quote-slip.html`) are designed for easy, unauthenticated submission. The admin portal (`admin-login.html`, `admin.html`) provides a dashboard with statistics and detailed views of submissions. Form validation includes visual feedback (red borders, background highlights) and auto-scrolling to improve user experience.
+
+### Technical Implementations
+- **Backend**: Node.js with Express.js handles API routes, form submissions, and authentication.
+- **Database**: PostgreSQL is used for data persistence, managed via Drizzle ORM.
+  - Development: Neon-backed PostgreSQL on Replit.
+  - Production: Azure Database for PostgreSQL.
+- **Authentication**: Local email/password authentication with bcrypt hashing. Session management uses `express-session` with `connect-pg-simple` for persistent sessions. Role-based access control (administrator, reviewer, read-only) is implemented. Magic link onboarding for admin users.
+- **Form Handling**: Public forms allow file uploads (Multer) and digital signatures (SignaturePad).
+- **Admin Dashboard**: Provides real-time statistics and navigation for managing submissions.
+- **Data Export**: PDFKit for individual PDF exports (LOA) and ExcelJS for bulk XLSX exports.
+- **File Storage**: Local disk storage in development; Azure Blob Storage for persistent files in production, configurable via connection strings.
+- **Deployment Configuration**: Designed for Azure App Service, detecting production environments and automatically configuring database drivers (Neon or pg with SSL), SendGrid API, and URL generation based on Azure environment variables.
+
+### Feature Specifications
+- **Public Form Submission**:
+    - **Letter of Appointment**: Strata management/property info, appointment questions, contact, digital signature, file uploads (common seal, letterhead).
+    - **Quote Slip & Declaration**: Building/insurance info, database-driven dropdowns, 8 document uploads, facilities, cover options, disclosure, digital signature, declaration.
+- **Admin Authentication**: Email/password (case-insensitive), bcrypt hashing, role-based access, PostgreSQL-backed sessions, httpOnly cookies, magic link onboarding. Default admin `admin@unlockt.com` / `Admin@123456`.
+- **Admin Dashboard**: Overview and statistics for both form types, navigation to submission lists.
+- **Submission Management**: Searchable list views and detailed views for both form types.
+- **Data Export**: Comprehensive XLSX export for all form fields, individual LOA PDF export.
+- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection (ORM), secure file handling.
+- **Database Schema**:
+    - `adminUsers`: Stores admin login details, roles, and status.
+    - `formSubmissions`: Letter of Appointment form data.
+    - `quoteSlipSubmissions`: Quote Slip & Declaration form data.
+    - `dropdown tables`: `insurers`, `roofTypes`, `externalWallTypes`, `floorTypes`, `buildingTypes` for dynamic form options.
+
+## External Dependencies
+- **Database**: PostgreSQL (Neon for development, Azure Database for PostgreSQL for production)
+- **ORM**: Drizzle ORM
+- **Authentication**: `bcrypt` (password hashing), `express-session`, `connect-pg-simple` (PostgreSQL session store)
+- **Email Service**: SendGrid API (for magic links, notifications)
+- **File Uploads**: Multer
+- **Digital Signatures**: SignaturePad
+- **PDF Generation**: PDFKit
+- **XLSX Export**: ExcelJS
+- **Azure Services**: Azure Blob Storage (for persistent file storage in production)
+- **Database Drivers**: `@neondatabase/serverless` (for Neon), `pg` (for standard PostgreSQL)

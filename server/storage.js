@@ -3,7 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { BlobServiceClient } = require('@azure/storage-blob');
 
-const isAzureProduction = process.env.NODE_ENV === 'production' && process.env.AZURE_STORAGE_CONNECTION_STRING;
+const isProduction = process.env.NODE_ENV === 'production' 
+  || !!process.env.WEBSITE_INSTANCE_ID 
+  || !!process.env.REPLIT_DEPLOYMENT;
+
+const isAzureProduction = isProduction && process.env.AZURE_STORAGE_CONNECTION_STRING;
 
 let storage;
 let blobServiceClient;
