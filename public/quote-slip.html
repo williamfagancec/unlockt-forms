@@ -537,7 +537,7 @@
 
       <form id="quoteSlipForm">
         <div class="form-group">
-          <label style="font-weight: 600; font-size: 14px; margin-bottom: 15px;">Strata Management</label>
+          <label style="font-weight: 600; font-size: 14px; margin-bottom: 15px;">Strata Management <span class="required">*</span></label>
           <div class="form-row">
             <div>
               <input type="text" id="strataManagementName" name="strataManagementName" placeholder="Name" required>
@@ -549,7 +549,7 @@
         </div>
 
         <div class="form-group">
-          <label for="strataPlanNumber">Strata Plan Number</label>
+          <label for="strataPlanNumber">Strata Plan Number <span class="required">*</span></label>
           <input type="text" id="strataPlanNumber" name="strataPlanNumber" placeholder="SP" required style="max-width: 300px;">
           <div class="helper-text">Please write SP / UP before number</div>
         </div>
@@ -1058,38 +1058,38 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Declaration</h3>
+        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Declaration <span class="required">*</span></h3>
         
         <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
           <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
             <input type="checkbox" name="declarationAuthorised" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;">I am authorised to act on behalf of the Owners Corporation for insurance purposes</span>
+            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I am authorised to act on behalf of the Owners Corporation for insurance purposes</span>
           </label>
 
           <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
             <input type="checkbox" name="declarationAppointUnlockt" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;">I appoint Unlockt Insurance Solutions Pty Ltd, as the insurance risk advisor to act on behalf of the Owners Corporation for the purpose of sourcing renewal terms.</span>
+            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I appoint Unlockt Insurance Solutions Pty Ltd, as the insurance risk advisor to act on behalf of the Owners Corporation for the purpose of sourcing renewal terms.</span>
           </label>
 
           <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
             <input type="checkbox" name="declarationAccurateInfo" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;">I understand that the provision of accurate and complete information is essential for insurance placement and compliance with the duty of disclosure.</span>
+            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I understand that the provision of accurate and complete information is essential for insurance placement and compliance with the duty of disclosure.</span>
           </label>
 
           <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
             <input type="checkbox" name="declarationStrataManager" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;">The Strata Manager, while authorised for general strata matters. All insurance services have been provided solely by Unlockt, as an authorised representative of Resilium Insurance Broking.</span>
+            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> The Strata Manager, while authorised for general strata matters. All insurance services have been provided solely by Unlockt, as an authorised representative of Resilium Insurance Broking.</span>
           </label>
 
           <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
             <input type="checkbox" name="declarationTrueAnswers" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;">I declare the answers below are true and correct to the best of my knowledge.</span>
+            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I declare the answers below are true and correct to the best of my knowledge.</span>
           </label>
         </div>
 
         <div style="margin-bottom: 30px;">
           <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 5px;">
-            Name <span style="color: #ff4444;">*</span>
+            Name <span class="required">*</span>
           </label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
             <div>
@@ -1103,7 +1103,7 @@
 
         <div style="margin-bottom: 30px;">
           <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 15px;">
-            Confirm <span style="color: #ff4444;">*</span>
+            Confirm <span class="required">*</span>
           </label>
           <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
             <input type="radio" name="confirmDisclosures" value="confirmed" required style="margin-top: 3px; cursor: pointer;">
@@ -1129,7 +1129,7 @@
 
         <div class="signature-container">
           <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 10px;">
-            By signing the below I declare the information provided is true and correct to the best of my knowledge. <span style="color: #ff4444;">*</span>
+            By signing the below I declare the information provided is true and correct to the best of my knowledge. <span class="required">*</span>
           </label>
           <input type="hidden" id="signatureData" name="signatureData">
           <div class="signature-drawing-area" id="signatureDrawingArea">
