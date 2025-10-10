@@ -299,10 +299,40 @@
       display: none;
       background: #d4edda;
       color: #155724;
-      padding: 15px;
-      border-radius: 4px;
+      padding: 30px;
+      border-radius: 12px;
       margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
       text-align: center;
+    }
+
+    .success-message h2 {
+      margin: 0 0 10px 0;
+      color: #155724;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .success-message p {
+      margin: 0 0 20px 0;
+      color: #155724;
+      font-size: 16px;
+    }
+
+    .success-message a {
+      display: inline-block;
+      background: linear-gradient(135deg, #5fa896 0%, #3a8a7a 100%);
+      color: white;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .success-message a:hover {
+      background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
 
     .error-message {
@@ -498,7 +528,9 @@
       </div>
 
       <div class="success-message" id="successMessage">
-        Thank you! Your form has been submitted successfully.
+        <h2>Thanks your form has been submitted</h2>
+        <p>You can now close this window</p>
+        <a href="/quote-slip.html">Submit Another Form</a>
       </div>
 
       <div class="error-message" id="errorMessage"></div>
