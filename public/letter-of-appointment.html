@@ -600,8 +600,8 @@
         <div class="confirmation-box">
           <h3>To Confirm <span class="required">*</span></h3>
           <div class="checkbox-item">
-            <input type="checkbox" id="confirmation" name="confirmationCheckbox" value="true" required>
-            <label for="confirmation">I confirm the Owners Corporation has been informed of the Insurance Advisor's role, commission structure, and any potential conflicts of interest, and has authorised me to receive and acknowledge these disclosures on its behalf.</label>
+            <input type="checkbox" id="confirmationCheckbox" name="confirmationCheckbox" value="true" required>
+            <label for="confirmationCheckbox">I confirm the Owners Corporation has been informed of the Insurance Advisor's role, commission structure, and any potential conflicts of interest, and has authorised me to receive and acknowledge these disclosures on its behalf.</label>
           </div>
         </div>
 
@@ -839,16 +839,8 @@
     setupFileUpload('letterHeadFile', 'letterHeadUploadBox', 'letterHeadPreview', 
                     'letterHeadFileName', 'letterHeadFileSize', 'deleteLetterHead');
 
-    const appointmentForm = document.getElementById('appointmentForm');
-    console.log('Form element found:', appointmentForm);
-    
-    if (!appointmentForm) {
-      console.error('ERROR: Form element not found!');
-    }
-
-    appointmentForm.addEventListener('submit', async (e) => {
+    document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      console.log('Form submit event triggered');
       
       // Clear previous error highlights
       document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
@@ -883,7 +875,6 @@
       
       // If there are validation errors, scroll to first error and show message
       if (errors.length > 0) {
-        console.log('Validation errors:', errors);
         firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const errorMessage = document.getElementById('errorMessage');
         errorMessage.textContent = `Please fill in all required fields: ${errors.join(', ')}`;
@@ -893,14 +884,11 @@
       }
       
       if (!signatureDataInput.value) {
-        console.log('Signature validation failed - no signature data');
         signatureError.textContent = 'Please submit your signature before submitting the form';
         signatureError.classList.add('active');
         signatureError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
-      
-      console.log('All validations passed, submitting form...');
 
       signatureError.classList.remove('active');
       
