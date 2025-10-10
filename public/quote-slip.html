@@ -1463,9 +1463,7 @@
         if (response.ok) {
           document.getElementById('successMessage').style.display = 'block';
           document.getElementById('errorMessage').style.display = 'none';
-          e.target.reset();
-          document.getElementById('cocPreview').classList.remove('active');
-          document.getElementById('cocUploadBox').style.display = 'block';
+          document.getElementById('quoteSlipForm').style.display = 'none';
           window.scrollTo(0, 0);
         } else {
           throw new Error(result.error || 'Submission failed');
