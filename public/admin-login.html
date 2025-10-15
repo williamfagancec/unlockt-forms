@@ -20,6 +20,12 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    body.loaded {
+      opacity: 1;
     }
 
     .login-container {
@@ -217,9 +223,12 @@
         
         if (data.authenticated) {
           window.location.href = '/admin';
+        } else {
+          document.body.classList.add('loaded');
         }
       } catch (error) {
         console.error('Session check error:', error);
+        document.body.classList.add('loaded');
       }
     }
 
