@@ -171,11 +171,74 @@ function handleLogout(req, res) {
   });
 }
 
+const changePasswordValidation = [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8 }).withMessage('New password must be at least 8 characters long')
+    .matches(/[A-Z]/).withMessage('New password must contain at least one uppercase letter')
+    .matches(/[a-z]/).withMessage('New password must contain at least one lowercase letter')
+    .matches(/[0-9]/).withMessage('New password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('New password must contain at least one special character'),
+  body('confirmPassword').custom((value, { req }) => {
+    if (value !== req.body.newPassword) {
+      throw new Error('Password confirmation does not match new password');
+    }
+    return true;
+  })
+];
+
+async function handleChangePassword(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  if (!req.session || !req.session.adminUser) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+  }
+
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.session.adminUser.id;
+
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+    await db.update(adminUsers)
+      .set({ 
+        passwordHash: newPasswordHash,
+        updatedAt: new Date()
+      })
+      .where(eq(adminUsers.id, userId));
+
+    res.json({ 
+      success: true, 
+      message: 'Password changed successfully' 
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+}
+
 module.exports = {
   authMiddleware,
   adminPageMiddleware,
   loginValidation,
   handleLogin,
   handleCheckSession,
-  handleLogout
+  handleLogout,
+  changePasswordValidation,
+  handleChangePassword
 };

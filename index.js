@@ -91,7 +91,7 @@ if (azureConfigured) {
   cca = new msal.ConfidentialClientApplication(msalConfig);
 }
 
-const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout } = require('./server/auth');
+const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword } = require('./server/auth');
 
 // Initialize default admin user on startup
 async function initializeDefaultAdmin() {
@@ -425,6 +425,8 @@ app.post('/api/admin/login', loginValidation, handleLogin);
 app.get('/api/admin/check-session', handleCheckSession);
 
 app.post('/api/admin/logout', handleLogout);
+
+app.post('/api/admin/change-password', changePasswordValidation, handleChangePassword);
 
 app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
   try {
