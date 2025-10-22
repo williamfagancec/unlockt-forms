@@ -416,6 +416,10 @@ app.get('/admin/users', adminPageMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin', 'users.html'));
 });
 
+app.get('/change-password', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'change-password.html'));
+});
+
 app.get('/setup-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'setup-password.html'));
 });
