@@ -52,8 +52,11 @@ console.log('[SESSION CONFIG] isProduction:', isProduction, 'Cookie settings:', 
 app.use(session({
   store: sessionStore,
   secret: (() => {
-  if (!process.env.SESSION_SECRET && isProduction)
-  })
+  if (!process.env.SESSION_SECRET && isProduction) {
+    throw new Error('SESSION_SECRET must be set in production');
+  }
+    return process.env.SESSION_SECRET || 'dev-only-insecure-secret';
+    }) (),
   resave: false,
   saveUninitialized: false,
   rolling: true,
@@ -1108,6 +1111,80 @@ app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) =>
   }
 });
 
+app.post('/api/admin/users/:id/set-status', [
+  adminAuthMiddleware,
+  body('status').isIn(['active', 'inactive']).withMessage('Status must be active or inactive'),
+  body('unfreeze').optional().isBoolean().withMessage('Unfreeze must be a boolean')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const userId = parseInt(req.params.id);
+    const { status, unfreeze } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isActive = status === 'active';
+    const updateFields = {
+      isActive,
+      updatedAt: new Date()
+    };
+
+    if (unfreeze) {
+      updateFields.isFrozen = false;
+      updateFields.failedLoginAttempts = 0;
+      updateFields.frozenAt = null;
+    }
+
+    if (isActive) {
+      const onboardingToken = generateOnboardingToken();
+      const tokenHash = crypto.createHash('sha256').update(onboardingToken).digest('hex');
+      const tokenExpiry = new Date();
+      tokenExpiry.setHours(tokenExpiry.getHours() + 24);
+
+      updateFields.passwordHash = null;
+      updateFields.onboardingToken = tokenHash;
+      updateFields.onboardingTokenExpiry = tokenExpiry;
+
+      await db.update(adminUsers)
+        .set(updateFields)
+        .where(eq(adminUsers.id, userId));
+
+      await sendOnboardingEmail(user.email, user.firstName, user.lastName, onboardingToken, user.role);
+    } else {
+      await db.update(adminUsers)
+        .set(updateFields)
+        .where(eq(adminUsers.id, userId));
+
+      await sendDeactivationEmail(user.email, user.firstName, user.lastName);
+    }
+
+    const action = isActive ? 'activated' : 'deactivated';
+    const unfreezeMsg = unfreeze ? ' and unfrozen' : '';
+    
+    console.log(`[ADMIN] User ${user.email} ${action}${unfreezeMsg} by admin ${req.session.adminUser.email}`);
+    
+    res.json({ 
+      success: true, 
+      status: action,
+      message: `User ${action}${unfreezeMsg} successfully`
+    });
+  } catch (error) {
+    console.error('Error setting user status:', error);
+    res.status(500).json({ error: 'Failed to update user status' });
+  }
+});
+
 app.post('/api/verify-onboarding-token', [
   body('token').trim().notEmpty().withMessage('Token is required')
 ], async (req, res) => {
@@ -1202,7 +1279,7 @@ app.post('/api/complete-onboarding', [
       })
       .where(eq(adminUsers.id, user.id));
 
-    console.log(`✓ User ${user.username} completed onboarding`);
+    console.log(`✓ User ${user.email} completed onboarding`);
 
     res.json({
       success: true,

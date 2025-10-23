@@ -663,80 +663,49 @@
       }
     }
 
+    function getStatusChangeConfirmation(newStatus, isFrozen) {
+      const action = newStatus === 'active' ? 'activate' : 'deactivate';
+      
+      if (isFrozen) {
+        return `This account is frozen. Do you want to unfreeze and ${action} it? This will reset failed login attempts.`;
+      }
+      
+      return `Are you sure you want to ${action} this user?`;
+    }
+
     async function handleStatusChange(userId, newStatus, isFrozen) {
-      // Handle frozen accounts
+      // Handle frozen status selection - just reset dropdown
       if (newStatus === 'frozen') {
-        // Reload to reset dropdown back to frozen state
         await loadUsers();
         return;
       }
 
-      // If account is frozen, show unfreeze confirmation and apply new status
-      if (isFrozen && (newStatus === 'active' || newStatus === 'inactive')) {
-        const action = newStatus === 'active' ? 'activate' : 'deactivate';
-        if (!confirm(`This account is frozen. Do you want to unfreeze and ${action} it? This will reset failed login attempts.`)) {
-          await loadUsers(); // Reset dropdown
-          return;
-        }
-        
-        try {
-          // First unfreeze the account
-          const unfreezeResponse = await fetch(`/api/admin/users/${userId}/unfreeze`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include'
-          });
-
-          if (!unfreezeResponse.ok) {
-            const data = await unfreezeResponse.json();
-            throw new Error(data.error || 'Failed to unfreeze account');
-          }
-
-          // Then toggle status if needed (unfreeze sets to active by default)
-          if (newStatus === 'inactive') {
-            const toggleResponse = await fetch(`/api/admin/users/${userId}/toggle`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include'
-            });
-
-            if (!toggleResponse.ok) {
-              throw new Error('Failed to deactivate account');
-            }
-            
-            showAlert('Account unfrozen and deactivated successfully!', 'success');
-          } else {
-            showAlert('Account unfrozen and activated successfully!', 'success');
-          }
-          
-          loadUsers();
-        } catch (error) {
-          console.error('Error handling frozen account:', error);
-          showAlert(error.message, 'error');
-          loadUsers();
-        }
-        return;
-      }
-
-      // Handle normal active/inactive toggle
-      const action = newStatus === 'active' ? 'activate' : 'deactivate';
-      if (!confirm(`Are you sure you want to ${action} this user?`)) {
+      // Get appropriate confirmation message
+      const confirmMessage = getStatusChangeConfirmation(newStatus, isFrozen);
+      if (!confirm(confirmMessage)) {
         await loadUsers(); // Reset dropdown
         return;
       }
 
       try {
-        const response = await fetch(`/api/admin/users/${userId}/toggle`, {
+        // Use atomic endpoint that handles unfreeze + status change together
+        const response = await fetch(`/api/admin/users/${userId}/set-status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include'
+          credentials: 'include',
+          body: JSON.stringify({ 
+            status: newStatus,
+            unfreeze: isFrozen 
+          })
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          throw new Error('Failed to update user status');
+          throw new Error(data.error || 'Failed to update user status');
         }
 
-        showAlert(`User ${action}d successfully`, 'success');
+        showAlert(data.message || 'User status updated successfully', 'success');
         loadUsers();
       } catch (error) {
         console.error('Error updating user status:', error);
