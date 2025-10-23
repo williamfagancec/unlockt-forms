@@ -1,4 +1,4 @@
-const { pgTable, serial, varchar, boolean, timestamp, date, integer, index } = require('drizzle-orm/pg-core');
+const { pgTable, serial, varchar, boolean, timestamp, date, integer, index, text } = require('drizzle-orm/pg-core');
 
 const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -182,6 +182,7 @@ const adminUsers = pgTable('admin_users', {
   isFrozen: boolean('is_frozen').default(false).notNull(),
   frozenAt: timestamp('frozen_at'),
   lastLoginAt: timestamp('last_login_at'),
+  lastPasswordResetAt: timestamp('last_password_reset_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 }, (table) => ({
@@ -189,6 +190,21 @@ const adminUsers = pgTable('admin_users', {
   isActiveIdx: index('admin_users_is_active_idx').on(table.isActive),
   onboardingTokenIdx: index('admin_users_onboarding_token_idx').on(table.onboardingToken),
   isFrozenIdx: index('admin_users_is_frozen_idx').on(table.isFrozen)
+}));
+
+const adminPasswordResetTokens = pgTable('admin_password_reset_tokens', {
+  id: serial('id').primaryKey(),
+  adminUserId: integer('admin_user_id').notNull().references(() => adminUsers.id, { onDelete: 'cascade' }),
+  tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(),
+  issuedIp: varchar('issued_ip', { length: 45 }),
+  issuedUserAgent: text('issued_user_agent'),
+  expiresAt: timestamp('expires_at').notNull(),
+  consumedAt: timestamp('consumed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+}, (table) => ({
+  adminUserIdIdx: index('admin_password_reset_tokens_admin_user_id_idx').on(table.adminUserId),
+  expiresAtIdx: index('admin_password_reset_tokens_expires_at_idx').on(table.expiresAt),
+  tokenHashIdx: index('admin_password_reset_tokens_token_hash_idx').on(table.tokenHash)
 }));
 
 module.exports = {
@@ -200,5 +216,6 @@ module.exports = {
   externalWallTypes,
   floorTypes,
   buildingTypes,
-  adminUsers
+  adminUsers,
+  adminPasswordResetTokens
 };

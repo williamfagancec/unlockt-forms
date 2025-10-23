@@ -91,7 +91,8 @@ if (azureConfigured) {
   cca = new msal.ConfidentialClientApplication(msalConfig);
 }
 
-const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout } = require('./server/auth');
+const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword } = require('./server/auth');
+const { createResetToken, validateResetToken, consumeResetToken, sendResetEmail } = require('./server/password-reset');
 
 // Initialize default admin user on startup
 async function initializeDefaultAdmin() {
@@ -416,8 +417,20 @@ app.get('/admin/users', adminPageMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin', 'users.html'));
 });
 
+app.get('/change-password', adminPageMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'change-password.html'));
+});
+
 app.get('/setup-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'setup-password.html'));
+});
+
+app.get('/forgot-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'forgot-password.html'));
+});
+
+app.get('/admin/reset-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'reset-password.html'));
 });
 
 app.post('/api/admin/login', loginValidation, handleLogin);
@@ -425,6 +438,106 @@ app.post('/api/admin/login', loginValidation, handleLogin);
 app.get('/api/admin/check-session', handleCheckSession);
 
 app.post('/api/admin/logout', handleLogout);
+
+app.post('/api/admin/change-password', changePasswordValidation, handleChangePassword);
+
+app.post('/api/admin/forgot-password', [
+  body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { email } = req.body;
+    
+    const result = await createResetToken(email, req);
+    
+    if (result) {
+      await sendResetEmail(email, result.token, result.user);
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'If an account with that email exists, a password reset link has been sent.' 
+    });
+  } catch (error) {
+    if (error.message.includes('Too many')) {
+      return res.status(429).json({ error: error.message });
+    }
+    
+    console.error('[FORGOT_PASSWORD] Error:', error);
+    res.status(500).json({ error: 'An error occurred. Please try again later.' });
+  }
+});
+
+app.get('/api/admin/validate-reset-token', async (req, res) => {
+  try {
+    const { token } = req.query;
+    
+    const validation = await validateResetToken(token);
+    
+    if (validation.valid) {
+      return res.json({ 
+        valid: true,
+        userEmail: validation.userEmail,
+        userFirstName: validation.userFirstName,
+        userLastName: validation.userLastName
+      });
+    }
+    
+    res.json({ valid: false, error: validation.error });
+  } catch (error) {
+    console.error('[VALIDATE_TOKEN] Error:', error);
+    res.json({ valid: false, error: 'Failed to validate reset token' });
+  }
+});
+
+app.post('/api/admin/reset-password', [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('newPassword')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character'),
+  body('confirmPassword').custom((value, { req }) => {
+    if (value !== req.body.newPassword) {
+      throw new Error('Password confirmation does not match new password');
+    }
+    return true;
+  })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { token, newPassword } = req.body;
+    
+    const validation = await validateResetToken(token);
+    
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+    
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    
+    await consumeResetToken(validation.tokenId, validation.userId, newPasswordHash, req);
+    
+    console.log(`[PASSWORD_RESET] Password reset successful for user ${validation.userEmail}`);
+    
+    res.json({ 
+      success: true, 
+      message: 'Password has been reset successfully. Please log in with your new password.' 
+    });
+  } catch (error) {
+    console.error('[RESET_PASSWORD] Error:', error);
+    res.status(500).json({ error: 'Failed to reset password. Please try again.' });
+  }
+});
 
 app.get('/api/admin/users', adminAuthMiddleware, async (req, res) => {
   try {
