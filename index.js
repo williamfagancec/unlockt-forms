@@ -51,7 +51,9 @@ console.log('[SESSION CONFIG] isProduction:', isProduction, 'Cookie settings:', 
 
 app.use(session({
   store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  secret: (() => {
+  if (!process.env.SESSION_SECRET && isProduction)
+  })
   resave: false,
   saveUninitialized: false,
   rolling: true,
