@@ -151,6 +151,22 @@
       margin-right: 8px;
     }
 
+    .forgot-password-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .forgot-password-link a {
+      color: #5fa88a;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .forgot-password-link a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 480px) {
       .login-container {
         padding: 30px 20px;
@@ -182,6 +198,10 @@
 
       <button type="submit" class="btn-login" id="loginButton">Login</button>
     </form>
+
+    <div class="forgot-password-link">
+      <a href="/forgot-password">Forgot Password?</a>
+    </div>
   </div>
 
   <script>

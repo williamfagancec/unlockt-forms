@@ -425,6 +425,14 @@ app.get('/setup-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'setup-password.html'));
 });
 
+app.get('/forgot-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'forgot-password.html'));
+});
+
+app.get('/admin/reset-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'reset-password.html'));
+});
+
 app.post('/api/admin/login', loginValidation, handleLogin);
 
 app.get('/api/admin/check-session', handleCheckSession);
