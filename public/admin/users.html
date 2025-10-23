@@ -199,6 +199,19 @@
       font-weight: 600;
     }
 
+    .status-badge {
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
     .badge-active {
       background: #d4edda;
       color: #155724;
@@ -207,6 +220,11 @@
     .badge-inactive {
       background: #f8d7da;
       color: #721c24;
+    }
+
+    .badge-frozen {
+      background: #ff6b6b;
+      color: white;
     }
 
     .badge-admin {
@@ -224,15 +242,6 @@
       color: #333;
     }
 
-    .badge-frozen {
-      background: #ff6b6b;
-      color: white;
-    }
-
-    .badge-normal {
-      background: #51cf66;
-      color: white;
-    }
 
     .btn-warning {
       background: #ff8c00;
@@ -339,14 +348,13 @@
             <th>Email</th>
             <th>Role</th>
             <th>Status</th>
-            <th>Account</th>
             <th>Last Login</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="usersTable">
           <tr>
-            <td colspan="7" class="loading">Loading users...</td>
+            <td colspan="6" class="loading">Loading users...</td>
           </tr>
         </tbody>
       </table>
@@ -457,36 +465,47 @@
         
         const tbody = document.getElementById('usersTable');
         if (users.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No users found</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No users found</td></tr>';
           return;
         }
 
-        tbody.innerHTML = users.map(user => `
+        tbody.innerHTML = users.map(user => {
+          let statusBadge, statusAction, statusLabel;
+          
+          if (user.isFrozen) {
+            statusBadge = 'frozen';
+            statusLabel = '🔒 Frozen';
+            statusAction = `unfreezeUser(${user.id})`;
+          } else if (user.isActive) {
+            statusBadge = 'active';
+            statusLabel = '✓ Active';
+            statusAction = `toggleUserStatus(${user.id}, true)`;
+          } else {
+            statusBadge = 'inactive';
+            statusLabel = '⊗ Inactive';
+            statusAction = `toggleUserStatus(${user.id}, false)`;
+          }
+
+          return `
           <tr>
             <td><strong>${user.firstName} ${user.lastName}</strong></td>
             <td>${user.email}</td>
             <td><span class="badge badge-${user.role.replace('-', '')}">${user.role}</span></td>
-            <td><span class="badge badge-${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Active' : 'Inactive'}</span></td>
             <td>
-              <span class="badge badge-${user.isFrozen ? 'frozen' : 'normal'}">
-                ${user.isFrozen ? '🔒 Frozen' : '✓ Normal'}
+              <span class="badge status-badge badge-${statusBadge}" onclick="${statusAction}" title="Click to ${user.isFrozen ? 'unfreeze' : (user.isActive ? 'deactivate' : 'activate')}">
+                ${statusLabel}
               </span>
-              ${user.isFrozen ? `<br><small style="color: #999;">${user.failedLoginAttempts || 0} failed attempts</small>` : ''}
+              ${user.isFrozen ? `<br><small style="color: #999;">${user.failedLoginAttempts || 0} failed login attempts</small>` : ''}
             </td>
             <td>${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
             <td>
               <div class="action-buttons">
                 <button class="btn btn-primary btn-sm" onclick='editUser(${JSON.stringify(user)})'>Edit</button>
-                ${user.isFrozen ? 
-                  `<button class="btn btn-warning btn-sm" onclick="unfreezeUser(${user.id})">Unfreeze</button>` :
-                  `<button class="btn btn-danger btn-sm" onclick="toggleUserStatus(${user.id}, ${user.isActive})">
-                    ${user.isActive ? 'Deactivate' : 'Activate'}
-                  </button>`
-                }
               </div>
             </td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
       } catch (error) {
         console.error('Error loading users:', error);
         showAlert('Failed to load users', 'error');
