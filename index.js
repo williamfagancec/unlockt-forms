@@ -94,44 +94,50 @@ if (azureConfigured) {
 const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword } = require('./server/auth');
 const { createResetToken, validateResetToken, consumeResetToken, sendResetEmail } = require('./server/password-reset');
 
-// Initialize default admin user on startup
+// Initialize default admin user on startup (only if doesn't exist)
 async function initializeDefaultAdmin() {
   try {
+    // Only seed default admin if explicitly enabled via environment variable
+    if (process.env.SEED_DEFAULT_ADMIN !== 'true') {
+      console.log('[INIT] Default admin seeding disabled (set SEED_DEFAULT_ADMIN=true to enable)');
+      return;
+    }
+    
+    // In production, require all admin defaults to be explicitly set via environment variables
+    if (isProduction) {
+      const requiredEnvVars = ['DEFAULT_ADMIN_FIRST_NAME', 'DEFAULT_ADMIN_LAST_NAME', 'DEFAULT_ADMIN_EMAIL', 'DEFAULT_ADMIN_PASSWORD'];
+      const missing = requiredEnvVars.filter(varName => !process.env[varName]);
+      
+      if (missing.length > 0) {
+        console.error(`[INIT] Cannot seed default admin in production: Missing required environment variables: ${missing.join(', ')}`);
+        return;
+      }
+    }
+    
     const defaultFirstName = process.env.DEFAULT_ADMIN_FIRST_NAME || 'Raj';
     const defaultLastName = process.env.DEFAULT_ADMIN_LAST_NAME || 'Mendes';
     const defaultEmail = process.env.DEFAULT_ADMIN_EMAIL || 'raj.mendes@customerexperience.com.au';
     const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'TestPassword123!';
     
-    const passwordHash = await bcrypt.hash(defaultPassword, 12);
-    
+    // Check if admin already exists
     const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.email, defaultEmail));
     
     if (existingUser) {
-      await db.update(adminUsers)
-        .set({
-          firstName: defaultFirstName,
-          lastName: defaultLastName,
-          passwordHash: passwordHash,
-          role: 'administrator',
-          isActive: true,
-          isFrozen: false,
-          failedLoginAttempts: 0,
-          frozenAt: null,
-          updatedAt: new Date()
-        })
-        .where(eq(adminUsers.email, defaultEmail));
-      console.log(`[INIT] Default admin updated: ${defaultEmail}`);
-    } else {
-      await db.insert(adminUsers).values({
-        firstName: defaultFirstName,
-        lastName: defaultLastName,
-        email: defaultEmail,
-        passwordHash: passwordHash,
-        role: 'administrator',
-        isActive: true
-      });
-      console.log(`[INIT] Default admin created: ${defaultEmail}`);
+      console.log(`[INIT] Default admin already exists: ${defaultEmail} (skipping creation to preserve existing credentials)`);
+      return;
     }
+    
+    // Only create if doesn't exist - NEVER update existing admin credentials
+    const passwordHash = await bcrypt.hash(defaultPassword, 12);
+    await db.insert(adminUsers).values({
+      firstName: defaultFirstName,
+      lastName: defaultLastName,
+      email: defaultEmail,
+      passwordHash: passwordHash,
+      role: 'administrator',
+      isActive: true
+    });
+    console.log(`[INIT] Default admin created: ${defaultEmail}`);
   } catch (error) {
     console.error('[INIT] Error initializing admin:', error);
   }
