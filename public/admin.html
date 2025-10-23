@@ -574,6 +574,10 @@
       const trigger = document.getElementById('profileTrigger');
       const menu = document.getElementById('dropdownMenu');
       
+      if (!trigger || !menu) {
+        return;
+      }
+      
       trigger.addEventListener('click', (e) => {
         e.stopPropagation();
         trigger.classList.toggle('active');
