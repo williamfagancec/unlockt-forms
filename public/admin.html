@@ -550,13 +550,17 @@
           return false;
         }
 
-        const fullName = `${data.user.firstName} ${data.user.lastName}`;
-        const initials = `${data.user.firstName.charAt(0)}${data.user.lastName.charAt(0)}`;
+        const firstName = (data.user?.firstName || '').toString().trim();
+        const lastName = (data.user?.lastName || '').toString().trim();
+        const email = (data.user?.email || '').toString().trim();
+        
+        const fullName = `${firstName} ${lastName}`.trim() || 'User';
+        const initials = `${firstName.length > 0 ? firstName.charAt(0) : ''}${lastName.length > 0 ? lastName.charAt(0) : ''}`.trim() || 'U';
         
         document.getElementById('userName').textContent = fullName;
         document.getElementById('profileIcon').textContent = initials;
         document.getElementById('dropdownUserName').textContent = fullName;
-        document.getElementById('dropdownUserEmail').textContent = data.user.email;
+        document.getElementById('dropdownUserEmail').textContent = email || 'No email';
         
         return true;
       } catch (error) {
