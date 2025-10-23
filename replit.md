@@ -1,6 +1,7 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-23**: Improved error handling in forgot-password.html to properly display API validation errors from express-validator ({errors:[{msg}]}), with graceful JSON parsing and fallback messages.
 - **2025-10-23**: Added ARIA attributes and focus management to forgot-password.html for improved screen reader accessibility (role, aria-live regions, programmatic focus).
 - **2025-10-23**: Refactored user status change logic to use atomic backend endpoint, eliminating partial failure risk where unfreeze could succeed but status toggle could fail.
 - **2025-10-23**: Created shared password validation module (public/js/password-validation.js) to eliminate code duplication across change-password.html, setup-password.html, and admin/reset-password.html.
