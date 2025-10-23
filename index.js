@@ -999,8 +999,7 @@ app.put('/api/admin/users/:id', [
   body('firstName').trim().notEmpty().withMessage('First name is required'),
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role'),
-  body('isActive').isBoolean().withMessage('Account status must be true or false')
+  body('role').isIn(['administrator', 'reviewer', 'read-only']).withMessage('Invalid role')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -1009,17 +1008,12 @@ app.put('/api/admin/users/:id', [
 
   try {
     const userId = parseInt(req.params.id);
-    const { firstName, lastName, role, isActive } = req.body;
+    const { firstName, lastName, role } = req.body;
     const email = req.body.email.toLowerCase().trim();
     
     const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
     if (!existingUser) {
       return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Only block if trying to activate a frozen account (inactive -> active transition while frozen)
-    if (existingUser.isFrozen && !existingUser.isActive && isActive) {
-      return res.status(400).json({ error: 'Cannot activate a frozen account. Please unfreeze it first.' });
     }
 
     const [emailCheck] = await db.select().from(adminUsers).where(
@@ -1038,7 +1032,6 @@ app.put('/api/admin/users/:id', [
         lastName,
         email,
         role,
-        isActive,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, userId));

@@ -671,13 +671,50 @@
         return;
       }
 
-      // If account is frozen, show unfreeze confirmation
+      // If account is frozen, show unfreeze confirmation and apply new status
       if (isFrozen && (newStatus === 'active' || newStatus === 'inactive')) {
-        if (!confirm('This account is frozen. Do you want to unfreeze it? This will reset failed login attempts and allow the user to login.')) {
+        const action = newStatus === 'active' ? 'activate' : 'deactivate';
+        if (!confirm(`This account is frozen. Do you want to unfreeze and ${action} it? This will reset failed login attempts.`)) {
           await loadUsers(); // Reset dropdown
           return;
         }
-        await unfreezeUser(userId);
+        
+        try {
+          // First unfreeze the account
+          const unfreezeResponse = await fetch(`/api/admin/users/${userId}/unfreeze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+          });
+
+          if (!unfreezeResponse.ok) {
+            const data = await unfreezeResponse.json();
+            throw new Error(data.error || 'Failed to unfreeze account');
+          }
+
+          // Then toggle status if needed (unfreeze sets to active by default)
+          if (newStatus === 'inactive') {
+            const toggleResponse = await fetch(`/api/admin/users/${userId}/toggle`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include'
+            });
+
+            if (!toggleResponse.ok) {
+              throw new Error('Failed to deactivate account');
+            }
+            
+            showAlert('Account unfrozen and deactivated successfully!', 'success');
+          } else {
+            showAlert('Account unfrozen and activated successfully!', 'success');
+          }
+          
+          loadUsers();
+        } catch (error) {
+          console.error('Error handling frozen account:', error);
+          showAlert(error.message, 'error');
+          loadUsers();
+        }
         return;
       }
 
