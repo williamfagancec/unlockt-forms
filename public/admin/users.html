@@ -317,6 +317,62 @@
       text-align: center;
       padding: 40px;
     }
+
+    .status-select {
+      padding: 6px 30px 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      appearance: none;
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .status-select:hover {
+      border-color: #5fa88a;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-select:focus {
+      outline: none;
+      border-color: #5fa88a;
+      box-shadow: 0 0 0 3px rgba(95, 168, 138, 0.1);
+    }
+
+    .status-select.status-active {
+      background-color: #d4edda;
+      color: #155724;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23155724" d="M3 6l3 3 3-3"/></svg>');
+    }
+
+    .status-select.status-inactive {
+      background-color: #f8d7da;
+      color: #721c24;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23721c24" d="M3 6l3 3 3-3"/></svg>');
+    }
+
+    .status-select.status-frozen {
+      background-color: #ff6b6b;
+      color: white;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="white" d="M3 6l3 3 3-3"/></svg>');
+      cursor: pointer;
+    }
+
+    .status-select:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .status-info {
+      display: block;
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -433,17 +489,6 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Account Status *</label>
-          <select class="form-select" id="editStatus" required>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <small style="color: #666; display: block; margin-top: 5px;">
-            Note: Frozen accounts can only be unfrozen by clicking the status badge in the user list.
-          </small>
-        </div>
-
         <div class="modal-buttons">
           <button type="submit" class="btn btn-primary">Update User</button>
           <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
@@ -481,20 +526,28 @@
         }
 
         tbody.innerHTML = users.map(user => {
-          let statusBadge, statusAction, statusLabel;
+          let statusClass, statusOptions, statusInfo = '';
           
           if (user.isFrozen) {
-            statusBadge = 'frozen';
-            statusLabel = '🔒 Frozen';
-            statusAction = `unfreezeUser(${user.id})`;
+            statusClass = 'status-frozen';
+            statusOptions = `
+              <option value="frozen" selected>🔒 Frozen</option>
+              <option value="active">✓ Active</option>
+              <option value="inactive">⊗ Inactive</option>
+            `;
+            statusInfo = `<small class="status-info">${user.failedLoginAttempts || 0} failed login attempts</small>`;
           } else if (user.isActive) {
-            statusBadge = 'active';
-            statusLabel = '✓ Active';
-            statusAction = `toggleUserStatus(${user.id}, true)`;
+            statusClass = 'status-active';
+            statusOptions = `
+              <option value="active" selected>✓ Active</option>
+              <option value="inactive">⊗ Inactive</option>
+            `;
           } else {
-            statusBadge = 'inactive';
-            statusLabel = '⊗ Inactive';
-            statusAction = `toggleUserStatus(${user.id}, false)`;
+            statusClass = 'status-inactive';
+            statusOptions = `
+              <option value="inactive" selected>⊗ Inactive</option>
+              <option value="active">✓ Active</option>
+            `;
           }
 
           return `
@@ -503,10 +556,10 @@
             <td>${user.email}</td>
             <td><span class="badge badge-${user.role.replace('-', '')}">${user.role}</span></td>
             <td>
-              <span class="badge status-badge badge-${statusBadge}" onclick="${statusAction}" title="Click to ${user.isFrozen ? 'unfreeze' : (user.isActive ? 'deactivate' : 'activate')}">
-                ${statusLabel}
-              </span>
-              ${user.isFrozen ? `<br><small style="color: #999;">${user.failedLoginAttempts || 0} failed login attempts</small>` : ''}
+              <select class="status-select ${statusClass}" onchange="handleStatusChange(${user.id}, this.value, ${user.isFrozen})">
+                ${statusOptions}
+              </select>
+              ${statusInfo}
             </td>
             <td>${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}</td>
             <td>
@@ -538,19 +591,6 @@
       document.getElementById('editLastName').value = user.lastName;
       document.getElementById('editEmail').value = user.email;
       document.getElementById('editRole').value = user.role;
-      document.getElementById('editStatus').value = user.isActive ? 'active' : 'inactive';
-      
-      // Disable status dropdown if account is frozen
-      const statusSelect = document.getElementById('editStatus');
-      if (user.isFrozen) {
-        statusSelect.disabled = true;
-        statusSelect.parentElement.querySelector('small').innerHTML = 
-          '<strong style="color: #ff6b6b;">⚠️ This account is frozen and cannot be activated. Unfreeze it first by clicking the status badge in the user list.</strong>';
-      } else {
-        statusSelect.disabled = false;
-        statusSelect.parentElement.querySelector('small').innerHTML = 
-          'Note: Frozen accounts can only be unfrozen by clicking the status badge in the user list.';
-      }
       
       document.getElementById('editModal').classList.add('active');
     }
@@ -599,14 +639,13 @@
       const lastName = document.getElementById('editLastName').value;
       const email = document.getElementById('editEmail').value;
       const role = document.getElementById('editRole').value;
-      const isActive = document.getElementById('editStatus').value === 'active';
 
       try {
         const response = await fetch(`/api/admin/users/${userId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ firstName, lastName, email, role, isActive })
+          body: JSON.stringify({ firstName, lastName, email, role })
         });
 
         const data = await response.json();
@@ -624,8 +663,28 @@
       }
     }
 
-    async function toggleUserStatus(userId, currentStatus) {
-      if (!confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this user?`)) {
+    async function handleStatusChange(userId, newStatus, isFrozen) {
+      // Handle frozen accounts
+      if (newStatus === 'frozen') {
+        // Reload to reset dropdown back to frozen state
+        await loadUsers();
+        return;
+      }
+
+      // If account is frozen, show unfreeze confirmation
+      if (isFrozen && (newStatus === 'active' || newStatus === 'inactive')) {
+        if (!confirm('This account is frozen. Do you want to unfreeze it? This will reset failed login attempts and allow the user to login.')) {
+          await loadUsers(); // Reset dropdown
+          return;
+        }
+        await unfreezeUser(userId);
+        return;
+      }
+
+      // Handle normal active/inactive toggle
+      const action = newStatus === 'active' ? 'activate' : 'deactivate';
+      if (!confirm(`Are you sure you want to ${action} this user?`)) {
+        await loadUsers(); // Reset dropdown
         return;
       }
 
@@ -640,11 +699,12 @@
           throw new Error('Failed to update user status');
         }
 
-        showAlert('User status updated successfully', 'success');
+        showAlert(`User ${action}d successfully`, 'success');
         loadUsers();
       } catch (error) {
-        console.error('Error toggling user status:', error);
+        console.error('Error updating user status:', error);
         showAlert(error.message, 'error');
+        loadUsers();
       }
     }
 
