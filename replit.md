@@ -1,5 +1,10 @@
 # Unlockt Insurance Form Application
 
+## Recent Changes
+- **2025-10-23**: Fixed critical security vulnerability in admin seeding that was resetting passwords and elevating roles on every server restart. Default admin creation now gated behind `SEED_DEFAULT_ADMIN=true` and only creates if missing, never updates existing admins.
+- **2025-10-23**: Added atomic token consumption to password reset flow to prevent double-use attacks via race conditions.
+- **2025-10-23**: Added defensive null/undefined checks in admin dashboard UI to prevent crashes on incomplete API responses.
+
 ## Overview
 This project is a secure, comprehensive form collection system for Unlockt Insurance Solutions. It facilitates the submission of "Letter of Appointment" and "Quote Slip & Declaration" forms. Its primary purpose is to provide a robust platform for collecting critical insurance data, enabling efficient processing and management by Unlockt staff. Key capabilities include public form submission, a secure admin portal for managing submissions, data export functionalities (XLSX, PDF), and a design optimized for Azure deployment with future integration into MS Fabric. The system aims to streamline the initial stages of the insurance application process and centralize client data.
 
