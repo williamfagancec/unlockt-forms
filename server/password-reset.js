@@ -180,10 +180,19 @@ async function validateResetToken(token) {
 
 async function consumeResetToken(tokenId, userId, newPasswordHash, req) {
   await db.transaction(async (tx) => {
-    await tx
+    const tokenUpdateResult = await tx
       .update(adminPasswordResetTokens)
       .set({ consumedAt: new Date() })
-      .where(eq(adminPasswordResetTokens.id, tokenId));
+      .where(
+        and(
+          eq(adminPasswordResetTokens.id, tokenId),
+          isNull(adminPasswordResetTokens.consumedAt)
+        )
+      );
+    
+    if (tokenUpdateResult.rowCount === 0) {
+      throw new Error('Reset token has already been used or does not exist');
+    }
     
     await tx
       .update(adminUsers)
