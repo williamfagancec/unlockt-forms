@@ -1,6 +1,8 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-23**: Refactored user status change logic to use atomic backend endpoint, eliminating partial failure risk where unfreeze could succeed but status toggle could fail.
+- **2025-10-23**: Created shared password validation module (public/js/password-validation.js) to eliminate code duplication across change-password.html, setup-password.html, and admin/reset-password.html.
 - **2025-10-23**: Fixed critical security vulnerability in admin seeding that was resetting passwords and elevating roles on every server restart. Default admin creation now gated behind `SEED_DEFAULT_ADMIN=true` and only creates if missing, never updates existing admins.
 - **2025-10-23**: Added atomic token consumption to password reset flow to prevent double-use attacks via race conditions.
 - **2025-10-23**: Added defensive null/undefined checks in admin dashboard UI to prevent crashes on incomplete API responses.
