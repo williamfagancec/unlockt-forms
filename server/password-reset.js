@@ -102,7 +102,7 @@ async function createResetToken(email, req) {
     return null;
   }
   
-  if (!user.isActive) {
+  if (!user.isActive || user.isFrozen) {
     return null;
   }
   
@@ -310,7 +310,11 @@ This is an automated email from Unlockt Forms - Form Manager Portal
     from: process.env.SENDGRID_FROM_EMAIL,
     subject: 'Password Reset Request - Unlockt Forms',
     text: emailText,
-    html: emailHtml
+    html: emailHtml,
+    trackingSettings: {
+      clickTracking: { enable: false },
+      openTracking: { enable: false }
+    }
   };
   
   try {
@@ -320,8 +324,10 @@ This is an automated email from Unlockt Forms - Form Manager Portal
       console.log(`[PASSWORD_RESET] Reset email sent to ${email}`);
       return { success: true };
     } else {
-      console.log(`[PASSWORD_RESET] SendGrid not configured. Reset URL: ${resetUrl}`);
-      return { success: false, resetUrl };
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[PASSWORD_RESET] SendGrid not configured. Reset URL: ${resetUrl}`);
+      }
+      return { success: false };
     }
   } catch (error) {
     console.error('[PASSWORD_RESET] Error sending email:', error);
