@@ -214,6 +214,11 @@ async function consumeResetToken(tokenId, userId, newPasswordHash, req) {
 }
 
 async function sendResetEmail(email, token, user) {
+  // Validate required SendGrid configuration before constructing email
+  if (!process.env.SENDGRID_FROM_EMAIL) {
+    throw new Error('SendGrid not configured. Set SENDGRID_FROM_EMAIL environment variable.');
+  }
+  
   let baseUrl;
   if (process.env.WEBSITE_HOSTNAME) {
     baseUrl = `https://${process.env.WEBSITE_HOSTNAME}`;
