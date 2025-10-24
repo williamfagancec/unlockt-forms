@@ -65,7 +65,7 @@ async function handleLogin(req, res) {
       const [updatedUser] = await db
         .update(adminUsers)
         .set({
-          failedLoginAttempts: sql`COALESCE(${adminUsers.failedLoginAttempts}, 0) + 1`,
+          failedLoginAttempts: sql`${adminUsers.failedLoginAttempts} + 1`,
         })
         .where(eq(adminUsers.id, user.id))
         .returning({
