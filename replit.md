@@ -1,5 +1,21 @@
 # Unlockt Insurance Form Application
 
+## Recent Changes
+- **2025-10-24**: Fixed duplicate click handlers on profile dropdown in admin.html that caused toggle to fire twice. Updated outside click handler to properly sync ARIA attributes (aria-expanded, aria-hidden) for improved accessibility.
+- **2025-10-24**: Added validation guard for SENDGRID_FROM_EMAIL in password reset email function. Fails fast with explicit error message if environment variable is not configured, preventing unclear SendGrid errors.
+- **2025-10-24**: Refactored password reset token consumption to use .returning() instead of rowCount for database driver portability. Ensures single-use token semantics work consistently across PostgreSQL drivers (Neon serverless and standard pg).
+- **2025-10-24**: Updated session check endpoint to verify user.isFrozen status. Frozen accounts are now treated the same as inactive accounts - session is destroyed and user is logged out, preventing frozen users from maintaining active sessions.
+- **2025-10-24**: Added defensive guards to prevent bcrypt.compare runtime errors when passwordHash is null/undefined in login and change-password flows. Returns appropriate error messages while maintaining user enumeration protection.
+- **2025-10-24**: Fixed user enumeration vulnerability in login flow by validating credentials before revealing account status. All authentication failures now return generic "Invalid email or password" message while detailed status (inactive, frozen, non-existent) is logged server-side only for auditing.
+- **2025-10-23**: Aligned password reset email tracking settings with onboarding (disabled click/open tracking) and gated URL logging to non-production environments to prevent security leaks.
+- **2025-10-23**: Improved error handling in forgot-password.html to properly display API validation errors from express-validator ({errors:[{msg}]}), with graceful JSON parsing and fallback messages.
+- **2025-10-23**: Added ARIA attributes and focus management to forgot-password.html for improved screen reader accessibility (role, aria-live regions, programmatic focus).
+- **2025-10-23**: Refactored user status change logic to use atomic backend endpoint, eliminating partial failure risk where unfreeze could succeed but status toggle could fail.
+- **2025-10-23**: Created shared password validation module (public/js/password-validation.js) to eliminate code duplication across change-password.html, setup-password.html, and admin/reset-password.html.
+- **2025-10-23**: Fixed critical security vulnerability in admin seeding that was resetting passwords and elevating roles on every server restart. Default admin creation now gated behind `SEED_DEFAULT_ADMIN=true` and only creates if missing, never updates existing admins.
+- **2025-10-23**: Added atomic token consumption to password reset flow to prevent double-use attacks via race conditions.
+- **2025-10-23**: Added defensive null/undefined checks in admin dashboard UI to prevent crashes on incomplete API responses.
+
 ## Overview
 This project is a secure, comprehensive form collection system for Unlockt Insurance Solutions. It facilitates the submission of "Letter of Appointment" and "Quote Slip & Declaration" forms. Its primary purpose is to provide a robust platform for collecting critical insurance data, enabling efficient processing and management by Unlockt staff. Key capabilities include public form submission, a secure admin portal for managing submissions, data export functionalities (XLSX, PDF), and a design optimized for Azure deployment with future integration into MS Fabric. The system aims to streamline the initial stages of the insurance application process and centralize client data.
 
@@ -31,11 +47,12 @@ The application features distinct interfaces for public users and administrators
 - **Public Form Submission**:
     - **Letter of Appointment**: Strata management/property info, appointment questions, contact, digital signature, file uploads (common seal, letterhead).
     - **Quote Slip & Declaration**: Building/insurance info, database-driven dropdowns, 8 document uploads, facilities, cover options, disclosure, digital signature, declaration.
-- **Admin Authentication**: Email/password (case-insensitive), bcrypt hashing, role-based access, PostgreSQL-backed sessions, httpOnly cookies, magic link onboarding. Default admin `admin@unlockt.com` / `Admin@123456`.
+- **Admin Authentication**: Email/password (case-insensitive), bcrypt hashing, role-based access, PostgreSQL-backed sessions, httpOnly cookies, magic link onboarding.
+  - Note: In development, you may seed a default admin via environment variables. Do not hardcode or publish real credentials in documentation.
 - **Admin Dashboard**: Overview and statistics for both form types, navigation to submission lists.
 - **Submission Management**: Searchable list views and detailed views for both form types.
 - **Data Export**: Comprehensive XLSX export for all form fields, individual LOA PDF export.
-- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection (ORM), secure file handling.
+- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection (ORM), secure file handling, user enumeration protection (credentials validated before revealing account status).
 - **Database Schema**:
     - `adminUsers`: Stores admin login details, roles, and status.
     - `formSubmissions`: Letter of Appointment form data.

@@ -1,645 +1,698 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unlockt Forms</title>
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: #f5f5f5;
-      min-height: 100vh;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
-      color: white;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .header h1 {
-      font-size: 24px;
-      font-weight: 600;
-    }
-
-    .header-logo {
-      height: 40px;
-      width: auto;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      position: relative;
-    }
-
-    .user-name {
-      font-size: 14px;
-    }
-
-    .profile-dropdown {
-      position: relative;
-    }
-
-    .profile-trigger {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .profile-trigger:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .profile-icon {
-      width: 24px;
-      height: 24px;
-      background: white;
-      color: #5fa88a;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .dropdown-arrow {
-      font-size: 12px;
-      transition: transform 0.2s;
-    }
-
-    .profile-trigger.active .dropdown-arrow {
-      transform: rotate(180deg);
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      min-width: 200px;
-      overflow: hidden;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.2s;
-      z-index: 1000;
-    }
-
-    .dropdown-menu.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-
-    .dropdown-header {
-      padding: 15px;
-      border-bottom: 1px solid #e9ecef;
-      background: #f8f9fa;
-    }
-
-    .dropdown-user-name {
-      font-weight: 600;
-      color: #333;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .dropdown-user-email {
-      font-size: 12px;
-      color: #666;
-    }
-
-    .dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 15px;
-      color: #333;
-      text-decoration: none;
-      transition: background 0.2s;
-      cursor: pointer;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    .dropdown-item:hover {
-      background: #f8f9fa;
-    }
-
-    .dropdown-item.danger {
-      color: #dc3545;
-    }
-
-    .dropdown-item.danger:hover {
-      background: #fee;
-    }
-
-    .dropdown-divider {
-      height: 1px;
-      background: #e9ecef;
-      margin: 4px 0;
-    }
-
-    .dropdown-icon {
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-    }
-
-    .btn-back {
-      background: white;
-      color: #5fa88a;
-      border: 2px solid white;
-      font-weight: 600;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-back:hover {
-      background: #f8f9fa;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-logout {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .btn-logout:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-
-    .page-title {
-      font-size: 28px;
-      color: #333;
-      margin-bottom: 30px;
-    }
-
-    .forms-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 30px;
-      margin-bottom: 40px;
-    }
-
-    .form-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .form-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .form-card-header {
-      background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
-      color: white;
-      padding: 20px;
-    }
-
-    .form-card-header h2 {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .form-card-header p {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .form-card-body {
-      padding: 20px;
-    }
-
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: 600;
-      color: #5fa88a;
-      display: block;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
-    }
-
-    .form-card-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn-primary {
-      flex: 1;
-      background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
-      color: white;
-      text-align: center;
-      padding: 12px;
-      border-radius: 4px;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #4a8b6e 0%, #3a7558 100%);
-    }
-
-    .btn-secondary {
-      flex: 1;
-      background: #f0f0f0;
-      color: #333;
-      text-align: center;
-      padding: 12px;
-      border-radius: 4px;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .btn-secondary:hover {
-      background: #e0e0e0;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #5fa88a;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .quick-stats {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
-    }
-
-    .quick-stats h2 {
-      font-size: 18px;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .quick-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-    }
-
-    .quick-stat-item {
-      text-align: center;
-      padding: 15px;
-      background: #f9f9f9;
-      border-radius: 4px;
-    }
-
-    .quick-stat-item .value {
-      font-size: 32px;
-      font-weight: 600;
-      color: #5fa88a;
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    .quick-stat-item .label {
-      font-size: 14px;
-      color: #666;
-    }
-
-    @media (max-width: 768px) {
-      .forms-grid {
-        grid-template-columns: 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unlockt Forms</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      .stats-row {
-        grid-template-columns: 1fr;
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        background: #f5f5f5;
+        min-height: 100vh;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
+        color: white;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .header-content {
-        flex-direction: column;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
         gap: 15px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .header-logo {
+        height: 40px;
+        width: auto;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+      }
+
+      .user-name {
+        font-size: 14px;
+      }
+
+      .profile-dropdown {
+        position: relative;
+      }
+
+      .profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .profile-trigger:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .profile-icon {
+        width: 24px;
+        height: 24px;
+        background: white;
+        color: #5fa88a;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .dropdown-arrow {
+        font-size: 12px;
+        transition: transform 0.2s;
+      }
+
+      .profile-trigger.active .dropdown-arrow {
+        transform: rotate(180deg);
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 200px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s;
+        z-index: 1000;
+      }
+
+      .dropdown-menu.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .dropdown-header {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+      }
+
+      .dropdown-user-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .dropdown-user-email {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px;
+        color: #333;
+        text-decoration: none;
+        transition: background 0.2s;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-size: 14px;
+      }
+
+      .dropdown-item:hover {
+        background: #f8f9fa;
+      }
+
+      .dropdown-item.danger {
+        color: #dc3545;
+      }
+
+      .dropdown-item.danger:hover {
+        background: #fee;
+      }
+
+      .dropdown-divider {
+        height: 1px;
+        background: #e9ecef;
+        margin: 4px 0;
+      }
+
+      .dropdown-icon {
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+      }
+
+      .btn-back {
+        background: white;
+        color: #5fa88a;
+        border: 2px solid white;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-back:hover {
+        background: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-logout {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px;
+      }
+
+      .page-title {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 30px;
+      }
+
+      .forms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+
+      .form-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .form-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .form-card-header {
+        background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
+        color: white;
+        padding: 20px;
+      }
+
+      .form-card-header h2 {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+
+      .form-card-header p {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .form-card-body {
+        padding: 20px;
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .stat-item {
         text-align: center;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="header-content">
-      <div class="header-title">
-        <img src="/unlockt-logo.png" alt="Unlockt Logo" class="header-logo">
-        <h1>Unlockt Forms</h1>
-      </div>
-      <div class="user-info">
-        <div class="profile-dropdown">
-          <button class="profile-trigger" id="profileTrigger">
-            <div class="profile-icon" id="profileIcon"></div>
-            <span class="user-name" id="userName"></span>
-            <span class="dropdown-arrow">▼</span>
-          </button>
-          
-          <div class="dropdown-menu" id="dropdownMenu">
-            <div class="dropdown-header">
-              <div class="dropdown-user-name" id="dropdownUserName"></div>
-              <div class="dropdown-user-email" id="dropdownUserEmail"></div>
-            </div>
-            
-            <a href="/admin/users" class="dropdown-item">
-              <span class="dropdown-icon">👥</span>
-              <span>User Management</span>
-            </a>
-            
-            <a href="/change-password" class="dropdown-item">
-              <span class="dropdown-icon">🔑</span>
-              <span>Change Password</span>
-            </a>
-            
-            <div class="dropdown-divider"></div>
-            
-            <button class="dropdown-item danger" onclick="logout()">
-              <span class="dropdown-icon">🚪</span>
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="container">
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Loading dashboard...</p>
-    </div>
+      .stat-value {
+        font-size: 28px;
+        font-weight: 600;
+        color: #5fa88a;
+        display: block;
+      }
 
-    <div id="dashboard" style="display: none;">
-      <h1 class="page-title">Form Submissions Overview</h1>
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
 
-      <div class="quick-stats">
-        <h2>Quick Statistics</h2>
-        <div class="quick-stats-grid">
-          <div class="quick-stat-item">
-            <span class="value" id="totalSubmissions">0</span>
-            <span class="label">Total Submissions</span>
-          </div>
-          <div class="quick-stat-item">
-            <span class="value" id="todaySubmissions">0</span>
-            <span class="label">Today</span>
-          </div>
-          <div class="quick-stat-item">
-            <span class="value" id="weekSubmissions">0</span>
-            <span class="label">This Week</span>
-          </div>
-          <div class="quick-stat-item">
-            <span class="value" id="monthSubmissions">0</span>
-            <span class="label">This Month</span>
-          </div>
-        </div>
-      </div>
+      .form-card-actions {
+        display: flex;
+        gap: 10px;
+      }
 
-      <div class="forms-grid">
-        <div class="form-card">
-          <div class="form-card-header">
-            <h2>Letter of Appointment</h2>
-          </div>
-          <div class="form-card-body">
-            <div class="stats-row">
-              <div class="stat-item">
-                <span class="stat-value" id="loaTotal">0</span>
-                <span class="stat-label">Total</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value" id="loaToday">0</span>
-                <span class="stat-label">Today</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value" id="loaWeek">0</span>
-                <span class="stat-label">This Week</span>
-              </div>
-            </div>
-            <div class="form-card-actions">
-              <a href="/admin/letter-of-appointment" class="btn-primary">View Submissions</a>
-              <a href="/letter-of-appointment" class="btn-secondary" target="_blank">View Form</a>
-            </div>
-          </div>
-        </div>
+      .btn-primary {
+        flex: 1;
+        background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
+        color: white;
+        text-align: center;
+        padding: 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+      }
 
-        <div class="form-card">
-          <div class="form-card-header">
-            <h2>Quote Slip & Declaration</h2>
-          </div>
-          <div class="form-card-body">
-            <div class="stats-row">
-              <div class="stat-item">
-                <span class="stat-value" id="qsTotal">0</span>
-                <span class="stat-label">Total</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value" id="qsToday">0</span>
-                <span class="stat-label">Today</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-value" id="qsWeek">0</span>
-                <span class="stat-label">This Week</span>
-              </div>
-            </div>
-            <div class="form-card-actions">
-              <a href="/admin/quote-slip" class="btn-primary">View Submissions</a>
-              <a href="/quote-slip" class="btn-secondary" target="_blank">View Form</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #4a8b6e 0%, #3a7558 100%);
+      }
 
-  <script>
-    async function checkAuth() {
-      try {
-        const response = await fetch('/api/admin/check-session', { credentials: 'include' });
-        const data = await response.json();
+      .btn-secondary {
+        flex: 1;
+        background: #f0f0f0;
+        color: #333;
+        text-align: center;
+        padding: 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+      }
 
-        if (!data.authenticated) {
-          window.location.href = '/admin-login.html';
-          return false;
+      .btn-secondary:hover {
+        background: #e0e0e0;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 60px 20px;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #5fa88a;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .quick-stats {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .quick-stats h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .quick-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+      }
+
+      .quick-stat-item {
+        text-align: center;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 4px;
+      }
+
+      .quick-stat-item .value {
+        font-size: 32px;
+        font-weight: 600;
+        color: #5fa88a;
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .quick-stat-item .label {
+        font-size: 14px;
+        color: #666;
+      }
+
+      @media (max-width: 768px) {
+        .forms-grid {
+          grid-template-columns: 1fr;
         }
 
-        const fullName = `${data.user.firstName} ${data.user.lastName}`;
-        const initials = `${data.user.firstName.charAt(0)}${data.user.lastName.charAt(0)}`;
+        .stats-row {
+          grid-template-columns: 1fr;
+        }
+
+        .header-content {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="header-title">
+          <img src="/unlockt-logo.png" alt="Unlockt Logo" class="header-logo" />
+          <h1>Unlockt Forms</h1>
+        </div>
+        <div class="user-info">
+          <div class="profile-dropdown">
+            <button
+              class="profile-trigger"
+              id="profileTrigger"
+              aria-expanded="false"
+              aria-haspopup="menu"
+            >
+              <div class="profile-icon" id="profileIcon"></div>
+              <span class="user-name" id="userName"></span>
+              <span class="dropdown-arrow">▼</span>
+            </button>
+
+            <div
+              class="dropdown-menu"
+              id="dropdownMenu"
+              role="menu"
+              aria-hidden="true"
+            >
+              <div class="dropdown-header">
+                <div class="dropdown-user-name" id="dropdownUserName"></div>
+                <div class="dropdown-user-email" id="dropdownUserEmail"></div>
+              </div>
+
+              <a href="/admin/users" class="dropdown-item">
+                <span class="dropdown-icon">👥</span>
+                <span>User Management</span>
+              </a>
+
+              <a href="/change-password" class="dropdown-item">
+                <span class="dropdown-icon">🔑</span>
+                <span>Change Password</span>
+              </a>
+
+              <div class="dropdown-divider"></div>
+
+              <button class="dropdown-item danger" id="logoutBtn">
+                <span class="dropdown-icon">🚪</span>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Loading dashboard...</p>
+      </div>
+
+      <div id="dashboard" style="display: none">
+        <h1 class="page-title">Form Submissions Overview</h1>
+
+        <div class="quick-stats">
+          <h2>Quick Statistics</h2>
+          <div class="quick-stats-grid">
+            <div class="quick-stat-item">
+              <span class="value" id="totalSubmissions">0</span>
+              <span class="label">Total Submissions</span>
+            </div>
+            <div class="quick-stat-item">
+              <span class="value" id="todaySubmissions">0</span>
+              <span class="label">Today</span>
+            </div>
+            <div class="quick-stat-item">
+              <span class="value" id="weekSubmissions">0</span>
+              <span class="label">This Week</span>
+            </div>
+            <div class="quick-stat-item">
+              <span class="value" id="monthSubmissions">0</span>
+              <span class="label">This Month</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="forms-grid">
+          <div class="form-card">
+            <div class="form-card-header">
+              <h2>Letter of Appointment</h2>
+            </div>
+            <div class="form-card-body">
+              <div class="stats-row">
+                <div class="stat-item">
+                  <span class="stat-value" id="loaTotal">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="loaToday">0</span>
+                  <span class="stat-label">Today</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="loaWeek">0</span>
+                  <span class="stat-label">This Week</span>
+                </div>
+              </div>
+              <div class="form-card-actions">
+                <a href="/admin/letter-of-appointment" class="btn-primary"
+                  >View Submissions</a
+                >
+                <a
+                  href="/letter-of-appointment"
+                  class="btn-secondary"
+                  target="_blank"
+                  >View Form</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <div class="form-card-header">
+              <h2>Quote Slip & Declaration</h2>
+            </div>
+            <div class="form-card-body">
+              <div class="stats-row">
+                <div class="stat-item">
+                  <span class="stat-value" id="qsTotal">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="qsToday">0</span>
+                  <span class="stat-label">Today</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="qsWeek">0</span>
+                  <span class="stat-label">This Week</span>
+                </div>
+              </div>
+              <div class="form-card-actions">
+                <a href="/admin/quote-slip" class="btn-primary"
+                  >View Submissions</a
+                >
+                <a href="/quote-slip" class="btn-secondary" target="_blank"
+                  >View Form</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function checkAuth() {
+        try {
+          const response = await fetch("/api/admin/check-session", {
+            credentials: "include",
+          });
+          const data = await response.json();
+
+          if (!data.authenticated) {
+            window.location.href = "/admin-login.html";
+            return false;
+          }
+
+          const firstName = (data.user?.firstName || "").toString().trim();
+          const lastName = (data.user?.lastName || "").toString().trim();
+          const email = (data.user?.email || "").toString().trim();
+
+          const fullName = `${firstName} ${lastName}`.trim() || "User";
+          const initials =
+            `${firstName.length > 0 ? firstName.charAt(0) : ""}${lastName.length > 0 ? lastName.charAt(0) : ""}`.trim() ||
+            "U";
+
+          document.getElementById("userName").textContent = fullName;
+          document.getElementById("profileIcon").textContent = initials;
+          document.getElementById("dropdownUserName").textContent = fullName;
+          document.getElementById("dropdownUserEmail").textContent =
+            email || "No email";
+
+          return true;
+        } catch (error) {
+          console.error("Auth check error:", error);
+          window.location.href = "/admin-login.html";
+          return false;
+        }
+      }
+
+      function initDropdown() {
+        document.getElementById("logoutBtn").addEventListener("click", logout);
+        const trigger = document.getElementById("profileTrigger");
+        const menu = document.getElementById("dropdownMenu");
         
-        document.getElementById('userName').textContent = fullName;
-        document.getElementById('profileIcon').textContent = initials;
-        document.getElementById('dropdownUserName').textContent = fullName;
-        document.getElementById('dropdownUserEmail').textContent = data.user.email;
-        
-        return true;
-      } catch (error) {
-        console.error('Auth check error:', error);
-        window.location.href = '/admin-login.html';
-        return false;
+        if (!trigger || !menu) {
+          return;
+        }
+
+        trigger.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = trigger.classList.contains("active");
+          trigger.setAttribute("aria-expanded", !isOpen);
+          menu.setAttribute("aria-hidden", isOpen);
+          trigger.classList.toggle("active");
+          menu.classList.toggle("show");
+        });
+
+        document.addEventListener("click", () => {
+          trigger.classList.remove("active");
+          menu.classList.remove("show");
+          trigger.setAttribute("aria-expanded", "false");
+          menu.setAttribute("aria-hidden", "true");
+        });
+
+        menu.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
       }
-    }
 
-    function initDropdown() {
-      const trigger = document.getElementById('profileTrigger');
-      const menu = document.getElementById('dropdownMenu');
-      
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        trigger.classList.toggle('active');
-        menu.classList.toggle('show');
-      });
-      
-      document.addEventListener('click', () => {
-        trigger.classList.remove('active');
-        menu.classList.remove('show');
-      });
-      
-      menu.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-    }
+      async function loadStats() {
+        try {
+          const [loaResponse, qsResponse] = await Promise.all([
+            fetch("/api/admin/letter-of-appointment/stats", {
+              credentials: "include",
+            }),
+            fetch("/api/admin/quote-slip/stats", { credentials: "include" }),
+          ]);
 
-    async function loadStats() {
-      try {
-        const [loaResponse, qsResponse] = await Promise.all([
-          fetch('/api/admin/letter-of-appointment/stats', { credentials: 'include' }),
-          fetch('/api/admin/quote-slip/stats', { credentials: 'include' })
-        ]);
+          const loaStats = await loaResponse.json();
+          const qsStats = await qsResponse.json();
 
-        const loaStats = await loaResponse.json();
-        const qsStats = await qsResponse.json();
+          document.getElementById("loaTotal").textContent = loaStats.total || 0;
+          document.getElementById("loaToday").textContent = loaStats.today || 0;
+          document.getElementById("loaWeek").textContent =
+            loaStats.thisWeek || 0;
 
-        document.getElementById('loaTotal').textContent = loaStats.total || 0;
-        document.getElementById('loaToday').textContent = loaStats.today || 0;
-        document.getElementById('loaWeek').textContent = loaStats.thisWeek || 0;
+          document.getElementById("qsTotal").textContent = qsStats.total || 0;
+          document.getElementById("qsToday").textContent = qsStats.today || 0;
+          document.getElementById("qsWeek").textContent = qsStats.thisWeek || 0;
 
-        document.getElementById('qsTotal').textContent = qsStats.total || 0;
-        document.getElementById('qsToday').textContent = qsStats.today || 0;
-        document.getElementById('qsWeek').textContent = qsStats.thisWeek || 0;
+          const total = (loaStats.total || 0) + (qsStats.total || 0);
+          const today = (loaStats.today || 0) + (qsStats.today || 0);
+          const week = (loaStats.thisWeek || 0) + (qsStats.thisWeek || 0);
+          const month = (loaStats.thisMonth || 0) + (qsStats.thisMonth || 0);
 
-        const total = (loaStats.total || 0) + (qsStats.total || 0);
-        const today = (loaStats.today || 0) + (qsStats.today || 0);
-        const week = (loaStats.thisWeek || 0) + (qsStats.thisWeek || 0);
-        const month = (loaStats.thisMonth || 0) + (qsStats.thisMonth || 0);
-
-        document.getElementById('totalSubmissions').textContent = total;
-        document.getElementById('todaySubmissions').textContent = today;
-        document.getElementById('weekSubmissions').textContent = week;
-        document.getElementById('monthSubmissions').textContent = month;
-
-      } catch (error) {
-        console.error('Error loading stats:', error);
+          document.getElementById("totalSubmissions").textContent = total;
+          document.getElementById("todaySubmissions").textContent = today;
+          document.getElementById("weekSubmissions").textContent = week;
+          document.getElementById("monthSubmissions").textContent = month;
+        } catch (error) {
+          console.error("Error loading stats:", error);
+        }
       }
-    }
 
-    async function logout() {
-      try {
-        await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
-        window.location.href = '/admin-login.html';
-      } catch (error) {
-        console.error('Logout error:', error);
-        window.location.href = '/admin-login.html';
+      async function logout() {
+        try {
+          await fetch("/api/admin/logout", {
+            method: "POST",
+            credentials: "include",
+          });
+          window.location.href = "/admin-login.html";
+        } catch (error) {
+          console.error("Logout error:", error);
+          window.location.href = "/admin-login.html";
+        }
       }
-    }
 
-    async function init() {
-      const authenticated = await checkAuth();
-      if (authenticated) {
-        initDropdown();
-        await loadStats();
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+      async function init() {
+        const authenticated = await checkAuth();
+        if (authenticated) {
+          initDropdown();
+          await loadStats();
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+        }
       }
-    }
 
-    init();
-  </script>
-</body>
+      init();
+    </script>
+  </body>
 </html>

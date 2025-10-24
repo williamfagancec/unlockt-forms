@@ -51,7 +51,12 @@ console.log('[SESSION CONFIG] isProduction:', isProduction, 'Cookie settings:', 
 
 app.use(session({
   store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  secret: (() => {
+  if (!process.env.SESSION_SECRET && isProduction) {
+    throw new Error('SESSION_SECRET must be set in production');
+  }
+    return process.env.SESSION_SECRET || 'dev-only-insecure-secret';
+    }) (),
   resave: false,
   saveUninitialized: false,
   rolling: true,
@@ -94,44 +99,50 @@ if (azureConfigured) {
 const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword } = require('./server/auth');
 const { createResetToken, validateResetToken, consumeResetToken, sendResetEmail } = require('./server/password-reset');
 
-// Initialize default admin user on startup
+// Initialize default admin user on startup (only if doesn't exist)
 async function initializeDefaultAdmin() {
   try {
+    // Only seed default admin if explicitly enabled via environment variable
+    if (process.env.SEED_DEFAULT_ADMIN !== 'true') {
+      console.log('[INIT] Default admin seeding disabled (set SEED_DEFAULT_ADMIN=true to enable)');
+      return;
+    }
+    
+    // In production, require all admin defaults to be explicitly set via environment variables
+    if (isProduction) {
+      const requiredEnvVars = ['DEFAULT_ADMIN_FIRST_NAME', 'DEFAULT_ADMIN_LAST_NAME', 'DEFAULT_ADMIN_EMAIL', 'DEFAULT_ADMIN_PASSWORD'];
+      const missing = requiredEnvVars.filter(varName => !process.env[varName]);
+      
+      if (missing.length > 0) {
+        console.error(`[INIT] Cannot seed default admin in production: Missing required environment variables: ${missing.join(', ')}`);
+        return;
+      }
+    }
+    
     const defaultFirstName = process.env.DEFAULT_ADMIN_FIRST_NAME || 'Raj';
     const defaultLastName = process.env.DEFAULT_ADMIN_LAST_NAME || 'Mendes';
     const defaultEmail = process.env.DEFAULT_ADMIN_EMAIL || 'raj.mendes@customerexperience.com.au';
     const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'TestPassword123!';
     
-    const passwordHash = await bcrypt.hash(defaultPassword, 12);
-    
+    // Check if admin already exists
     const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.email, defaultEmail));
     
     if (existingUser) {
-      await db.update(adminUsers)
-        .set({
-          firstName: defaultFirstName,
-          lastName: defaultLastName,
-          passwordHash: passwordHash,
-          role: 'administrator',
-          isActive: true,
-          isFrozen: false,
-          failedLoginAttempts: 0,
-          frozenAt: null,
-          updatedAt: new Date()
-        })
-        .where(eq(adminUsers.email, defaultEmail));
-      console.log(`[INIT] Default admin updated: ${defaultEmail}`);
-    } else {
-      await db.insert(adminUsers).values({
-        firstName: defaultFirstName,
-        lastName: defaultLastName,
-        email: defaultEmail,
-        passwordHash: passwordHash,
-        role: 'administrator',
-        isActive: true
-      });
-      console.log(`[INIT] Default admin created: ${defaultEmail}`);
+      console.log(`[INIT] Default admin already exists: ${defaultEmail} (skipping creation to preserve existing credentials)`);
+      return;
     }
+    
+    // Only create if doesn't exist - NEVER update existing admin credentials
+    const passwordHash = await bcrypt.hash(defaultPassword, 12);
+    await db.insert(adminUsers).values({
+      firstName: defaultFirstName,
+      lastName: defaultLastName,
+      email: defaultEmail,
+      passwordHash: passwordHash,
+      role: 'administrator',
+      isActive: true
+    });
+    console.log(`[INIT] Default admin created: ${defaultEmail}`);
   } catch (error) {
     console.error('[INIT] Error initializing admin:', error);
   }
@@ -1100,6 +1111,80 @@ app.post('/api/admin/users/:id/toggle', adminAuthMiddleware, async (req, res) =>
   }
 });
 
+app.post('/api/admin/users/:id/set-status', [
+  adminAuthMiddleware,
+  body('status').isIn(['active', 'inactive']).withMessage('Status must be active or inactive'),
+  body('unfreeze').optional().isBoolean().withMessage('Unfreeze must be a boolean')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const userId = parseInt(req.params.id);
+    const { status, unfreeze } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const isActive = status === 'active';
+    const updateFields = {
+      isActive,
+      updatedAt: new Date()
+    };
+
+    if (unfreeze) {
+      updateFields.isFrozen = false;
+      updateFields.failedLoginAttempts = 0;
+      updateFields.frozenAt = null;
+    }
+
+    if (isActive) {
+      const onboardingToken = generateOnboardingToken();
+      const tokenHash = crypto.createHash('sha256').update(onboardingToken).digest('hex');
+      const tokenExpiry = new Date();
+      tokenExpiry.setHours(tokenExpiry.getHours() + 24);
+
+      updateFields.passwordHash = null;
+      updateFields.onboardingToken = tokenHash;
+      updateFields.onboardingTokenExpiry = tokenExpiry;
+
+      await db.update(adminUsers)
+        .set(updateFields)
+        .where(eq(adminUsers.id, userId));
+
+      await sendOnboardingEmail(user.email, user.firstName, user.lastName, onboardingToken, user.role);
+    } else {
+      await db.update(adminUsers)
+        .set(updateFields)
+        .where(eq(adminUsers.id, userId));
+
+      await sendDeactivationEmail(user.email, user.firstName, user.lastName);
+    }
+
+    const action = isActive ? 'activated' : 'deactivated';
+    const unfreezeMsg = unfreeze ? ' and unfrozen' : '';
+    
+    console.log(`[ADMIN] User ${user.email} ${action}${unfreezeMsg} by admin ${req.session.adminUser.email}`);
+    
+    res.json({ 
+      success: true, 
+      status: action,
+      message: `User ${action}${unfreezeMsg} successfully`
+    });
+  } catch (error) {
+    console.error('Error setting user status:', error);
+    res.status(500).json({ error: 'Failed to update user status' });
+  }
+});
+
 app.post('/api/verify-onboarding-token', [
   body('token').trim().notEmpty().withMessage('Token is required')
 ], async (req, res) => {
@@ -1194,7 +1279,7 @@ app.post('/api/complete-onboarding', [
       })
       .where(eq(adminUsers.id, user.id));
 
-    console.log(`✓ User ${user.username} completed onboarding`);
+    console.log(`✓ User ${user.email} completed onboarding`);
 
     res.json({
       success: true,

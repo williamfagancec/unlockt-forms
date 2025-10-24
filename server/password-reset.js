@@ -5,8 +5,8 @@ const { eq, and, gt, isNull, sql } = require('drizzle-orm');
 const sgMail = require('@sendgrid/mail');
 
 const TOKEN_EXPIRY_MINUTES = 30;
-const MAX_REQUESTS_PER_EMAIL_PER_HOUR = 3;
-const MAX_REQUESTS_PER_IP_PER_HOUR = 5;
+const MAX_REQUESTS_PER_EMAIL_PER_HOUR = Number(process.env.RESET_RL_PER_EMAIL_HOURLY || 3);
+const MAX_REQUESTS_PER_IP_PER_HOUR = Number(process.env.RESET_RL_PER_IP_HOURLY || 5);
 
 function generateSecureToken() {
   return crypto.randomBytes(32).toString('hex');
@@ -102,7 +102,7 @@ async function createResetToken(email, req) {
     return null;
   }
   
-  if (!user.isActive) {
+  if (!user.isActive || user.isFrozen) {
     return null;
   }
   
@@ -180,10 +180,20 @@ async function validateResetToken(token) {
 
 async function consumeResetToken(tokenId, userId, newPasswordHash, req) {
   await db.transaction(async (tx) => {
-    await tx
+    const returnedRows = await tx
       .update(adminPasswordResetTokens)
       .set({ consumedAt: new Date() })
-      .where(eq(adminPasswordResetTokens.id, tokenId));
+      .where(
+        and(
+          eq(adminPasswordResetTokens.id, tokenId),
+          isNull(adminPasswordResetTokens.consumedAt)
+        )
+      )
+      .returning({ id: adminPasswordResetTokens.id });
+    
+    if (returnedRows.length === 0) {
+      throw new Error('Reset token has already been used or does not exist');
+    }
     
     await tx
       .update(adminUsers)
@@ -204,8 +214,24 @@ async function consumeResetToken(tokenId, userId, newPasswordHash, req) {
 }
 
 async function sendResetEmail(email, token, user) {
-  const resetUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/admin/reset-password?token=${token}`;
+  // Validate required SendGrid configuration before constructing email
+  if (!process.env.SENDGRID_FROM_EMAIL) {
+    throw new Error('SendGrid not configured. Set SENDGRID_FROM_EMAIL environment variable.');
+  }
   
+  let baseUrl;
+  if (process.env.WEBSITE_HOSTNAME) {
+    baseUrl = `https://${process.env.WEBSITE_HOSTNAME}`;
+  } else if (process.env.APP_BASE_URL) {
+    baseUrl = process.env.APP_BASE_URL;
+  } else if (process.env.REPLIT_DOMAINS) {
+    baseUrl = `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`;
+  } else if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    baseUrl = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+  } else {
+    baseUrl = 'http://localhost:5000';
+  }
+  const resetUrl = `${baseUrl}/admin/reset-password?token=${token}`;
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -290,7 +316,11 @@ This is an automated email from Unlockt Forms - Form Manager Portal
     from: process.env.SENDGRID_FROM_EMAIL,
     subject: 'Password Reset Request - Unlockt Forms',
     text: emailText,
-    html: emailHtml
+    html: emailHtml,
+    trackingSettings: {
+      clickTracking: { enable: false },
+      openTracking: { enable: false }
+    }
   };
   
   try {
@@ -300,8 +330,10 @@ This is an automated email from Unlockt Forms - Form Manager Portal
       console.log(`[PASSWORD_RESET] Reset email sent to ${email}`);
       return { success: true };
     } else {
-      console.log(`[PASSWORD_RESET] SendGrid not configured. Reset URL: ${resetUrl}`);
-      return { success: false, resetUrl };
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[PASSWORD_RESET] SendGrid not configured. Reset URL: ${resetUrl}`);
+      }
+      return { success: false };
     }
   } catch (error) {
     console.error('[PASSWORD_RESET] Error sending email:', error);

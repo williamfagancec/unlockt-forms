@@ -1,26 +1,30 @@
-const bcrypt = require('bcryptjs');
-const { body, validationResult } = require('express-validator');
-const { db } = require('./db');
-const { adminUsers } = require('../shared/schema');
-const { eq, sql } = require('drizzle-orm');
+ const bcrypt = require("bcryptjs");
+const { body, validationResult } = require("express-validator");
+const { db } = require("./db");
+const { adminUsers } = require("../shared/schema");
+const { eq, sql } = require("drizzle-orm");
 
 const authMiddleware = (req, res, next) => {
   if (!req.session || !req.session.adminUser) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+    return res.status(401).json({ error: "Unauthorized. Please log in." });
   }
   next();
 };
 
 const adminPageMiddleware = (req, res, next) => {
   if (!req.session || !req.session.adminUser) {
-    return res.redirect('/admin-login.html');
+    return res.redirect("/admin-login.html");
   }
   next();
 };
 
 const loginValidation = [
-  body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required')
+  body("email")
+    .trim()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage("Valid email is required"),
+  body("password").notEmpty().withMessage("Password is required"),
 ];
 
 async function handleLogin(req, res) {
@@ -32,88 +36,114 @@ async function handleLogin(req, res) {
   try {
     const email = req.body.email.toLowerCase().trim();
     const { password } = req.body;
-    
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email));
-    
+
+    const [user] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, email));
+
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      // Log failed attempt without revealing account existence
+      console.log(`[SECURITY] Login attempt for non-existent account: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
     }
-    
-    if (!user.isActive) {
-      return res.status(401).json({ error: 'Account is inactive' });
+
+    // Guard against null/undefined passwordHash to prevent bcrypt.compare from throwing
+    if (!user.passwordHash) {
+      console.log(`[SECURITY] Login attempt for account without password hash: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
     }
-    
-    if (user.isFrozen) {
-      return res.status(423).json({ 
-        error: 'Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.' 
-      });
-    }
-    
+
+    // Always validate password first, regardless of account status
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-    
+
     if (!isValidPassword) {
-      const [updatedUser] = await db.update(adminUsers)
-        .set({ 
-          failedLoginAttempts: sql`COALESCE(${adminUsers.failedLoginAttempts}, 0) + 1`
+      // Log details server-side for auditing
+      console.log(
+        `[SECURITY] Invalid password for user ${email} (active: ${user.isActive}, frozen: ${user.isFrozen})`,
+      );
+      const [updatedUser] = await db
+        .update(adminUsers)
+        .set({
+          failedLoginAttempts: sql`COALESCE(${adminUsers.failedLoginAttempts}, 0) + 1`,
         })
         .where(eq(adminUsers.id, user.id))
-        .returning({ 
+        .returning({
           id: adminUsers.id,
-          failedLoginAttempts: adminUsers.failedLoginAttempts 
+          failedLoginAttempts: adminUsers.failedLoginAttempts,
         });
-      
+
       const newFailedAttempts = updatedUser.failedLoginAttempts;
       const shouldFreeze = newFailedAttempts >= 5;
-      
+
       if (shouldFreeze) {
-        await db.update(adminUsers)
-          .set({ 
+        await db
+          .update(adminUsers)
+          .set({
             isFrozen: true,
-            frozenAt: new Date()
+            frozenAt: new Date(),
           })
           .where(eq(adminUsers.id, user.id));
-        
-        console.log(`[SECURITY] Account frozen for user ${email} after ${newFailedAttempts} failed login attempts`);
-        return res.status(423).json({ 
-          error: 'Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.' 
+
+        console.log(
+          `[SECURITY] Account frozen for user ${email} after ${newFailedAttempts} failed login attempts`,
+        );
+        return res.status(401).json({
+          error: "Invalid email or password.",
         });
       }
-      
-      const remainingAttempts = 5 - newFailedAttempts;
-      return res.status(401).json({ 
-        error: `Invalid email or password. ${remainingAttempts} attempt(s) remaining before account is frozen.` 
+
+      // Don't reveal remaining attempts to prevent user enumeration
+      console.log(
+        `[SECURITY] Failed login attempt ${newFailedAttempts}/5 for user ${email}`,
+      );
+      return res.status(401).json({
+        error: "Invalid email or password.",
       });
     }
-    
-    await db.update(adminUsers)
-      .set({ 
+
+    // Password is valid - now check account status
+    if (!user.isActive) {
+      console.log(`[SECURITY] Login attempt for inactive account: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    if (user.isFrozen) {
+      console.log(`[SECURITY] Login attempt for frozen account: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // All checks passed - update last login and reset failed attempts
+    await db
+      .update(adminUsers)
+      .set({
         lastLoginAt: new Date(),
         failedLoginAttempts: 0,
         isFrozen: false,
-        frozenAt: null
+        frozenAt: null,
       })
       .where(eq(adminUsers.id, user.id));
-    
+
     req.session.regenerate((err) => {
       if (err) {
-        console.error('Session regeneration error:', err);
-        return res.status(500).json({ error: 'Failed to create session' });
+        console.error("Session regeneration error:", err);
+        return res.status(500).json({ error: "Failed to create session" });
       }
-      
+
       req.session.adminUser = {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role
+        role: user.role,
       };
-      
+
       req.session.save((err) => {
         if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: 'Failed to create session' });
+          console.error("Session save error:", err);
+          return res.status(500).json({ error: "Failed to create session" });
         }
-        
+
         res.json({
           success: true,
           user: {
@@ -121,14 +151,14 @@ async function handleLogin(req, res) {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            role: user.role
-          }
+            role: user.role,
+          },
         });
       });
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Login failed" });
   }
 }
 
@@ -136,15 +166,18 @@ async function handleCheckSession(req, res) {
   if (!req.session || !req.session.adminUser) {
     return res.json({ authenticated: false });
   }
-  
+
   try {
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, req.session.adminUser.id));
-    
-    if (!user || !user.isActive) {
+    const [user] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.id, req.session.adminUser.id));
+
+    if (!user || !user.isActive || user.isFrozen) {
       req.session.destroy();
       return res.json({ authenticated: false });
     }
-    
+
     res.json({
       authenticated: true,
       user: {
@@ -152,11 +185,11 @@ async function handleCheckSession(req, res) {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
-    console.error('Session check error:', error);
+    console.error("Session check error:", error);
     res.json({ authenticated: false });
   }
 }
@@ -164,27 +197,34 @@ async function handleCheckSession(req, res) {
 function handleLogout(req, res) {
   req.session.destroy((err) => {
     if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({ error: 'Logout failed' });
+      console.error("Logout error:", err);
+      return res.status(500).json({ error: "Logout failed" });
     }
     res.json({ success: true });
   });
 }
 
 const changePasswordValidation = [
-  body('currentPassword').notEmpty().withMessage('Current password is required'),
-  body('newPassword')
-    .isLength({ min: 8 }).withMessage('New password must be at least 8 characters long')
-    .matches(/[A-Z]/).withMessage('New password must contain at least one uppercase letter')
-    .matches(/[a-z]/).withMessage('New password must contain at least one lowercase letter')
-    .matches(/[0-9]/).withMessage('New password must contain at least one number')
-    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('New password must contain at least one special character'),
-  body('confirmPassword').custom((value, { req }) => {
+  body("currentPassword")
+    .notEmpty()
+    .withMessage("Current password is required"),
+  body("newPassword")
+    .isLength({ min: 8 })
+    .withMessage("New password must be at least 8 characters long")
+    .matches(/[A-Z]/)
+    .withMessage("New password must contain at least one uppercase letter")
+    .matches(/[a-z]/)
+    .withMessage("New password must contain at least one lowercase letter")
+    .matches(/[0-9]/)
+    .withMessage("New password must contain at least one number")
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage("New password must contain at least one special character"),
+  body("confirmPassword").custom((value, { req }) => {
     if (value !== req.body.newPassword) {
-      throw new Error('Password confirmation does not match new password');
+      throw new Error("Password confirmation does not match new password");
     }
     return true;
-  })
+  }),
 ];
 
 async function handleChangePassword(req, res) {
@@ -194,41 +234,55 @@ async function handleChangePassword(req, res) {
   }
 
   if (!req.session || !req.session.adminUser) {
-    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+    return res.status(401).json({ error: "Unauthorized. Please log in." });
   }
 
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.session.adminUser.id;
 
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, userId));
+    const [user] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.id, userId));
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+    // Guard against null/undefined passwordHash to prevent bcrypt.compare from throwing
+    if (!user.passwordHash) {
+      console.log(`[SECURITY] Change password attempt for account without password hash: ${user.email}`);
+      return res.status(400).json({ error: "No password set for this account. Please use the forgot password flow to set a password." });
+    }
+
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
 
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
+      return res.status(401).json({ error: "Current password is incorrect" });
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
 
-    await db.update(adminUsers)
-      .set({ 
+    await db
+      .update(adminUsers)
+      .set({
         passwordHash: newPasswordHash,
-        updatedAt: new Date()
+        lastPasswordResetAt: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(adminUsers.id, userId));
 
-    res.json({ 
-      success: true, 
-      message: 'Password changed successfully' 
+    res.json({
+      success: true,
+      message: "Password changed successfully",
     });
   } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ error: 'Failed to change password' });
+    console.error("Change password error:", error);
+    res.status(500).json({ error: "Failed to change password" });
   }
 }
 
@@ -240,5 +294,5 @@ module.exports = {
   handleCheckSession,
   handleLogout,
   changePasswordValidation,
-  handleChangePassword
+  handleChangePassword,
 };
