@@ -6,7 +6,7 @@ const sgMail = require('@sendgrid/mail');
 
 const TOKEN_EXPIRY_MINUTES = 30;
 const MAX_REQUESTS_PER_EMAIL_PER_HOUR = Number(process.env.RESET_RL_PER_EMAIL_HOURLY || 3);
-const MAX_REQUESTS_PER_IP_PER_HOUR = Number() 5);
+const MAX_REQUESTS_PER_IP_PER_HOUR = Number(process.env.RESET_RL_PER_IP_HOURLY || 5);
 
 function generateSecureToken() {
   return crypto.randomBytes(32).toString('hex');
