@@ -41,7 +41,8 @@ The application features distinct interfaces for public users and administrators
 - **Public Form Submission**:
     - **Letter of Appointment**: Strata management/property info, appointment questions, contact, digital signature, file uploads (common seal, letterhead).
     - **Quote Slip & Declaration**: Building/insurance info, database-driven dropdowns, 8 document uploads, facilities, cover options, disclosure, digital signature, declaration.
-- **Admin Authentication**: Email/password (case-insensitive), bcrypt hashing, role-based access, PostgreSQL-backed sessions, httpOnly cookies, magic link onboarding. Default admin `admin@unlockt.com` / `Admin@123456`.
+- **Admin Authentication**: Email/password (case-insensitive), bcrypt hashing, role-based access, PostgreSQL-backed sessions, httpOnly cookies, magic link onboarding.
+  - Note: In development, you may seed a default admin via environment variables. Do not hardcode or publish real credentials in documentation.
 - **Admin Dashboard**: Overview and statistics for both form types, navigation to submission lists.
 - **Submission Management**: Searchable list views and detailed views for both form types.
 - **Data Export**: Comprehensive XLSX export for all form fields, individual LOA PDF export.
