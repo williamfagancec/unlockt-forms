@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+ const bcrypt = require("bcryptjs");
 const { body, validationResult } = require("express-validator");
 const { db } = require("./db");
 const { adminUsers } = require("../shared/schema");
