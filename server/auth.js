@@ -48,6 +48,12 @@ async function handleLogin(req, res) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
+    // Guard against null/undefined passwordHash to prevent bcrypt.compare from throwing
+    if (!user.passwordHash) {
+      console.log(`[SECURITY] Login attempt for account without password hash: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
     // Always validate password first, regardless of account status
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
@@ -242,6 +248,12 @@ async function handleChangePassword(req, res) {
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    // Guard against null/undefined passwordHash to prevent bcrypt.compare from throwing
+    if (!user.passwordHash) {
+      console.log(`[SECURITY] Change password attempt for account without password hash: ${user.email}`);
+      return res.status(400).json({ error: "No password set for this account. Please use the forgot password flow to set a password." });
     }
 
     const isValidPassword = await bcrypt.compare(
