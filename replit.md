@@ -1,6 +1,7 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-24**: Updated session check endpoint to verify user.isFrozen status. Frozen accounts are now treated the same as inactive accounts - session is destroyed and user is logged out, preventing frozen users from maintaining active sessions.
 - **2025-10-24**: Added defensive guards to prevent bcrypt.compare runtime errors when passwordHash is null/undefined in login and change-password flows. Returns appropriate error messages while maintaining user enumeration protection.
 - **2025-10-24**: Fixed user enumeration vulnerability in login flow by validating credentials before revealing account status. All authentication failures now return generic "Invalid email or password" message while detailed status (inactive, frozen, non-existent) is logged server-side only for auditing.
 - **2025-10-23**: Aligned password reset email tracking settings with onboarding (disabled click/open tracking) and gated URL logging to non-production environments to prevent security leaks.

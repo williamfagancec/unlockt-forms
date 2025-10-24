@@ -173,7 +173,7 @@ async function handleCheckSession(req, res) {
       .from(adminUsers)
       .where(eq(adminUsers.id, req.session.adminUser.id));
 
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || user.isFrozen) {
       req.session.destroy();
       return res.json({ authenticated: false });
     }
