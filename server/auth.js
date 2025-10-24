@@ -43,23 +43,19 @@ async function handleLogin(req, res) {
       .where(eq(adminUsers.email, email));
 
     if (!user) {
+      // Log failed attempt without revealing account existence
+      console.log(`[SECURITY] Login attempt for non-existent account: ${email}`);
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    if (!user.isActive) {
-      return res.status(401).json({ error: "Account is inactive" });
-    }
-
-    if (user.isFrozen) {
-      return res.status(423).json({
-        error:
-          "Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.",
-      });
-    }
-
+    // Always validate password first, regardless of account status
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
+      // Log details server-side for auditing
+      console.log(
+        `[SECURITY] Invalid password for user ${email} (active: ${user.isActive}, frozen: ${user.isFrozen})`,
+      );
       const [updatedUser] = await db
         .update(adminUsers)
         .set({
@@ -86,18 +82,32 @@ async function handleLogin(req, res) {
         console.log(
           `[SECURITY] Account frozen for user ${email} after ${newFailedAttempts} failed login attempts`,
         );
-        return res.status(423).json({
-          error:
-            "Account frozen due to too many failed login attempts. Please contact an administrator to unfreeze your account.",
+        return res.status(401).json({
+          error: "Invalid email or password.",
         });
       }
 
-      const remainingAttempts = 5 - newFailedAttempts;
+      // Don't reveal remaining attempts to prevent user enumeration
+      console.log(
+        `[SECURITY] Failed login attempt ${newFailedAttempts}/5 for user ${email}`,
+      );
       return res.status(401).json({
-        error: `Invalid email or password. ${remainingAttempts} attempt(s) remaining before account is frozen.`,
+        error: "Invalid email or password.",
       });
     }
 
+    // Password is valid - now check account status
+    if (!user.isActive) {
+      console.log(`[SECURITY] Login attempt for inactive account: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    if (user.isFrozen) {
+      console.log(`[SECURITY] Login attempt for frozen account: ${email}`);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // All checks passed - update last login and reset failed attempts
     await db
       .update(adminUsers)
       .set({

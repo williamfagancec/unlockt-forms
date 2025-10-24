@@ -1,6 +1,7 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-24**: Fixed user enumeration vulnerability in login flow by validating credentials before revealing account status. All authentication failures now return generic "Invalid email or password" message while detailed status (inactive, frozen, non-existent) is logged server-side only for auditing.
 - **2025-10-23**: Aligned password reset email tracking settings with onboarding (disabled click/open tracking) and gated URL logging to non-production environments to prevent security leaks.
 - **2025-10-23**: Improved error handling in forgot-password.html to properly display API validation errors from express-validator ({errors:[{msg}]}), with graceful JSON parsing and fallback messages.
 - **2025-10-23**: Added ARIA attributes and focus management to forgot-password.html for improved screen reader accessibility (role, aria-live regions, programmatic focus).
@@ -46,7 +47,7 @@ The application features distinct interfaces for public users and administrators
 - **Admin Dashboard**: Overview and statistics for both form types, navigation to submission lists.
 - **Submission Management**: Searchable list views and detailed views for both form types.
 - **Data Export**: Comprehensive XLSX export for all form fields, individual LOA PDF export.
-- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection (ORM), secure file handling.
+- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection (ORM), secure file handling, user enumeration protection (credentials validated before revealing account status).
 - **Database Schema**:
     - `adminUsers`: Stores admin login details, roles, and status.
     - `formSubmissions`: Letter of Appointment form data.
