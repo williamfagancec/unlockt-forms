@@ -1,6 +1,7 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-24**: Fixed duplicate click handlers on profile dropdown in admin.html that caused toggle to fire twice. Updated outside click handler to properly sync ARIA attributes (aria-expanded, aria-hidden) for improved accessibility.
 - **2025-10-24**: Added validation guard for SENDGRID_FROM_EMAIL in password reset email function. Fails fast with explicit error message if environment variable is not configured, preventing unclear SendGrid errors.
 - **2025-10-24**: Refactored password reset token consumption to use .returning() instead of rowCount for database driver portability. Ensures single-use token semantics work consistently across PostgreSQL drivers (Neon serverless and standard pg).
 - **2025-10-24**: Updated session check endpoint to verify user.isFrozen status. Frozen accounts are now treated the same as inactive accounts - session is destroyed and user is logged out, preventing frozen users from maintaining active sessions.

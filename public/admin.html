@@ -608,6 +608,11 @@
         document.getElementById("logoutBtn").addEventListener("click", logout);
         const trigger = document.getElementById("profileTrigger");
         const menu = document.getElementById("dropdownMenu");
+        
+        if (!trigger || !menu) {
+          return;
+        }
+
         trigger.addEventListener("click", (e) => {
           e.stopPropagation();
           const isOpen = trigger.classList.contains("active");
@@ -617,19 +622,11 @@
           menu.classList.toggle("show");
         });
 
-        if (!trigger || !menu) {
-          return;
-        }
-
-        trigger.addEventListener("click", (e) => {
-          e.stopPropagation();
-          trigger.classList.toggle("active");
-          menu.classList.toggle("show");
-        });
-
         document.addEventListener("click", () => {
           trigger.classList.remove("active");
           menu.classList.remove("show");
+          trigger.setAttribute("aria-expanded", "false");
+          menu.setAttribute("aria-hidden", "true");
         });
 
         menu.addEventListener("click", (e) => {
