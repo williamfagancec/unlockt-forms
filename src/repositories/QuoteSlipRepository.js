@@ -19,10 +19,14 @@ class QuoteSlipRepository {
   }
 
   async findById(id) {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const [submission] = await db
       .select()
       .from(quoteSlipSubmissions)
-      .where(eq(quoteSlipSubmissions.id, id));
+      .where(eq(quoteSlipSubmissions.id, numericId));
     return submission;
   }
 

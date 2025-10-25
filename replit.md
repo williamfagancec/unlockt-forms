@@ -5,6 +5,98 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: Add ID Validation to Repository findById Methods (2025-10-25)
+**Bug Fix:** Added integer validation and conversion for all repository `findById()` methods to safely handle string IDs from route params.
+
+**Problem:**
+Repository `findById()` methods were accepting IDs directly from route params without validation. Since route params are always strings, this could cause:
+- **Type mismatches:** String IDs queried against integer database columns
+- **Invalid queries:** Non-numeric strings like "abc" passed to database
+- **Unexpected behavior:** No validation for malformed IDs
+- **Database errors:** Type coercion issues in queries
+
+**Affected Methods:**
+1. `QuoteSlipRepository.findById()` - Lines 21-27
+2. `FormSubmissionRepository.findById()` - Lines 21-27
+3. `AdminUserRepository.findById()` - Lines 14-20
+
+**Error Scenario:**
+```javascript
+// Before (no validation)
+async findById(id) {
+  const [submission] = await db
+    .select()
+    .from(quoteSlipSubmissions)
+    .where(eq(quoteSlipSubmissions.id, id));  // ❌ id might be "123abc"
+  return submission;
+}
+
+// Route handler
+app.get('/api/quote-slips/:id', async (req, res) => {
+  const submission = await QuoteSlipRepository.findById(req.params.id);
+  // req.params.id is always a string, could be "123" or "abc"
+});
+```
+
+**Solution:**
+Added integer validation to all three `findById()` methods:
+
+```javascript
+// After (safe validation)
+async findById(id) {
+  const numericId = parseInt(id, 10);
+  if (isNaN(numericId)) {
+    return null;  // ✅ Invalid ID returns null (not found)
+  }
+  const [submission] = await db
+    .select()
+    .from(quoteSlipSubmissions)
+    .where(eq(quoteSlipSubmissions.id, numericId));  // ✅ Type-safe query
+  return submission;
+}
+```
+
+**Validation Logic:**
+1. **Convert:** `parseInt(id, 10)` - Parse as base-10 integer
+2. **Check:** `isNaN(numericId)` - Detect invalid numbers
+3. **Return:** `null` for invalid IDs (consistent with "not found")
+4. **Query:** Use validated `numericId` for type-safe database query
+
+**Test Cases:**
+```javascript
+findById("123")     → parseInt("123", 10) = 123     → Query DB with 123
+findById(123)       → parseInt(123, 10) = 123       → Query DB with 123
+findById("abc")     → parseInt("abc", 10) = NaN     → Return null
+findById("123abc")  → parseInt("123abc", 10) = 123  → Query DB with 123
+findById("")        → parseInt("", 10) = NaN        → Return null
+findById(null)      → parseInt(null, 10) = NaN      → Return null
+findById(undefined) → parseInt(undefined, 10) = NaN → Return null
+```
+
+**Security Benefits:**
+- ✅ **Type safety:** Only integers reach the database
+- ✅ **Input validation:** Malformed IDs safely rejected
+- ✅ **Consistent behavior:** Invalid IDs return null (same as "not found")
+- ✅ **No SQL injection:** Integer validation prevents string-based attacks
+- ✅ **Graceful handling:** No crashes or exceptions for bad input
+
+**Files Modified:**
+1. `src/repositories/QuoteSlipRepository.js` - Lines 24-28
+2. `src/repositories/FormSubmissionRepository.js` - Lines 24-28
+3. `src/repositories/AdminUserRepository.js` - Lines 17-21
+
+**Impact:**
+- **Before:** String IDs from routes used directly in queries
+- **After:** All IDs validated and converted to integers
+- **Behavior:** Invalid IDs return null (consistent with "not found")
+
+**Best Practice:**
+Always validate and convert IDs from route params before database queries:
+- Route params are **always strings** (even if they look like numbers)
+- Database ID columns are **integers** (serial type)
+- Use `parseInt(id, 10)` and check for `NaN` before querying
+- Return `null` for invalid IDs to maintain consistent "not found" semantics
+
 ### Bug Fix: Remove Non-Existent lastFailedLogin Column References (2025-10-25)
 **Bug Fix:** Removed all references to the non-existent `lastFailedLogin` column in AdminUserRepository to prevent runtime database errors.
 

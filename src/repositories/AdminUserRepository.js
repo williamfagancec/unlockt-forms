@@ -12,10 +12,14 @@ class AdminUserRepository {
   }
 
   async findById(id) {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const [user] = await db
       .select()
       .from(adminUsers)
-      .where(eq(adminUsers.id, id));
+      .where(eq(adminUsers.id, numericId));
     return user;
   }
 
