@@ -5,6 +5,26 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Unused Dependency Removal (2025-10-25)
+**Maintenance:** Removed unused `csurf` dependency from project to reduce attack surface and dependency bloat.
+
+**Changes:**
+- Removed `csurf` package from `package.json` (was line 29)
+- Ran `npm uninstall csurf` to update `package-lock.json`
+- Removed 11 packages total (csurf + its dependencies)
+- Verified no code references to csurf in the codebase
+
+**Background:**
+- Project uses `csrf-csrf` (modern CSRF protection library)
+- `csurf` is an older, deprecated CSRF library that was never used
+- Likely added during initial setup but replaced with `csrf-csrf`
+
+**Impact:** Reduced node_modules size, eliminated unnecessary dependencies, smaller attack surface, faster npm installs.
+
+**Files Modified:**
+- `package.json` - Removed csurf dependency
+- `package-lock.json` - Automatically updated by npm uninstall
+
 ### Rate Limiter Evasion Fix (2025-10-25)
 **Security fix:** Removed duplicate auth routes mount that allowed attackers to bypass rate limiting by splitting requests across multiple paths.
 
