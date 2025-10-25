@@ -5,6 +5,179 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Security Enhancement: Add CSRF Protection to Auth POST Endpoints (2025-10-25)
+**Security Enhancement:** Added CSRF protection to all POST authentication endpoints to prevent Cross-Site Request Forgery attacks.
+
+**Problem:**
+Authentication POST endpoints were missing CSRF protection, making them vulnerable to CSRF attacks where malicious sites could:
+- **Force logout:** Trigger logout on behalf of logged-in users
+- **Password changes:** Change user passwords without consent
+- **Unauthorized login:** Attempt login with stolen credentials
+- **Account takeover:** Complete onboarding or password reset flows maliciously
+
+**Vulnerable Endpoints (Before Fix):**
+```javascript
+// No CSRF protection
+router.post('/admin/login', authLimiter, loginValidation, validate, handleLogin);
+router.post('/admin/logout', handleLogout);
+router.post('/admin/change-password', adminAuthMiddleware, changePasswordValidation, validate, handleChangePassword);
+router.post('/admin/forgot-password', passwordResetLimiter, PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
+router.post('/admin/reset-password', passwordResetLimiter, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
+router.post('/complete-onboarding', OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
+```
+
+**Attack Scenario (Before Fix):**
+```html
+<!-- Malicious site could trigger logout -->
+<form action="https://victim-site.com/admin/logout" method="POST">
+  <input type="submit" value="Click here for a prize!">
+</form>
+<script>
+  // Auto-submit when user visits malicious page
+  document.forms[0].submit();
+</script>
+```
+
+**Solution:**
+Added `csrfProtection` middleware to all 6 POST endpoints in proper order:
+
+```javascript
+// Import CSRF protection
+const { csrfProtection } = require('../middleware/csrf');
+
+// Protected endpoints (middleware order preserved)
+router.post('/admin/login', authLimiter, csrfProtection, loginValidation, validate, handleLogin);
+router.post('/admin/logout', csrfProtection, handleLogout);
+router.post('/admin/change-password', adminAuthMiddleware, csrfProtection, changePasswordValidation, validate, handleChangePassword);
+router.post('/admin/forgot-password', passwordResetLimiter, csrfProtection, PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
+router.post('/admin/reset-password', passwordResetLimiter, csrfProtection, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
+router.post('/complete-onboarding', csrfProtection, OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
+
+// GET routes unchanged (no CSRF needed for safe methods)
+router.get('/admin/check-session', handleCheckSession);
+router.get('/admin/validate-reset-token', passwordResetLimiter, passwordResetController.validateToken);
+router.get('/verify-onboarding-token', OnboardingController.verifyTokenValidation, validate, onboardingController.verifyToken);
+```
+
+**Middleware Order Preserved:**
+1. **Rate limiter first** (`authLimiter` / `passwordResetLimiter`) - Prevent brute force
+2. **CSRF protection** (`csrfProtection`) - Validate CSRF token
+3. **Auth middleware** (`adminAuthMiddleware`) - Check authentication (where needed)
+4. **Validation rules** (`loginValidation` / validation rules) - Validate input
+5. **Validation processor** (`validate`) - Process validation results
+6. **Handler** (`handleLogin` / controller methods) - Execute business logic
+
+**Protected Endpoints:**
+- ✅ `/admin/login` - Prevents forced login attempts
+- ✅ `/admin/logout` - Prevents forced logout attacks
+- ✅ `/admin/change-password` - Prevents unauthorized password changes
+- ✅ `/admin/forgot-password` - Prevents password reset spam
+- ✅ `/admin/reset-password` - Prevents unauthorized password resets
+- ✅ `/complete-onboarding` - Prevents unauthorized account activation
+
+**How CSRF Protection Works:**
+1. **Token generation:** GET `/api/csrf-token` returns fresh token
+2. **Client storage:** Frontend stores token in memory or state
+3. **Request header:** Client sends token via `x-csrf-token` header
+4. **Server validation:** Middleware validates token matches session
+5. **Request allowed:** Valid token → proceed to handler
+6. **Request blocked:** Invalid/missing token → 403 Forbidden
+
+**Security Benefits:**
+- ✅ **CSRF protection:** All state-changing operations require valid token
+- ✅ **Session binding:** Tokens tied to user session (can't be reused)
+- ✅ **Attack prevention:** Malicious sites can't forge authenticated requests
+- ✅ **Defense-in-depth:** Complements existing rate limiting and validation
+- ✅ **Standard compliance:** Follows OWASP CSRF prevention guidelines
+
+**Files Modified:**
+- `src/routes/auth.routes.js` - Lines 7, 20, 22, 23, 25, 27, 30
+
+**Impact:**
+- **Before:** POST endpoints vulnerable to CSRF attacks
+- **After:** All POST endpoints protected with CSRF validation
+- **Client requirement:** Frontends must include CSRF token in POST requests
+
+**Best Practice:**
+Apply CSRF protection to all endpoints that:
+- Use POST, PUT, PATCH, or DELETE methods
+- Mutate server state (login, logout, data changes)
+- Require authentication or session state
+- Could be exploited by malicious cross-site requests
+
+### Bug Fix: Fix Drizzle SQL Increment Syntax in AdminUserRepository (2025-10-25)
+**Bug Fix:** Replaced invalid `db.raw()` call with proper Drizzle `sql` template literal for incrementing failed login attempts.
+
+**Problem:**
+The `incrementFailedLoginAttempts()` method was using `db.raw()` which is not a valid Drizzle ORM method, causing runtime errors when trying to increment the counter.
+
+**Error:**
+```javascript
+// Before (invalid syntax)
+async incrementFailedLoginAttempts(id) {
+  await db
+    .update(adminUsers)
+    .set({
+      failedLoginAttempts: db.raw('failed_login_attempts + 1'),  // ❌ db.raw() doesn't exist
+      updatedAt: new Date()
+    })
+    .where(eq(adminUsers.id, id));
+}
+
+// Runtime error:
+// TypeError: db.raw is not a function
+```
+
+**Solution:**
+1. **Import sql:** Added `sql` to Drizzle imports
+2. **Use template literal:** Replaced `db.raw()` with `sql` template literal
+
+```javascript
+// Import sql from drizzle-orm
+const { eq, and, ne, gt, sql } = require('drizzle-orm');
+
+// After (valid Drizzle syntax)
+async incrementFailedLoginAttempts(id) {
+  await db
+    .update(adminUsers)
+    .set({
+      failedLoginAttempts: sql`failed_login_attempts + 1`,  // ✅ Valid Drizzle syntax
+      updatedAt: new Date()
+    })
+    .where(eq(adminUsers.id, id));
+}
+```
+
+**Drizzle SQL Template Literals:**
+Drizzle provides the `sql` tagged template literal for raw SQL expressions:
+- **Use case:** Complex SQL expressions not covered by query builder
+- **Syntax:** `` sql`raw SQL here` ``
+- **Type-safe:** Interpolation supported with `${value}` syntax
+- **Safe:** Properly escapes values to prevent SQL injection
+
+**Files Modified:**
+- `src/repositories/AdminUserRepository.js` - Lines 3 (import), 95 (sql template)
+
+**Impact:**
+- **Before:** Runtime error when incrementing failed login attempts
+- **After:** Failed login counter increments correctly
+- **SQL Generated:** `UPDATE admin_users SET failed_login_attempts = failed_login_attempts + 1, updated_at = NOW() WHERE id = ?`
+
+**Best Practice:**
+Use Drizzle's `sql` template literal for raw SQL expressions:
+```javascript
+const { sql } = require('drizzle-orm');
+
+// Increment
+field: sql`${tableName.field} + 1`
+
+// Math operations
+total: sql`${table.price} * ${table.quantity}`
+
+// Functions
+timestamp: sql`NOW()`
+```
+
 ### Bug Fix: Add ID Validation to Repository findById Methods (2025-10-25)
 **Bug Fix:** Added integer validation and conversion for all repository `findById()` methods to safely handle string IDs from route params.
 

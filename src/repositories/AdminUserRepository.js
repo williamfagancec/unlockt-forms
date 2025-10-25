@@ -1,6 +1,6 @@
 const { db } = require('../infrastructure/database');
 const { adminUsers } = require('../../shared/schema');
-const { eq, and, ne, gt } = require('drizzle-orm');
+const { eq, and, ne, gt, sql } = require('drizzle-orm');
 
 class AdminUserRepository {
   async findByEmail(email) {
@@ -89,7 +89,7 @@ class AdminUserRepository {
     await db
       .update(adminUsers)
       .set({
-        failedLoginAttempts: db.raw('failed_login_attempts + 1'),
+        failedLoginAttempts: sql`failed_login_attempts + 1`,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
