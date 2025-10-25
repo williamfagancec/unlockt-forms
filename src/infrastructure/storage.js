@@ -93,9 +93,7 @@ const uploadFileToBlob = async (file) => {
 
   const containerClient = blobServiceClient.getContainerClient(containerName);
   
-  await containerClient.createIfNotExists({
-    access: 'blob'
-  });
+  await containerClient.createIfNotExists();
 
   const blobName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -155,9 +153,7 @@ const uploadSignatureToBlob = async (base64Data, filename) => {
   const sanitizedFilename = sanitizeFilename(filename);
   const containerClient = blobServiceClient.getContainerClient(containerName);
   
-  await containerClient.createIfNotExists({
-    access: 'blob'
-  });
+  await containerClient.createIfNotExists();
 
   const blockBlobClient = containerClient.getBlockBlobClient(sanitizedFilename);
   const buffer = Buffer.from(base64Data, 'base64');

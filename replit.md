@@ -5,6 +5,88 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Security Fix: Private Azure Blob Storage Containers (2025-10-25)
+**Security Fix:** Removed public access from Azure Blob Storage container creation to prevent world-readable files.
+
+**Problem:**
+The Azure Blob Storage container creation in `src/infrastructure/storage.js` was using `access: 'blob'`, which made all uploaded files publicly accessible to anyone with the URL. This created a critical data exposure vulnerability:
+- **Public file access:** All uploaded form documents, PDFs, and signatures were world-readable
+- **No authentication required:** Anyone with a blob URL could access sensitive insurance documents
+- **Data privacy violation:** Confidential client information exposed without access controls
+- **Compliance risk:** Violates GDPR/CCPA requirements for data protection
+
+**Attack Scenario:**
+```javascript
+// With public access (BEFORE)
+await containerClient.createIfNotExists({ access: 'blob' });
+→ Anyone can access: https://storage.azure.com/container/sensitive-doc.pdf
+→ No authentication required
+→ All uploaded documents are public
+```
+
+**Solution:**
+Removed the `access: 'blob'` parameter from both container creation calls, making containers private by default:
+
+**uploadFileToBlob (Lines 99):**
+```javascript
+// Before (PUBLIC - Security Vulnerability)
+await containerClient.createIfNotExists({
+  access: 'blob'  // ❌ Makes all blobs publicly accessible
+});
+
+// After (PRIVATE - Secure)
+await containerClient.createIfNotExists();  // ✅ Private by default
+```
+
+**uploadSignatureToBlob (Line 159):**
+```javascript
+// Before (PUBLIC - Security Vulnerability)
+await containerClient.createIfNotExists({
+  access: 'blob'  // ❌ Signatures publicly accessible
+});
+
+// After (PRIVATE - Secure)
+await containerClient.createIfNotExists();  // ✅ Private by default
+```
+
+**Access Control After Fix:**
+```javascript
+// Private container (default Azure behavior)
+await containerClient.createIfNotExists();
+
+// Blobs are NOT publicly accessible
+// Access requires one of:
+// 1. Azure AD authentication
+// 2. SAS (Shared Access Signature) tokens
+// 3. Account keys
+// 4. Managed identities
+```
+
+**Security Benefits:**
+- ✅ **Private by default:** Containers created with no public access
+- ✅ **Authentication required:** Access requires valid credentials or SAS tokens
+- ✅ **Data protection:** Uploaded documents not world-readable
+- ✅ **Compliance:** Aligns with GDPR/CCPA data protection requirements
+- ✅ **Principle of least privilege:** Access granted only when explicitly authorized
+
+**Impact:**
+- **Before:** All uploaded files were publicly accessible via direct URL
+- **After:** Files require authentication or SAS tokens for access
+- **Breaking change:** Existing applications accessing blobs via direct URLs will need to implement proper authentication
+
+**Files Modified:**
+- `src/infrastructure/storage.js` - Line 99 (uploadFileToBlob - removed public access)
+- `src/infrastructure/storage.js` - Line 159 (uploadSignatureToBlob - removed public access)
+
+**Future Considerations:**
+When blob access is needed for authorized users:
+1. Generate SAS tokens with time-limited access
+2. Use Azure AD authentication for internal applications
+3. Implement signed URLs with expiration times
+4. Use managed identities for Azure-to-Azure access
+
+**Note:** This change makes containers private. If your application needs to serve files to authenticated users, you'll need to implement SAS token generation or use Azure AD authentication to grant access.
+
 ### Bug Fix: Prevent Double Response in Error Handlers (2025-10-25)
 **Bug Fix:** Added headersSent guards to prevent ERR_HTTP_HEADERS_SENT errors in error handlers.
 
