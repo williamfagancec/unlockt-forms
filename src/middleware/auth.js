@@ -1,12 +1,19 @@
- const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const { body, validationResult } = require("express-validator");
-const { db } = require("./db");
-const { adminUsers } = require("../shared/schema");
+const { db } = require("../infrastructure/database");
+const { adminUsers } = require("../../shared/schema");
 const { eq, sql } = require("drizzle-orm");
+const { success, error, unauthorized, notFound } = require("../utils/apiResponse");
+
+let logger = console;
+
+function setLogger(loggerInstance) {
+  logger = loggerInstance;
+}
 
 const authMiddleware = (req, res, next) => {
   if (!req.session || !req.session.adminUser) {
-    return res.status(401).json({ error: "Unauthorized. Please log in." });
+    return unauthorized(res, "Unauthorized. Please log in.");
   }
   next();
 };
@@ -30,7 +37,7 @@ const loginValidation = [
 async function handleLogin(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return error(res, 'Validation failed', 400, errors.array());
   }
 
   try {
@@ -44,14 +51,14 @@ async function handleLogin(req, res) {
 
     if (!user) {
       // Log failed attempt without revealing account existence
-      console.log(`[SECURITY] Login attempt for non-existent account: ${email}`);
-      return res.status(401).json({ error: "Invalid email or password" });
+      (req.log || logger).warn({ email }, 'Login attempt for non-existent account');
+      return unauthorized(res, "Invalid email or password");
     }
 
     // Guard against null/undefined passwordHash to prevent bcrypt.compare from throwing
     if (!user.passwordHash) {
-      console.log(`[SECURITY] Login attempt for account without password hash: ${email}`);
-      return res.status(401).json({ error: "Invalid email or password" });
+      (req.log || logger).warn({ email }, 'Login attempt for account without password hash');
+      return unauthorized(res, "Invalid email or password");
     }
 
     // Always validate password first, regardless of account status
@@ -59,13 +66,15 @@ async function handleLogin(req, res) {
 
     if (!isValidPassword) {
       // Log details server-side for auditing
-      console.log(
-        `[SECURITY] Invalid password for user ${email} (active: ${user.isActive}, frozen: ${user.isFrozen})`,
-      );
+      (req.log || logger).warn({
+        email,
+        isActive: user.isActive,
+        isFrozen: user.isFrozen
+      }, 'Invalid password for user');
       const [updatedUser] = await db
         .update(adminUsers)
         .set({
-          failedLoginAttempts: sql`COALESCE(${adminUsers.failedLoginAttempts}, 0) + 1`,
+          failedLoginAttempts: sql`${adminUsers.failedLoginAttempts} + 1`,
         })
         .where(eq(adminUsers.id, user.id))
         .returning({
@@ -85,32 +94,31 @@ async function handleLogin(req, res) {
           })
           .where(eq(adminUsers.id, user.id));
 
-        console.log(
-          `[SECURITY] Account frozen for user ${email} after ${newFailedAttempts} failed login attempts`,
-        );
-        return res.status(401).json({
-          error: "Invalid email or password.",
-        });
+        (req.log || logger).warn({
+          email,
+          failedAttempts: newFailedAttempts
+        }, 'Account frozen due to failed login attempts');
+        return unauthorized(res, "Invalid email or password.");
       }
 
       // Don't reveal remaining attempts to prevent user enumeration
-      console.log(
-        `[SECURITY] Failed login attempt ${newFailedAttempts}/5 for user ${email}`,
-      );
-      return res.status(401).json({
-        error: "Invalid email or password.",
-      });
+      (req.log || logger).warn({
+        email,
+        failedAttempts: newFailedAttempts,
+        maxAttempts: 5
+      }, 'Failed login attempt');
+      return unauthorized(res, "Invalid email or password.");
     }
 
     // Password is valid - now check account status
     if (!user.isActive) {
-      console.log(`[SECURITY] Login attempt for inactive account: ${email}`);
-      return res.status(401).json({ error: "Invalid email or password" });
+      (req.log || logger).warn({ email }, 'Login attempt for inactive account');
+      return unauthorized(res, "Invalid email or password");
     }
 
     if (user.isFrozen) {
-      console.log(`[SECURITY] Login attempt for frozen account: ${email}`);
-      return res.status(401).json({ error: "Invalid email or password" });
+      (req.log || logger).warn({ email }, 'Login attempt for frozen account');
+      return unauthorized(res, "Invalid email or password");
     }
 
     // All checks passed - update last login and reset failed attempts
@@ -126,8 +134,8 @@ async function handleLogin(req, res) {
 
     req.session.regenerate((err) => {
       if (err) {
-        console.error("Session regeneration error:", err);
-        return res.status(500).json({ error: "Failed to create session" });
+        (req.log || logger).error({ err }, 'Session regeneration error');
+        return error(res, "Failed to create session", 500);
       }
 
       req.session.adminUser = {
@@ -140,31 +148,30 @@ async function handleLogin(req, res) {
 
       req.session.save((err) => {
         if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).json({ error: "Failed to create session" });
+          (req.log || logger).error({ err }, 'Session save error');
+          return error(res, "Failed to create session", 500);
         }
 
-        res.json({
-          success: true,
+        return success(res, {
           user: {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
             role: user.role,
-          },
-        });
+          }
+        }, 'Login successful');
       });
     });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ error: "Login failed" });
+  } catch (err) {
+    (req.log || logger).error({ err }, 'Login error');
+    return error(res, "Login failed", 500);
   }
 }
 
 async function handleCheckSession(req, res) {
   if (!req.session || !req.session.adminUser) {
-    return res.json({ authenticated: false });
+    return success(res, { authenticated: false });
   }
 
   try {
@@ -175,10 +182,10 @@ async function handleCheckSession(req, res) {
 
     if (!user || !user.isActive || user.isFrozen) {
       req.session.destroy();
-      return res.json({ authenticated: false });
+      return success(res, { authenticated: false });
     }
 
-    res.json({
+    return success(res, {
       authenticated: true,
       user: {
         id: user.id,
@@ -186,21 +193,21 @@ async function handleCheckSession(req, res) {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
-      },
+      }
     });
-  } catch (error) {
-    console.error("Session check error:", error);
-    res.json({ authenticated: false });
+  } catch (err) {
+    (req.log || logger).error({ err }, 'Session check error');
+    return success(res, { authenticated: false });
   }
 }
 
 function handleLogout(req, res) {
   req.session.destroy((err) => {
     if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({ error: "Logout failed" });
+      (req.log || logger).error({ err }, 'Logout error');
+      return error(res, "Logout failed", 500);
     }
-    res.json({ success: true });
+    return success(res, null, 'Logged out successfully');
   });
 }
 
@@ -230,11 +237,11 @@ const changePasswordValidation = [
 async function handleChangePassword(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return error(res, 'Validation failed', 400, errors.array());
   }
 
   if (!req.session || !req.session.adminUser) {
-    return res.status(401).json({ error: "Unauthorized. Please log in." });
+    return unauthorized(res, "Unauthorized. Please log in.");
   }
 
   try {
@@ -247,13 +254,13 @@ async function handleChangePassword(req, res) {
       .where(eq(adminUsers.id, userId));
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return notFound(res, "User");
     }
 
     // Guard against null/undefined passwordHash to prevent bcrypt.compare from throwing
     if (!user.passwordHash) {
-      console.log(`[SECURITY] Change password attempt for account without password hash: ${user.email}`);
-      return res.status(400).json({ error: "No password set for this account. Please use the forgot password flow to set a password." });
+      (req.log || logger).warn({ email: user.email }, 'Change password attempt for account without password hash');
+      return error(res, "No password set for this account. Please use the forgot password flow to set a password.", 400);
     }
 
     const isValidPassword = await bcrypt.compare(
@@ -262,7 +269,7 @@ async function handleChangePassword(req, res) {
     );
 
     if (!isValidPassword) {
-      return res.status(401).json({ error: "Current password is incorrect" });
+      return unauthorized(res, "Current password is incorrect");
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
@@ -276,18 +283,17 @@ async function handleChangePassword(req, res) {
       })
       .where(eq(adminUsers.id, userId));
 
-    res.json({
-      success: true,
-      message: "Password changed successfully",
-    });
-  } catch (error) {
-    console.error("Change password error:", error);
-    res.status(500).json({ error: "Failed to change password" });
+    return success(res, null, "Password changed successfully");
+  } catch (err) {
+    (req.log || logger).error({ err }, 'Change password error');
+    return error(res, "Failed to change password", 500);
   }
 }
 
 module.exports = {
+  setLogger,
   authMiddleware,
+  adminAuthMiddleware: authMiddleware,
   adminPageMiddleware,
   loginValidation,
   handleLogin,

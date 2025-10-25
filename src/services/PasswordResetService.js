@@ -1,6 +1,6 @@
 const crypto = require('crypto');
-const { db } = require('./db');
-const { adminUsers, adminPasswordResetTokens } = require('../shared/schema');
+const { db } = require('../infrastructure/database');
+const { adminUsers, adminPasswordResetTokens } = require('../../shared/schema');
 const { eq, and, gt, isNull, sql } = require('drizzle-orm');
 const sgMail = require('@sendgrid/mail');
 

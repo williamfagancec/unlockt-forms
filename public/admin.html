@@ -522,13 +522,8 @@
                 </div>
               </div>
               <div class="form-card-actions">
-                <a href="/admin/letter-of-appointment" class="btn-primary"
-                  >View Submissions</a
-                >
-                <a
-                  href="/letter-of-appointment"
-                  class="btn-secondary"
-                  target="_blank"
+                <a href="/admin/letter-of-appointment" class="btn-primary">View Submissions</a>
+                <a href="/letter-of-appointment" class="btn-secondary" target="_blank" rel=noopener"
                   >View Form</a
                 >
               </div>
@@ -556,11 +551,9 @@
               </div>
               <div class="form-card-actions">
                 <a href="/admin/quote-slip" class="btn-primary"
-                  >View Submissions</a
-                >
-                <a href="/quote-slip" class="btn-secondary" target="_blank"
-                  >View Form</a
-                >
+                  >View Submissions</a>
+                <a href="/quote-slip" class="btn-secondary" target="_blank" rel="noopener"
+                  >View Form</a>
               </div>
             </div>
           </div>
@@ -643,8 +636,9 @@
             fetch("/api/admin/quote-slip/stats", { credentials: "include" }),
           ]);
 
-          const loaStats = await loaResponse.json();
-          const qsStats = await qsResponse.json();
+         if (!loaResponse.ok || !qsResponse.ok) throw new Error("Stats API failed");
+          const loaStats = await loaResponse.json().catch(() => ({}));
+          const qsStats = await qsResponse.json().catch(() => ({}));
 
           document.getElementById("loaTotal").textContent = loaStats.total || 0;
           document.getElementById("loaToday").textContent = loaStats.today || 0;
