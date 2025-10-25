@@ -5,6 +5,22 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### PII Logging Removal (2025-10-25)
+**Privacy hardening:** Removed personally identifiable information (PII) from admin seeding logs to comply with privacy best practices.
+
+**Changes:**
+- Removed email address from admin seeding log statements in `index.js`
+- Changed `logger.info({ email: defaultEmail }, '...')` to plain message for existing admin check
+- Changed admin creation log to include `{ userId: newUser.id }` instead of `{ email: defaultEmail }`
+- Now logs only non-PII identifiers (user ID) for audit purposes
+
+**Impact:** Admin email addresses are no longer exposed in application logs, reducing PII exposure risk and improving compliance with privacy regulations (GDPR, etc.).
+
+**Files Modified:**
+- `index.js` - Updated admin seeding logging statements (lines 191, 204)
+
+**Note:** Similar PII logging patterns were identified in other service files (OnboardingService, UserManagementService) that may benefit from the same treatment.
+
 ### Secure File Downloads Implementation (2025-10-25)
 **Security hardening:** Removed public exposure of uploads directory and implemented authenticated, path-traversal-protected file downloads.
 

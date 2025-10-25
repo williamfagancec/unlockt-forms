@@ -185,12 +185,12 @@ async function initializeDefaultAdmin() {
     const existingUser = await adminUserRepository.findByEmail(defaultEmail);
     
     if (existingUser) {
-      logger.info({ email: defaultEmail }, 'Default admin already exists (skipping creation to preserve existing credentials)');
+      logger.info('Default admin already exists (skipping creation to preserve existing credentials)');
       return;
     }
     
     const passwordHash = await bcrypt.hash(defaultPassword, 12);
-    await adminUserRepository.create({
+    const newUser = await adminUserRepository.create({
       firstName: defaultFirstName,
       lastName: defaultLastName,
       email: defaultEmail,
@@ -198,7 +198,7 @@ async function initializeDefaultAdmin() {
       role: 'administrator',
       isActive: true
     });
-    logger.info({ email: defaultEmail }, 'Default admin created');
+    logger.info({ userId: newUser.id }, 'Default admin created');
   } catch (error) {
     logger.error({ err: error }, 'Error initializing admin');
   }
