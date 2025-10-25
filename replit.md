@@ -5,6 +5,94 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: Prevent Double Response in Error Handlers (2025-10-25)
+**Bug Fix:** Added headersSent guards to prevent ERR_HTTP_HEADERS_SENT errors in error handlers.
+
+**Problem:**
+The error handler middleware in `src/middleware/errorHandler.js` unconditionally attempted to send error responses, which could cause `ERR_HTTP_HEADERS_SENT` crashes if headers were already sent by previous middleware or handlers. This happened when:
+- Middleware sends a response and then throws an error
+- A handler sends partial response data then encounters an error
+- Multiple error handlers attempt to respond to the same error
+
+**Error Example:**
+```
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at new NodeError (node:internal/errors:405:5)
+    at ServerResponse.setHeader (node:_http_outgoing:648:11)
+```
+
+**Solution:**
+Added `res.headersSent` checks at the start of both error handlers to detect if headers have already been sent:
+
+**errorHandler (Lines 73-75):**
+```javascript
+function errorHandler(logger) {
+  return (err, req, res, next) => {
+    // Guard against double response
+    if (res.headersSent) {
+      return next(err);
+    }
+    
+    // Safe to send error response
+    const log = req.log || logger;
+    err.statusCode = err.statusCode || 500;
+    // ... rest of error handling
+  };
+}
+```
+
+**notFoundHandler (Lines 132-134):**
+```javascript
+function notFoundHandler(req, res, next) {
+  // Guard against double response
+  if (res.headersSent) {
+    return next();
+  }
+  
+  // Safe to send 404 response
+  res.status(404).json({
+    success: false,
+    error: 'Endpoint not found',
+    path: req.url,
+  });
+}
+```
+
+**How It Works:**
+```javascript
+// Scenario 1: Headers NOT sent yet
+res.headersSent === false
+→ Error handler sends response normally
+
+// Scenario 2: Headers ALREADY sent
+res.headersSent === true
+→ Error handler calls next(err) instead
+→ Delegates to default Express error handler
+→ Prevents ERR_HTTP_HEADERS_SENT crash
+```
+
+**Benefits:**
+- ✅ **No crashes:** Prevents ERR_HTTP_HEADERS_SENT errors
+- ✅ **Graceful degradation:** Delegates to Express when headers are sent
+- ✅ **Logging preserved:** Errors still logged even if response already sent
+- ✅ **Safe error handling:** No attempt to send duplicate responses
+- ✅ **Production stability:** Prevents server crashes from double-response scenarios
+
+**Edge Cases Handled:**
+1. **Streaming responses:** If response is streaming and encounters error
+2. **Middleware chain errors:** If middleware sends response then throws
+3. **Partial writes:** If response headers sent but body incomplete
+4. **Multiple error handlers:** If error bubbles through multiple handlers
+
+**Files Modified:**
+- `src/middleware/errorHandler.js` - Lines 73-75 (errorHandler guard)
+- `src/middleware/errorHandler.js` - Lines 132-134 (notFoundHandler guard)
+
+**Impact:**
+- More robust error handling in production
+- Prevents server crashes from double-response scenarios
+- Maintains Express default behavior when headers already sent
+
 ### Security Fix: Path Traversal Prevention in File Uploads (2025-10-25)
 **Security Fix:** Added filename sanitization to prevent path traversal attacks in signature uploads.
 

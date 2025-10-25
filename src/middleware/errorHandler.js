@@ -67,6 +67,10 @@ function redactSensitiveData(obj) {
 
 function errorHandler(logger) {
   return (err, req, res, next) => {
+    if (res.headersSent) {
+      return next(err);
+    }
+    
     const log = req.log || logger;
     
     err.statusCode = err.statusCode || 500;
@@ -121,7 +125,11 @@ function asyncHandler(fn) {
   };
 }
 
-function notFoundHandler(req, res) {
+function notFoundHandler(req, res, next) {
+  if (res.headersSent) {
+    return next();
+  }
+  
   res.status(404).json({
     success: false,
     error: 'Endpoint not found',
