@@ -6,6 +6,16 @@ const configSchema = z.object({
   
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   
+  BASE_URL: z.string().url().optional().refine(
+    (val) => {
+      const isProduction = process.env.NODE_ENV === 'production' || 
+                          process.env.WEBSITE_INSTANCE_ID || 
+                          process.env.REPLIT_DEPLOYMENT;
+      return !isProduction || val;
+    },
+    { message: 'BASE_URL is required in production (e.g., https://yourdomain.com)' }
+  ),
+  
   SESSION_SECRET: z.string().min(32).optional().refine(
     (val) => {
       const isProduction = process.env.NODE_ENV === 'production' || 
@@ -48,6 +58,7 @@ function loadConfig() {
       NODE_ENV: process.env.NODE_ENV,
       PORT: process.env.PORT,
       DATABASE_URL: process.env.DATABASE_URL,
+      BASE_URL: process.env.BASE_URL,
       SESSION_SECRET: process.env.SESSION_SECRET,
       AZURE_CLIENT_ID: process.env.AZURE_CLIENT_ID,
       AZURE_TENANT_ID: process.env.AZURE_TENANT_ID,
@@ -77,6 +88,14 @@ function loadConfig() {
     config.isAzureProduction = config.isProduction && !!config.AZURE_STORAGE_CONNECTION_STRING;
     
     config.sendgridConfigured = !!(config.SENDGRID_API_KEY && config.SENDGRID_FROM_EMAIL);
+    
+    // Set default BASE_URL for development if not provided
+    if (!config.BASE_URL) {
+      config.BASE_URL = `http://localhost:${config.PORT}`;
+    }
+    
+    // Remove trailing slash from BASE_URL for consistent URL joining
+    config.BASE_URL = config.BASE_URL.replace(/\/$/, '');
 
     return config;
   } catch (error) {

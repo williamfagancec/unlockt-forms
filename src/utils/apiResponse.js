@@ -75,8 +75,8 @@ const conflict = (res, message = 'Resource conflict') => {
   return error(res, message, HTTP_STATUS.CONFLICT);
 };
 
-const serviceUnavailable = (res, message = 'Service temporarily unavailable') => {
-  return error(res, message, HTTP_STATUS.SERVICE_UNAVAILABLE);
+const serviceUnavailable = (res, message = 'Service temporarily unavailable', details = null) => {
+  return error(res, message, HTTP_STATUS.SERVICE_UNAVAILABLE, details);
 };
 
 module.exports = {

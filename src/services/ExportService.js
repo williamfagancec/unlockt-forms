@@ -41,7 +41,8 @@ class ExportService {
          .text('Unlockt Insurance Solutions', 50, 75, { align: 'left' });
       
       doc.fontSize(8)
-         .fillColor('rgba(255, 255, 255, 0.9)')
+         .fillColor('white')
+         .fillOpacity(0.9)
          .text('ABN 75 684 319 784 | ASIC AR No. 1316562', 50, 90, { align: 'left', width: 500 });
       
       let y = 150;

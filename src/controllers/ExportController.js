@@ -1,6 +1,6 @@
 const ExportService = require('../services/ExportService');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { notFound } = require('../utils/apiResponse');
+const { notFound, error } = require('../utils/apiResponse');
 
 class ExportController {
   constructor(logger) {
@@ -9,7 +9,12 @@ class ExportController {
   }
 
   exportLetterOfAppointmentPDF = asyncHandler(async (req, res) => {
-    const submissionId = parseInt(req.params.id);
+    const submissionId = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(submissionId) || submissionId <= 0) {
+      return error(res, 'Invalid submission ID', 400);
+    }
+    
     const result = await this.exportService.generateLetterOfAppointmentPDF(submissionId, res);
     
     if (!result) {

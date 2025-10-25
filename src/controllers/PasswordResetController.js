@@ -4,6 +4,7 @@ const adminUserRepository = require('../repositories/AdminUserRepository');
 const bcrypt = require('bcryptjs');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { success, error, notFound } = require('../utils/apiResponse');
+const { getConfig } = require('../utils/config');
 
 class PasswordResetController {
   constructor(logger) {
@@ -19,12 +20,13 @@ class PasswordResetController {
       return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
     }
 
+    const config = getConfig();
     const resetToken = await createResetToken(email);
-    const resetUrl = `${req.protocol}://${req.get('host')}/admin/reset-password?token=${resetToken}`;
+    const resetUrl = `${config.BASE_URL}/admin/reset-password?token=${resetToken}`;
     
     await sendResetEmail(email, resetUrl, false);
 
-    (req.log || this.logger).info({ email }, 'Password reset email sent');
+    (req.log || this.logger).info({ userId: user.id }, 'Password reset email sent');
 
     return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
   });
@@ -63,7 +65,7 @@ class PasswordResetController {
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await adminUserRepository.update(user.id, { passwordHash });
 
-    (req.log || this.logger).info({ userId: user.id, email: user.email }, 'Password reset completed');
+    (req.log || this.logger).info({ userId: user.id }, 'Password reset completed');
 
     return success(res, null, 'Password has been reset successfully');
   });

@@ -20,14 +20,22 @@ function errorResponse(message, errors = null) {
 }
 
 function paginatedResponse(data, pagination) {
+  const total = Number(pagination.total) || 0;
+  const limit = Number(pagination.limit) || 0;
+  const page = Number(pagination.page) || 1;
+  
+  const totalPages = (Number.isFinite(limit) && limit > 0) 
+    ? Math.ceil(total / limit) 
+    : 0;
+  
   return {
     success: true,
     data,
     pagination: {
-      page: pagination.page,
-      limit: pagination.limit,
-      total: pagination.total,
-      totalPages: Math.ceil(pagination.total / pagination.limit),
+      page,
+      limit,
+      total,
+      totalPages,
     },
   };
 }

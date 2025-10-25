@@ -1,4 +1,4 @@
-const { body } = require('express-validator');
+const { body, query } = require('express-validator');
 const OnboardingService = require('../services/OnboardingService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { success } = require('../utils/apiResponse');
@@ -8,6 +8,13 @@ class OnboardingController {
     this.onboardingService = new OnboardingService(logger);
     this.logger = logger;
   }
+
+  static verifyTokenValidation = [
+    query('token')
+      .trim()
+      .notEmpty()
+      .withMessage('Token is required')
+  ];
 
   verifyToken = asyncHandler(async (req, res) => {
     const { token } = req.query;

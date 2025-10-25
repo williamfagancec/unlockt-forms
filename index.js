@@ -7,6 +7,7 @@ const { createLogger, addCorrelationId, createRequestLogger } = require('./src/u
 const logger = createLogger(config);
 
 const express = require('express');
+const crypto = require('crypto');
 const helmet = require('helmet');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
@@ -26,22 +27,28 @@ const createFormsRoutes = require('./src/routes/forms.routes');
 const createReferenceRoutes = require('./src/routes/reference.routes');
 const createPagesRoutes = require('./src/routes/pages.routes');
 const createHealthRoutes = require('./src/routes/health.routes');
+const createDownloadsRoutes = require('./src/routes/downloads.routes');
 
 const app = express();
 const PORT = config.PORT;
+
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
+  next();
+});
 
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      styleSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`, "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:"],
       connectSrc: ["'self'"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
-      upgradeInsecureRequests: config.IS_PRODUCTION ? [] : null,
+      upgradeInsecureRequests: config.isProduction ? [] : null,
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -54,7 +61,6 @@ app.use(helmet({
     action: 'deny',
   },
   noSniff: true,
-  xssFilter: true,
   referrerPolicy: {
     policy: 'strict-origin-when-cross-origin',
   },
@@ -80,7 +86,6 @@ app.use(compression({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', true);
 
@@ -180,12 +185,12 @@ async function initializeDefaultAdmin() {
     const existingUser = await adminUserRepository.findByEmail(defaultEmail);
     
     if (existingUser) {
-      logger.info({ email: defaultEmail }, 'Default admin already exists (skipping creation to preserve existing credentials)');
+      logger.info('Default admin already exists (skipping creation to preserve existing credentials)');
       return;
     }
     
     const passwordHash = await bcrypt.hash(defaultPassword, 12);
-    await adminUserRepository.create({
+    const newUser = await adminUserRepository.create({
       firstName: defaultFirstName,
       lastName: defaultLastName,
       email: defaultEmail,
@@ -193,7 +198,7 @@ async function initializeDefaultAdmin() {
       role: 'administrator',
       isActive: true
     });
-    logger.info({ email: defaultEmail }, 'Default admin created');
+    logger.info({ userId: newUser.id }, 'Default admin created');
   } catch (error) {
     logger.error({ err: error }, 'Error initializing admin');
   }
@@ -205,13 +210,13 @@ async function initializeDropdownData() {
 }
 
 app.use('/health', createHealthRoutes(logger));
+app.use('/', createDownloadsRoutes(logger));
 app.use('/', createPagesRoutes());
 app.use('/api', createReferenceRoutes(logger));
 app.use('/api', createFormsRoutes(logger));
 app.use('/api', createSubmissionsRoutes(logger));
 app.use('/api/admin', createAdminRoutes(logger));
 app.use('/api', createAuthRoutes(logger, cca));
-app.use('/auth', createAuthRoutes(logger, cca));
 
 app.use(notFoundHandler);
 app.use(errorHandler(logger));
@@ -241,8 +246,8 @@ async function startServer() {
   return server;
 }
 
-async function gracefulShutdown(signal) {
-  logger.info({ signal }, 'Graceful shutdown initiated');
+async function gracefulShutdown(signal, exitCode = 1) {
+  logger.info({ signal, exitCode }, 'Graceful shutdown initiated');
 
   if (server) {
     server.close(async () => {
@@ -253,32 +258,33 @@ async function gracefulShutdown(signal) {
         logger.info('Database pool closed');
       } catch (error) {
         logger.error({ err: error }, 'Error closing database pool');
+        exitCode = 1;
       }
 
-      logger.info('Shutdown complete');
-      process.exit(0);
+      logger.info({ exitCode }, 'Shutdown complete');
+      process.exit(exitCode);
     });
 
     setTimeout(() => {
-      logger.error('Forced shutdown after timeout');
-      process.exit(1);
+      logger.error({ exitCode }, 'Forced shutdown after timeout');
+      process.exit(exitCode);
     }, 30000);
   } else {
-    process.exit(0);
+    process.exit(exitCode);
   }
 }
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM', 0));
+process.on('SIGINT', () => gracefulShutdown('SIGINT', 0));
 
 process.on('uncaughtException', (error) => {
   logger.error({ err: error }, 'Uncaught exception');
-  gracefulShutdown('uncaughtException');
+  gracefulShutdown('uncaughtException', 1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error({ reason, promise }, 'Unhandled promise rejection');
-  gracefulShutdown('unhandledRejection');
+  gracefulShutdown('unhandledRejection', 1);
 });
 
 startServer().catch((error) => {
