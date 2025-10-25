@@ -5,6 +5,55 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Enhancement: Service Unavailable Details in API Responses (2025-10-25)
+**Enhancement:** Extended `serviceUnavailable` helper to accept and forward optional details to clients.
+
+**Problem:**
+The `serviceUnavailable` helper in `src/utils/apiResponse.js` only accepted `(res, message)` parameters, but the `HealthController` was already attempting to pass a third `details` parameter with health check data. This parameter was being silently ignored, preventing clients from receiving diagnostic information about which services were failing.
+
+**Solution:**
+Added an optional `details` parameter to `serviceUnavailable` and forwarded it to the underlying `error` function:
+```javascript
+// Before (Details ignored)
+const serviceUnavailable = (res, message = 'Service temporarily unavailable') => {
+  return error(res, message, HTTP_STATUS.SERVICE_UNAVAILABLE);
+};
+
+// After (Details included in response)
+const serviceUnavailable = (res, message = 'Service temporarily unavailable', details = null) => {
+  return error(res, message, HTTP_STATUS.SERVICE_UNAVAILABLE, details);
+};
+```
+
+**Example Response:**
+```json
+{
+  "success": false,
+  "error": "Service not ready",
+  "details": {
+    "checks": {
+      "server": "ok",
+      "database": "error",
+      "timestamp": "2025-10-25T10:00:00.000Z"
+    }
+  }
+}
+```
+
+**Impact:**
+- ✅ **Better diagnostics:** Clients receive detailed health check information
+- ✅ **No breaking changes:** Existing calls without details still work
+- ✅ **Backward compatible:** Details parameter is optional (defaults to null)
+- ✅ **No caller changes needed:** HealthController already passing details
+
+**Files Modified:**
+- `src/utils/apiResponse.js` - Line 81
+
+**Benefits for Operations:**
+- Health monitoring tools can now see which specific service is failing
+- Debugging is easier with detailed service status in error responses
+- Load balancers can make better decisions based on detailed health data
+
 ### Bug Fix: User Activation Logic in Unfreeze and Activate (2025-10-25)
 **Fix:** Added missing user activation call when unfreezing and activating accounts.
 
