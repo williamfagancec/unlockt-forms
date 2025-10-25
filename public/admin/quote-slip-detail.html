@@ -510,7 +510,7 @@
       document.getElementById('currentBuildingSumInsured').textContent = formatCurrency(s.currentBuildingSumInsured);
       document.getElementById('requestedSumInsured').textContent = formatCurrency(s.requestedSumInsured);
       document.getElementById('currentStandardExcess').textContent = formatCurrency(s.currentStandardExcess);
-      document.getElementById('currentCocFile').innerHTML = getFileHTML(s.currentCocFile);
+      setFileElement('currentCocFile', s.currentCocFile);
 
       document.getElementById('roofType').textContent = s.roofType || 'N/A';
       document.getElementById('externalWallType').textContent = s.externalWallType || 'N/A';
@@ -548,16 +548,7 @@
       document.getElementById('declarationPosition').textContent = s.declarationPosition || 'N/A';
       document.getElementById('confirmDisclosures').textContent = s.confirmDisclosures || 'N/A';
       
-      if (s.signatureFile) {
-        const signatureURL = getFileURL(s.signatureFile);
-        document.getElementById('signatureFile').innerHTML = `
-          <div style="margin-top: 10px;">
-            <img src="${signatureURL}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
-          </div>
-        `;
-      } else {
-        document.getElementById('signatureFile').innerHTML = '<span style="color: #999;">No signature uploaded</span>';
-      }
+      setSignatureElement('signatureFile', s.signatureFile);
     }
 
     function displayFacilities(s) {
@@ -599,10 +590,28 @@
       documents.forEach(doc => {
         const div = document.createElement('div');
         div.className = 'field-group';
-        div.innerHTML = `
-          <span class="field-label">${doc.label}</span>
-          <div class="field-value">${getFileHTML(doc.file)}</div>
-        `;
+        
+        const label = document.createElement('span');
+        label.className = 'field-label';
+        label.textContent = doc.label;
+        
+        const valueDiv = document.createElement('div');
+        valueDiv.className = 'field-value';
+        
+        if (doc.file) {
+          const url = getFileURL(doc.file);
+          const link = document.createElement('a');
+          link.href = url;
+          link.className = 'file-link';
+          link.target = '_blank';
+          link.textContent = 'View File';
+          valueDiv.appendChild(link);
+        } else {
+          valueDiv.textContent = 'N/A';
+        }
+        
+        div.appendChild(label);
+        div.appendChild(valueDiv);
         docsDiv.appendChild(div);
       });
     }
@@ -648,10 +657,45 @@
       return `/uploads/${filename}`;
     }
 
-    function getFileHTML(filename) {
-      if (!filename) return 'N/A';
-      const url = getFileURL(filename);
-      return `<a href="${url}" class="file-link" target="_blank">View File</a>`;
+    function setFileElement(elementId, filename) {
+      const element = document.getElementById(elementId);
+      element.textContent = '';
+      
+      if (filename) {
+        const url = getFileURL(filename);
+        const link = document.createElement('a');
+        link.href = url;
+        link.className = 'file-link';
+        link.target = '_blank';
+        link.textContent = 'View File';
+        element.appendChild(link);
+      } else {
+        element.textContent = 'N/A';
+      }
+    }
+
+    function setSignatureElement(elementId, signatureFile) {
+      const element = document.getElementById(elementId);
+      element.textContent = '';
+      
+      if (signatureFile) {
+        const signatureURL = getFileURL(signatureFile);
+        const container = document.createElement('div');
+        container.style.marginTop = '10px';
+        
+        const img = document.createElement('img');
+        img.src = signatureURL;
+        img.alt = 'Signature';
+        img.style.cssText = 'max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;';
+        
+        container.appendChild(img);
+        element.appendChild(container);
+      } else {
+        const span = document.createElement('span');
+        span.style.color = '#999';
+        span.textContent = 'No signature uploaded';
+        element.appendChild(span);
+      }
     }
 
     async function init() {

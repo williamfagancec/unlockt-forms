@@ -742,9 +742,16 @@
 
     function showAlert(message, type) {
       const container = document.getElementById('alertContainer');
-      container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+      container.textContent = '';
+      
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.textContent = message;
+      
+      container.appendChild(alertDiv);
+      
       setTimeout(() => {
-        container.innerHTML = '';
+        container.textContent = '';
       }, 5000);
     }
 

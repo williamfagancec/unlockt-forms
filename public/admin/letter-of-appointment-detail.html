@@ -386,19 +386,10 @@
       document.getElementById('question4').innerHTML = getCheckboxHTML(submission.questionCheckbox4);
       document.getElementById('question5').innerHTML = getCheckboxHTML(submission.questionCheckbox5);
 
-      document.getElementById('commonSealFile').innerHTML = getFileHTML(submission.commonSealFile, 'Common Seal');
-      document.getElementById('letterHeadFile').innerHTML = getFileHTML(submission.letterHeadFile, 'Letter Head');
+      setFileElement('commonSealFile', submission.commonSealFile, 'Common Seal');
+      setFileElement('letterHeadFile', submission.letterHeadFile, 'Letter Head');
       
-      if (submission.signatureFile) {
-        const signatureURL = getFileURL(submission.signatureFile);
-        document.getElementById('signatureFile').innerHTML = `
-          <div style="margin-top: 10px;">
-            <img src="${signatureURL}" alt="Signature" style="max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;">
-          </div>
-        `;
-      } else {
-        document.getElementById('signatureFile').innerHTML = '<span style="color: #999;">No signature uploaded</span>';
-      }
+      setSignatureElement('signatureFile', submission.signatureFile);
     }
 
     function getCheckboxHTML(value) {
@@ -417,12 +408,47 @@
       return `/uploads/${filename}`;
     }
 
-    function getFileHTML(filename, label) {
+    function setFileElement(elementId, filename, label) {
+      const element = document.getElementById(elementId);
+      element.textContent = '';
+      
       if (filename) {
         const url = getFileURL(filename);
-        return `<a href="${url}" target="_blank" style="color: #5fa88a; text-decoration: none; font-weight: 500;">📎 View ${label}</a>`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.style.cssText = 'color: #5fa88a; text-decoration: none; font-weight: 500;';
+        link.textContent = `📎 View ${label}`;
+        element.appendChild(link);
       } else {
-        return '<span style="color: #999;">Not uploaded</span>';
+        const span = document.createElement('span');
+        span.style.color = '#999';
+        span.textContent = 'Not uploaded';
+        element.appendChild(span);
+      }
+    }
+
+    function setSignatureElement(elementId, signatureFile) {
+      const element = document.getElementById(elementId);
+      element.textContent = '';
+      
+      if (signatureFile) {
+        const signatureURL = getFileURL(signatureFile);
+        const container = document.createElement('div');
+        container.style.marginTop = '10px';
+        
+        const img = document.createElement('img');
+        img.src = signatureURL;
+        img.alt = 'Signature';
+        img.style.cssText = 'max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;';
+        
+        container.appendChild(img);
+        element.appendChild(container);
+      } else {
+        const span = document.createElement('span');
+        span.style.color = '#999';
+        span.textContent = 'No signature uploaded';
+        element.appendChild(span);
       }
     }
 

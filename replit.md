@@ -3,6 +3,22 @@
 ## Overview
 This project is a secure, comprehensive form collection system for Unlockt Insurance Solutions, facilitating the submission of "Letter of Appointment" and "Quote Slip & Declaration" forms. Its primary purpose is to provide a robust platform for collecting critical insurance data, enabling efficient processing and management by Unlockt staff. Key capabilities include public form submission, a secure admin portal for managing submissions, data export functionalities (XLSX, PDF), and a design optimized for Azure deployment with future integration into MS Fabric. The system aims to streamline the initial stages of the insurance application process and centralize client data.
 
+## Recent Security Updates
+
+### XSS Vulnerability Fix (2025-10-25)
+**Critical security issue resolved:** Fixed cross-site scripting (XSS) vulnerability in admin detail pages where user-controlled filenames from form submissions were inserted into HTML without proper sanitization.
+
+**Impact:** Without this fix, attackers could upload files with malicious filenames (e.g., `"><script>alert(document.cookie)</script>.pdf`) to execute JavaScript in admin browsers, potentially leading to session hijacking, admin account compromise, or unauthorized data access.
+
+**Solution:** Replaced all unsafe `innerHTML` operations with safe DOM manipulation using `createElement()` and `textContent` for user-controlled data.
+
+**Files Fixed:**
+- `public/admin/letter-of-appointment-detail.html` - Added `setFileElement()` and `setSignatureElement()` functions
+- `public/admin/quote-slip-detail.html` - Same safe DOM manipulation functions added
+- `public/admin/users.html` - Fixed alert message display to use `textContent`
+
+**Security Improvement:** All admin pages now safely handle user-generated content, eliminating XSS attack vectors from file uploads and form submissions.
+
 ## User Preferences
 - **Authentication**: Local username/password (MS Entra ID SSO for future implementation)
 - **Deployment**: Azure App Service (VM mode for stateful sessions)
@@ -36,7 +52,7 @@ The application features distinct interfaces for public users and administrators
 - **Admin Dashboard**: Overview and statistics for both form types, navigation to submission lists.
 - **Submission Management**: Searchable list views and detailed views for both form types.
 - **Data Export**: Comprehensive XLSX export for all form fields, individual LOA PDF export.
-- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection, secure file handling, user enumeration protection.
+- **Security**: Bcrypt password hashing, httpOnly cookies, input validation, SQL injection protection, XSS protection (safe DOM manipulation), secure file handling, user enumeration protection.
 - **Database Schema**: Includes tables for `adminUsers`, `formSubmissions`, `quoteSlipSubmissions`, and various dropdown reference tables.
 
 ## External Dependencies
