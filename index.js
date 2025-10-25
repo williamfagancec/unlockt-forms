@@ -1,12 +1,20 @@
 require('dotenv').config();
+
+const { loadConfig, getConfig } = require('./src/utils/config');
+const config = loadConfig();
+
+const { createLogger, addCorrelationId, createRequestLogger } = require('./src/utils/logger');
+const logger = createLogger(config);
+
 const express = require('express');
+const helmet = require('helmet');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const msal = require('@azure/msal-node');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { db } = require('./server/db');
+const { db } = require('./src/infrastructure/database');
 const { formSubmissions, users, quoteSlipSubmissions, insurers, roofTypes, externalWallTypes, floorTypes, buildingTypes, adminUsers } = require('./shared/schema');
 const { eq, desc, and, gt, ne } = require('drizzle-orm');
 const PDFDocument = require('pdfkit');
@@ -14,10 +22,19 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 const sgMail = require('@sendgrid/mail');
-const { upload, isAzureProduction, uploadFileToBlob, uploadSignatureToBlob } = require('./server/storage');
+const { upload, isAzureProduction, uploadFileToBlob, uploadSignatureToBlob } = require('./src/infrastructure/storage');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = config.PORT;
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+app.use(addCorrelationId);
+app.use(createRequestLogger(logger));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,13 +43,10 @@ app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', true);
 
-// Azure-compatible production detection
-const isProduction = process.env.NODE_ENV === 'production' 
-  || !!process.env.WEBSITE_INSTANCE_ID 
-  || !!process.env.REPLIT_DEPLOYMENT;
+const isProduction = config.isProduction;
 
-// Import the database pool from db.js to reuse the same connection
-const { pool: pgPool } = require('./server/db');
+// Import the database pool from database.js to reuse the same connection
+const { pool: pgPool } = require('./src/infrastructure/database');
 
 const sessionStore = new pgSession({
   pool: pgPool,
@@ -41,13 +55,16 @@ const sessionStore = new pgSession({
 });
 
 sessionStore.on('error', (err) => {
-  console.error('[SESSION STORE ERROR]', err);
+  logger.error({ err }, 'Session store error');
 });
 
-console.log('[SESSION CONFIG] isProduction:', isProduction, 'Cookie settings:', {
-  secure: isProduction,
-  sameSite: isProduction ? 'none' : 'lax'
-});
+logger.info({
+  isProduction,
+  cookieSettings: {
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax'
+  }
+}, 'Session configuration loaded');
 
 app.use(session({
   store: sessionStore,
@@ -96,15 +113,17 @@ if (azureConfigured) {
   cca = new msal.ConfidentialClientApplication(msalConfig);
 }
 
-const { authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword } = require('./server/auth');
-const { createResetToken, validateResetToken, consumeResetToken, sendResetEmail } = require('./server/password-reset');
+const { setLogger: setAuthLogger, authMiddleware: adminAuthMiddleware, adminPageMiddleware, loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword } = require('./src/middleware/auth');
+const { createResetToken, validateResetToken, consumeResetToken, sendResetEmail } = require('./src/services/PasswordResetService');
+
+setAuthLogger(logger);
 
 // Initialize default admin user on startup (only if doesn't exist)
 async function initializeDefaultAdmin() {
   try {
     // Only seed default admin if explicitly enabled via environment variable
     if (process.env.SEED_DEFAULT_ADMIN !== 'true') {
-      console.log('[INIT] Default admin seeding disabled (set SEED_DEFAULT_ADMIN=true to enable)');
+      logger.info('Default admin seeding disabled (set SEED_DEFAULT_ADMIN=true to enable)');
       return;
     }
     
@@ -114,7 +133,7 @@ async function initializeDefaultAdmin() {
       const missing = requiredEnvVars.filter(varName => !process.env[varName]);
       
       if (missing.length > 0) {
-        console.error(`[INIT] Cannot seed default admin in production: Missing required environment variables: ${missing.join(', ')}`);
+        logger.error({ missing }, 'Cannot seed default admin in production: Missing required environment variables');
         return;
       }
     }
@@ -128,7 +147,7 @@ async function initializeDefaultAdmin() {
     const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.email, defaultEmail));
     
     if (existingUser) {
-      console.log(`[INIT] Default admin already exists: ${defaultEmail} (skipping creation to preserve existing credentials)`);
+      logger.info({ email: defaultEmail }, 'Default admin already exists (skipping creation to preserve existing credentials)');
       return;
     }
     
@@ -142,9 +161,9 @@ async function initializeDefaultAdmin() {
       role: 'administrator',
       isActive: true
     });
-    console.log(`[INIT] Default admin created: ${defaultEmail}`);
+    logger.info({ email: defaultEmail }, 'Default admin created');
   } catch (error) {
-    console.error('[INIT] Error initializing admin:', error);
+    logger.error({ err: error }, 'Error initializing admin');
   }
 }
 
@@ -1935,9 +1954,12 @@ app.get('/api/export/quote-slip', adminAuthMiddleware, async (req, res) => {
   }
 });
 
+app.use(notFoundHandler);
+app.use(errorHandler(logger));
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-  console.log('Public form: /');
-  console.log('Admin dashboard: /admin');
+  logger.info(`Server running on http://0.0.0.0:${PORT}`);
+  logger.info('Public form: /');
+  logger.info('Admin dashboard: /admin');
 });
 // comment for pull

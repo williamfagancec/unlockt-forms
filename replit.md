@@ -1,6 +1,13 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-25**: **Phase 1 & 2: Foundation & Structure Refactoring** - Reorganized codebase for production scalability and maintainability:
+  - Added typed configuration management with Zod validation (`src/utils/config.js`)
+  - Implemented structured logging with Pino, correlation IDs, and request tracking (`src/utils/logger.js`)
+  - Created centralized error handling middleware with custom error classes (`src/middleware/errorHandler.js`)
+  - Added Helmet security middleware for HTTP headers
+  - Moved server modules to new `src/` structure: `server/auth.js` → `src/middleware/auth.js`, `server/password-reset.js` → `src/services/PasswordResetService.js`, `server/storage.js` → `src/infrastructure/storage.js`, `server/db.js` → `src/infrastructure/database.js`
+  - Created folder structure for future separation: `src/routes`, `src/controllers`, `src/services`, `src/repositories`, `src/jobs`
 - **2025-10-24**: Fixed duplicate click handlers on profile dropdown in admin.html that caused toggle to fire twice. Updated outside click handler to properly sync ARIA attributes (aria-expanded, aria-hidden) for improved accessibility.
 - **2025-10-24**: Added validation guard for SENDGRID_FROM_EMAIL in password reset email function. Fails fast with explicit error message if environment variable is not configured, preventing unclear SendGrid errors.
 - **2025-10-24**: Refactored password reset token consumption to use .returning() instead of rowCount for database driver portability. Ensures single-use token semantics work consistently across PostgreSQL drivers (Neon serverless and standard pg).
@@ -33,6 +40,10 @@ The application features distinct interfaces for public users and administrators
 
 ### Technical Implementations
 - **Backend**: Node.js with Express.js handles API routes, form submissions, and authentication.
+  - **Logging**: Structured logging with Pino, correlation IDs for request tracking, environment-specific formatting (pretty in dev, JSON in prod)
+  - **Configuration**: Typed config management with Zod validation for environment variables
+  - **Error Handling**: Centralized error middleware with custom error classes (ValidationError, AuthenticationError, etc.)
+  - **Security**: Helmet middleware for security headers, CSRF protection (planned), rate limiting
 - **Database**: PostgreSQL is used for data persistence, managed via Drizzle ORM.
   - Development: Neon-backed PostgreSQL on Replit.
   - Production: Azure Database for PostgreSQL.

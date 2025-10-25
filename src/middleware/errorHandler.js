@@ -45,6 +45,26 @@ class RateLimitError extends AppError {
   }
 }
 
+const SENSITIVE_FIELDS = ['password', 'currentPassword', 'newPassword', 'confirmPassword', 'passwordHash', 'token'];
+
+function redactSensitiveData(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  
+  const redacted = Array.isArray(obj) ? [] : {};
+  
+  for (const key in obj) {
+    if (SENSITIVE_FIELDS.includes(key)) {
+      redacted[key] = '[REDACTED]';
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      redacted[key] = redactSensitiveData(obj[key]);
+    } else {
+      redacted[key] = obj[key];
+    }
+  }
+  
+  return redacted;
+}
+
 function errorHandler(logger) {
   return (err, req, res, next) => {
     const log = req.log || logger;
@@ -63,7 +83,7 @@ function errorHandler(logger) {
         correlationId: req.correlationId,
         method: req.method,
         url: req.url,
-        body: req.body,
+        body: redactSensitiveData(req.body),
         user: req.session?.adminUser?.email,
       }, 'Server error');
     } else {
