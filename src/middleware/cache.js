@@ -29,9 +29,12 @@ const cacheMiddleware = (durationOrOptions = CACHE_TTL) => {
       }
     }
     
+    const reqCacheControl = (req.get('Cache-Control') || '').toLowerCase();
+    const requestHasNoStore = reqCacheControl.includes('no-store');
+    
     const cachedResponse = cache.get(key);
 
-    if (cachedResponse) {
+    if (cachedResponse && !requestHasNoStore) {
       const { body, timestamp } = cachedResponse;
       const age = Date.now() - timestamp;
 
@@ -46,14 +49,28 @@ const cacheMiddleware = (durationOrOptions = CACHE_TTL) => {
 
     const originalJson = res.json.bind(res);
     res.json = (body) => {
-      cache.set(key, { body, timestamp: Date.now() });
+      const statusCode = res.statusCode || 200;
+      const isSuccessful = statusCode >= 200 && statusCode <= 299;
       
-      setTimeout(() => {
-        cache.delete(key);
-      }, duration);
+      const reqCacheControl = (req.get('Cache-Control') || '').toLowerCase();
+      const resCacheControl = (res.get('Cache-Control') || '').toLowerCase();
+      const hasNoStore = reqCacheControl.includes('no-store') || resCacheControl.includes('no-store');
+      
+      const shouldCache = isSuccessful && !hasNoStore;
+      
+      if (shouldCache) {
+        cache.set(key, { body, timestamp: Date.now() });
+        
+        setTimeout(() => {
+          cache.delete(key);
+        }, duration);
 
-      res.set('X-Cache', 'MISS');
-      res.set('Cache-Control', `public, max-age=${Math.floor(duration / 1000)}`);
+        res.set('X-Cache', 'MISS');
+        res.set('Cache-Control', `public, max-age=${Math.floor(duration / 1000)}`);
+      } else {
+        res.set('X-Cache', 'SKIP');
+      }
+      
       return originalJson(body);
     };
 

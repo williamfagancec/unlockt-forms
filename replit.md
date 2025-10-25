@@ -94,14 +94,16 @@ const sanitizeFilename = (filename) => {
 - Applied to both development (local filesystem) and production (Azure Blob) paths
 - All signature uploads now sanitized before storage
 
-### Security Fix: Cache Privacy Leak Prevention (2025-10-25)
-**Security Fix:** Enhanced cache middleware to support user-specific and session-specific cache keys.
+### Security Fix: Smart Cache Control with Privacy Protection (2025-10-25)
+**Security Fix:** Enhanced cache middleware to support user-specific cache keys, respect cache directives, and only cache successful responses.
 
 **Problem:**
-The `cacheMiddleware` in `src/middleware/cache.js` was using only the request URL as the cache key, creating a privacy leak vulnerability:
+The `cacheMiddleware` in `src/middleware/cache.js` had multiple security and correctness issues:
 - **Privacy leak:** Cached responses shared across all users
 - **Data exposure:** User A could see User B's cached data
 - **Session bleed:** No session isolation in cached responses
+- **Unconditional caching:** Cached ALL responses including errors (4xx, 5xx)
+- **No-store ignored:** Did not respect `Cache-Control: no-store` directives
 - **One-size-fits-all:** No way to vary cache by user or session context
 
 **Vulnerable Behavior:**
@@ -176,9 +178,45 @@ else if (options.varyBySession && req.sessionID) {
 "custom_123_order_456"
 ```
 
+**Smart Caching Logic:**
+```javascript
+// Only cache when ALL conditions are true:
+1. ✅ HTTP Status: 2xx (200-299)
+2. ✅ Request Cache-Control: does NOT contain 'no-store'
+3. ✅ Response Cache-Control: does NOT contain 'no-store'
+
+// Otherwise: Set X-Cache: SKIP and don't cache
+```
+
+**Cache Control Behavior:**
+```javascript
+// Request with no-store bypasses cache entirely
+curl -H "Cache-Control: no-store" /api/data
+→ X-Cache: SKIP (bypasses retrieval AND storage)
+
+// Response with no-store won't be cached
+res.set('Cache-Control', 'no-store')
+→ X-Cache: SKIP (won't be stored for future requests)
+
+// Error responses aren't cached
+404 Not Found
+→ X-Cache: SKIP (only 2xx cached)
+```
+
+**Verified Test Results:**
+```bash
+Test 1: First request → X-Cache: MISS (cached)
+Test 2: Second request → X-Cache: HIT (from cache)
+Test 3: Cache-Control: no-store → X-Cache: SKIP (bypassed)
+Test 4: Cache-Control: NO-STORE → X-Cache: SKIP (case-insensitive)
+```
+
 **Security Benefits:**
 - ✅ **Privacy protection:** User data never shared across users
 - ✅ **Session isolation:** Session-specific data properly isolated
+- ✅ **Only cache success:** Error responses (4xx, 5xx) never cached
+- ✅ **Respects no-store:** Both request and response directives honored
+- ✅ **Case-insensitive:** Handles 'no-store', 'No-Store', 'NO-STORE'
 - ✅ **Backward compatible:** Existing numeric duration calls still work
 - ✅ **Defensive checks:** Only adds identifiers when they exist (`req.user?.id`)
 - ✅ **Flexible:** Custom key generators for complex scenarios
@@ -200,7 +238,10 @@ router.get('/cart', sessionCache, controller.getCart);
 ```
 
 **Files Modified:**
-- `src/middleware/cache.js` - Lines 3-61 (enhanced cacheMiddleware signature and key generation)
+- `src/middleware/cache.js` - Lines 3-78 (enhanced cache middleware with smart caching logic)
+  - Lines 32-37: Check `Cache-Control: no-store` during cache retrieval
+  - Lines 52-72: Only cache 2xx responses, respect no-store directives
+  - Lines 59-72: Set `X-Cache: SKIP` for non-cacheable responses
 
 **Current Usage:**
 - `src/routes/reference.routes.js` - Uses simple duration (public data, correct usage)
