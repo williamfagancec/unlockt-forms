@@ -3,6 +3,7 @@ const UserManagementService = require('../services/UserManagementService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { sendResetEmail } = require('../services/PasswordResetService');
 const { success, created, error } = require('../utils/apiResponse');
+const { getConfig } = require('../utils/config');
 
 class AdminUserController {
   constructor(logger) {
@@ -26,9 +27,10 @@ class AdminUserController {
     });
 
     if (shouldSendEmail) {
-      const fullOnboardingUrl = `${req.protocol}://${req.get('host')}${result.onboardingUrl}`;
+      const config = getConfig();
+      const fullOnboardingUrl = `${config.BASE_URL}${result.onboardingUrl}`;
       await sendResetEmail(email, fullOnboardingUrl, true);
-      (req.log || this.logger).info({ email }, 'Onboarding email sent');
+      (req.log || this.logger).info({ userId: result.user.id }, 'Onboarding email sent');
     }
 
     return created(res, {

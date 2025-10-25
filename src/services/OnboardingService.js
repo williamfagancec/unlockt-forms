@@ -48,7 +48,7 @@ class OnboardingService {
       onboardingTokenExpiry: null
     });
 
-    this.logger.info({ userId: user.id, email: user.email }, 'User onboarding completed');
+    this.logger.info({ userId: user.id }, 'User onboarding completed');
 
     return {
       success: true,

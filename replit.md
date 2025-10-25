@@ -5,6 +5,58 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Host Header Injection Prevention (2025-10-25)
+**Critical security fix:** Eliminated Host header injection vulnerabilities across all URL-building code by replacing untrusted `req.get('host')` with trusted `config.BASE_URL`.
+
+**Vulnerability Overview:**
+Host header injection allows attackers to manipulate URLs in emails and redirects by sending malicious Host headers:
+```http
+POST /api/password-reset
+Host: evil.com
+```
+This could result in:
+- Password reset emails with links to attacker-controlled domains
+- OAuth redirects to malicious sites
+- Session fixation attacks
+
+**Configuration Changes:**
+Added `BASE_URL` to application configuration (`src/utils/config.js`):
+- Required in production environments (validated with Zod schema)
+- Auto-defaults to `http://localhost:5000` in development
+- Trailing slashes removed for consistent URL joining
+- Must be a valid URL format (e.g., `https://yourdomain.com`)
+
+**Files Fixed (3 controllers, 4 methods):**
+
+| Controller | Method | Before | After |
+|------------|--------|--------|-------|
+| **AdminUserController** | create | `${req.protocol}://${req.get('host')}${path}` | `${config.BASE_URL}${path}` |
+| **PasswordResetController** | requestReset | `${req.protocol}://${req.get('host')}${path}` | `${config.BASE_URL}${path}` |
+| **AzureAuthController** | getSignInUrl | `${req.protocol}://${req.get('host')}${path}` | `${config.BASE_URL}${path}` |
+| **AzureAuthController** | handleRedirect | `${req.protocol}://${req.get('host')}${path}` | `${config.BASE_URL}${path}` |
+
+**Security Benefits:**
+1. ✅ **Prevents phishing attacks** - Reset/onboarding emails always use trusted domain
+2. ✅ **Protects OAuth flow** - Azure AD redirects cannot be hijacked
+3. ✅ **Production requirement** - BASE_URL must be set for production deployment
+4. ✅ **Consistent URLs** - All generated URLs use same trusted base
+
+**Privacy Improvements (PII Logging Removal):**
+Removed email addresses from all log statements to comply with privacy best practices:
+- `src/controllers/AdminUserController.js` - Line 36
+- `src/controllers/PasswordResetController.js` - Line 71
+- `src/controllers/AzureAuthController.js` - Lines 60, 63
+- `src/services/UserManagementService.js` - Lines 43, 74
+- `src/services/OnboardingService.js` - Line 54
+
+All logs now use `userId` only for audit trails, preventing PII exposure in log aggregation systems.
+
+**Production Deployment Note:**
+Set `BASE_URL` environment variable to your production domain:
+```bash
+BASE_URL=https://yourdomain.com
+```
+
 ### Input Validation Enhancement (2025-10-25)
 **Security improvement:** Fixed improper ID parsing in controllers that could allow NaN values to be passed to services, potentially causing database errors or unexpected behavior.
 

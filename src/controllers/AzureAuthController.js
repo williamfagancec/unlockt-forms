@@ -1,6 +1,7 @@
 const UserRepository = require('../repositories/UserRepository');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { success, error, serviceUnavailable } = require('../utils/apiResponse');
+const { getConfig } = require('../utils/config');
 
 class AzureAuthController {
   constructor(logger, cca) {
@@ -14,9 +15,10 @@ class AzureAuthController {
       return serviceUnavailable(res, 'Azure AD authentication not configured');
     }
 
+    const config = getConfig();
     const authCodeUrlParameters = {
       scopes: ['user.read'],
-      redirectUri: `${req.protocol}://${req.get('host')}/auth/redirect`
+      redirectUri: `${config.BASE_URL}/auth/redirect`
     };
 
     try {
@@ -33,10 +35,11 @@ class AzureAuthController {
       return serviceUnavailable(res, 'Azure AD authentication not configured');
     }
 
+    const config = getConfig();
     const tokenRequest = {
       code: req.query.code,
       scopes: ['user.read'],
-      redirectUri: `${req.protocol}://${req.get('host')}/auth/redirect`
+      redirectUri: `${config.BASE_URL}/auth/redirect`
     };
 
     try {
@@ -51,10 +54,10 @@ class AzureAuthController {
           name: response.account.name
         });
         req.session.user = newUser;
-        (req.log || this.logger).info({ userId: newUser.id, email: newUser.email }, 'New Azure AD user created');
+        (req.log || this.logger).info({ userId: newUser.id }, 'New Azure AD user created');
       } else {
         req.session.user = existingUser;
-        (req.log || this.logger).info({ userId: existingUser.id, email: existingUser.email }, 'Azure AD user logged in');
+        (req.log || this.logger).info({ userId: existingUser.id }, 'Azure AD user logged in');
       }
       
       res.redirect('/');

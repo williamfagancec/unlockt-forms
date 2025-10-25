@@ -37,7 +37,7 @@ class UserManagementService {
       failedLoginAttempts: 0
     });
 
-    this.logger.info({ userId: newUser.id, email: newUser.email }, 'New admin user created');
+    this.logger.info({ userId: newUser.id }, 'New admin user created');
 
     return {
       user: newUser,
@@ -68,7 +68,7 @@ class UserManagementService {
     });
 
     const updatedUser = await adminUserRepository.findById(userId);
-    this.logger.info({ userId, email: updatedUser.email }, 'Admin user updated');
+    this.logger.info({ userId }, 'Admin user updated');
 
     return updatedUser;
   }
