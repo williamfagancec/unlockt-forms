@@ -79,7 +79,7 @@ function errorHandler(logger) {
         method: req.method,
         url: req.url,
         body: redactSensitiveData(req.body),
-        user: req.session?.adminUser?.email,
+        userId: req.session?.adminUser?.id,
       }, 'Server error');
     } else {
       log.warn({

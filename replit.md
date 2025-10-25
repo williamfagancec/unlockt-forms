@@ -5,6 +5,52 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Privacy Enhancement: PII Removal from Error Logs (2025-10-25)
+**Privacy fix:** Removed email addresses from error and download logs to prevent PII exposure in log aggregation systems.
+
+**Problem:**
+The error handler middleware and download routes were logging `req.session?.adminUser?.email` in error logs and download audit logs. This exposed personally identifiable information (PII) in:
+- Server error logs (5xx errors)
+- File download audit trails
+- Log aggregation systems
+- External monitoring tools
+
+**Solution:**
+Replaced all email logging with non-PII userId:
+```javascript
+// Before
+user: req.session?.adminUser?.email
+
+// After
+userId: req.session?.adminUser?.id
+```
+
+**Files Modified:**
+- `src/middleware/errorHandler.js` - Line 85 (5xx error logging)
+- `src/routes/downloads.routes.js` - Lines 71, 110 (download audit logs)
+
+**Impact:**
+- ✅ **Privacy compliance:** No PII in logs (GDPR/CCPA friendly)
+- ✅ **Security improvement:** Email addresses can't be harvested from logs
+- ✅ **Audit trail maintained:** userId still provides user tracking for debugging
+- ✅ **Consistency:** Aligns with logging policy across all controllers and services
+
+**Before:**
+```javascript
+log.error({
+  err,
+  user: 'john.doe@example.com',  // PII exposed
+}, 'Server error');
+```
+
+**After:**
+```javascript
+log.error({
+  err,
+  userId: 123,  // No PII, still traceable
+}, 'Server error');
+```
+
 ### Bug Fix: Pagination Safety in Response Utilities (2025-10-25)
 **Fix:** Prevented `Infinity` and `NaN` in pagination responses by safely validating limit before division.
 

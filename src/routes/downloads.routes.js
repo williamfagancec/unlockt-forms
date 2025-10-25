@@ -65,8 +65,7 @@ function createDownloadsRoutes(logger) {
         
         logger.info({ 
           filename: normalizedFilename,
-          userId: req.session?.adminUser?.id,
-          userEmail: req.session?.adminUser?.email
+          userId: req.session?.adminUser?.id
         }, 'File downloaded from Azure storage');
         
       } else {
@@ -105,8 +104,7 @@ function createDownloadsRoutes(logger) {
 
         logger.info({ 
           filename: normalizedFilename,
-          userId: req.session?.adminUser?.id,
-          userEmail: req.session?.adminUser?.email
+          userId: req.session?.adminUser?.id
         }, 'File downloaded from local storage');
 
         res.download(filePath, normalizedFilename, (err) => {
