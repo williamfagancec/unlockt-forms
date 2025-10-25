@@ -5,515 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quote Slip & Declaration</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #a8d5ba 0%, #c8e6d5 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .logo-container {
-      background: white;
-      padding: 40px;
-      text-align: center;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .logo {
-      max-width: 450px;
-      height: auto;
-    }
-
-    .form-container {
-      background: white;
-      padding: 40px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .issuer-info {
-      font-size: 11px;
-      color: #666;
-      text-align: center;
-      margin-bottom: 30px;
-      line-height: 1.6;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .required {
-      color: #d32f2f;
-    }
-
-    input[type="text"],
-    input[type="date"],
-    select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus,
-    input[type="date"]:focus,
-    select:focus {
-      outline: none;
-      border-color: #4CAF50;
-    }
-
-    input[type="text"].error,
-    input[type="date"].error,
-    select.error,
-    input[type="checkbox"].error {
-      border-color: #d32f2f;
-      border-width: 2px;
-    }
-
-    .checkbox-item.error,
-    label.error {
-      background: #ffebee;
-      padding: 8px;
-      border-radius: 4px;
-      border: 2px solid #d32f2f;
-    }
-
-    select {
-      cursor: pointer;
-      background: white;
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      background-size: 16px;
-      padding-right: 35px;
-    }
-
-    .helper-text {
-      font-size: 11px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .file-upload-container {
-      margin-bottom: 20px;
-    }
-
-    .file-upload-container label {
-      min-height: 40px;
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    .file-upload-box {
-      border: 2px dashed #ccc;
-      border-radius: 4px;
-      padding: 40px 20px;
-      text-align: center;
-      background: #fafafa;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .file-upload-box:hover {
-      border-color: #999;
-      background: #f5f5f5;
-    }
-
-    .file-upload-box.dragover {
-      border-color: #4CAF50;
-      background: #e8f5e9;
-    }
-
-    .upload-icon {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 15px;
-      background: #8b95a5;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-    }
-
-    .file-upload-box h4 {
-      font-size: 14px;
-      font-weight: 500;
-      color: #666;
-      margin-bottom: 5px;
-    }
-
-    .file-upload-box p {
-      font-size: 12px;
-      color: #999;
-      margin: 0;
-    }
-
-    .file-upload-box input[type="file"] {
-      display: none;
-    }
-
-    .file-preview {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      background: #f0f0f0;
-      border-radius: 4px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .file-preview.active {
-      display: flex;
-    }
-
-    .file-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .file-icon {
-      width: 32px;
-      height: 32px;
-      background: #4CAF50;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .file-details {
-      text-align: left;
-    }
-
-    .file-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 2px;
-    }
-
-    .file-size {
-      font-size: 11px;
-      color: #999;
-    }
-
-    .delete-file-btn {
-      background: #f44336;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .delete-file-btn:hover {
-      background: #d32f2f;
-    }
-
-    .submit-divider {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 30px 0 20px 0;
-    }
-
-    button[type="submit"] {
-      width: auto;
-      min-width: 300px;
-      padding: 16px 40px;
-      background: linear-gradient(135deg, #5a9f8f 0%, #3d8072 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: block;
-      margin: 0 auto;
-    }
-
-    button[type="submit"]:hover {
-      background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    button[type="submit"]:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .success-message {
-      display: none;
-      background: #d4edda;
-      color: #155724;
-      padding: 30px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      border: 1px solid #c3e6cb;
-      text-align: center;
-    }
-
-    .success-message h2 {
-      margin: 0 0 10px 0;
-      color: #155724;
-      font-size: 24px;
-      font-weight: 600;
-    }
-
-    .success-message p {
-      margin: 0 0 20px 0;
-      color: #155724;
-      font-size: 16px;
-    }
-
-    .success-message a {
-      display: inline-block;
-      background: linear-gradient(135deg, #5fa896 0%, #3a8a7a 100%);
-      color: white;
-      padding: 12px 30px;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .success-message a:hover {
-      background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .error-message {
-      display: none;
-      background: #f8d7da;
-      color: #721c24;
-      padding: 15px;
-      border-radius: 4px;
-      margin-bottom: 20px;
-    }
-
-    .duty-disclosure {
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 5px;
-      margin-bottom: 30px;
-      border-left: 4px solid #5fa88a;
-    }
-
-    .duty-disclosure h3 {
-      color: #2c3e50;
-      margin-bottom: 15px;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .duty-disclosure p {
-      color: #4a4a4a;
-      line-height: 1.8;
-      margin-bottom: 12px;
-      font-size: 14px;
-    }
-
-    .duty-disclosure ul {
-      margin-left: 20px;
-      margin-bottom: 12px;
-    }
-
-    .duty-disclosure li {
-      color: #4a4a4a;
-      line-height: 1.8;
-      margin-bottom: 5px;
-      font-size: 14px;
-    }
-
-    .signature-container {
-      margin-bottom: 30px;
-    }
-
-    .signature-wrapper {
-      border: 2px solid #ddd;
-      border-radius: 4px;
-      background: #fafafa;
-      padding: 15px;
-      position: relative;
-    }
-
-    .signature-canvas {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: white;
-      display: block;
-      cursor: crosshair;
-      width: 100%;
-      touch-action: none;
-    }
-
-    .signature-placeholder {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #999;
-      font-size: 14px;
-      pointer-events: none;
-      font-style: italic;
-    }
-
-    .signature-placeholder.hidden {
-      display: none;
-    }
-
-    .signature-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .signature-controls button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .clear-signature-btn {
-      background: #ff9800;
-      color: white;
-    }
-
-    .clear-signature-btn:hover {
-      background: #f57c00;
-    }
-
-    .submit-signature-btn {
-      background: #4CAF50;
-      color: white;
-    }
-
-    .submit-signature-btn:hover {
-      background: #45a049;
-    }
-
-    .signature-preview-container {
-      display: none;
-      margin-top: 15px;
-      padding: 15px;
-      background: #f5f5f5;
-      border-radius: 4px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .signature-preview-container.active {
-      display: flex;
-    }
-
-    .signature-preview-img {
-      max-width: 400px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: white;
-    }
-
-    .delete-signature-btn {
-      background: #f44336;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .delete-signature-btn:hover {
-      background: #d32f2f;
-    }
-
-    .signature-drawing-area {
-      display: block;
-    }
-
-    .signature-drawing-area.hidden {
-      display: none;
-    }
-
-    .signature-error {
-      display: none;
-      color: #d32f2f;
-      font-size: 12px;
-      margin-top: 5px;
-    }
-
-    .signature-error.active {
-      display: block;
-    }
-
-    @media (max-width: 600px) {
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-
-      .form-container {
-        padding: 20px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/css/quote-slip.css">
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 </head>
 <body>
@@ -538,7 +30,7 @@
 
       <form id="quoteSlipForm">
         <div class="form-group">
-          <label style="font-weight: 600; font-size: 14px; margin-bottom: 15px;">Strata Management <span class="required">*</span></label>
+          <label class="field-label-main">Strata Management <span class="required">*</span></label>
           <div class="form-row">
             <div>
               <input type="text" id="strataManagementName" name="strataManagementName" placeholder="Name" required>
@@ -551,7 +43,7 @@
 
         <div class="form-group">
           <label for="strataPlanNumber">Strata Plan Number <span class="required">*</span></label>
-          <input type="text" id="strataPlanNumber" name="strataPlanNumber" placeholder="SP" required style="max-width: 300px;">
+          <input type="text" id="strataPlanNumber" name="strataPlanNumber" placeholder="SP" required>
           <div class="helper-text">Please write SP / UP before number</div>
         </div>
 
@@ -612,7 +104,7 @@
             <select id="currentInsurer" name="currentInsurer" disabled>
               <option value="">Loading insurers...</option>
             </select>
-            <div class="helper-text" id="insurerError" style="color: #d32f2f; display: none;">Failed to load insurers. Please refresh the page.</div>
+            <div class="helper-text" id="insurerError" class="hidden">Failed to load insurers. Please refresh the page.</div>
           </div>
         </div>
 
@@ -627,7 +119,7 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Building Construction</h3>
+        <h3>Building Construction</h3>
         <div class="form-row">
           <div>
             <label for="roofType">Roof</label>
@@ -658,7 +150,7 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Year Built / No. Units / No. Floors</h3>
+        <h3>Year Built / No. Units / No. Floors</h3>
         <div class="form-row">
           <div>
             <label for="yearBuilt">Year Built</label>
@@ -676,7 +168,7 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Number of Lifts</h3>
+        <h3>Number of Lifts</h3>
         <div class="form-row">
           <div>
             <label for="numberOfLifts">Number of Lifts</label>
@@ -684,79 +176,79 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Facilities</h3>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityPoolsSpas" name="facilityPoolsSpas" style="cursor: pointer;">
+        <h3>Facilities</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityPoolsSpas" name="facilityPoolsSpas">
             <span>Pools/Spas</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityPlayground" name="facilityPlayground" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityPlayground" name="facilityPlayground">
             <span>Playground</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityGym" name="facilityGym" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityGym" name="facilityGym">
             <span>Gym</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityTennisCourt" name="facilityTennisCourt" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityTennisCourt" name="facilityTennisCourt">
             <span>Tennis Court</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityJetty" name="facilityJetty" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityJetty" name="facilityJetty">
             <span>Jetty</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityLake" name="facilityLake" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityLake" name="facilityLake">
             <span>Lake</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityWaterFeature" name="facilityWaterFeature" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityWaterFeature" name="facilityWaterFeature">
             <span>Water Feature</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityCarStacker" name="facilityCarStacker" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityCarStacker" name="facilityCarStacker">
             <span>Car Stacker</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityFireSafetySystems" name="facilityFireSafetySystems" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityFireSafetySystems" name="facilityFireSafetySystems">
             <span>Fire Safety Systems</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilitySprinklers" name="facilitySprinklers" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilitySprinklers" name="facilitySprinklers">
             <span>Sprinklers</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="facilityEvCharges" name="facilityEvCharges" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="facilityEvCharges" name="facilityEvCharges">
             <span>EV Charges</span>
           </label>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Required Cover</h3>
-        <div style="margin-bottom: 20px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="requiredCoverFlood" name="requiredCoverFlood" style="cursor: pointer;">
+        <h3>Required Cover</h3>
+        <div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="requiredCoverFlood" name="requiredCoverFlood">
             <span>Flood (Yes)</span>
           </label>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Disclose</h3>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="discloseInsuranceDeclined" name="discloseInsuranceDeclined" style="cursor: pointer;">
+        <h3>Disclose</h3>
+        <div class="checkbox-grid-3col">
+          <label class="checkbox-label">
+            <input type="checkbox" id="discloseInsuranceDeclined" name="discloseInsuranceDeclined">
             <span>Any Insurance previously declined</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="discloseAsbestosPresent" name="discloseAsbestosPresent" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="discloseAsbestosPresent" name="discloseAsbestosPresent">
             <span>Asbestos Present</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-            <input type="checkbox" id="discloseHeritageListed" name="discloseHeritageListed" style="cursor: pointer;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="discloseHeritageListed" name="discloseHeritageListed">
             <span>Heritage Listed (Yes)</span>
           </label>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Aluminium Composite Panel / EPS</h3>
+        <h3>Aluminium Composite Panel / EPS</h3>
         <div class="form-row">
           <div>
             <label for="acpEpsPresent">Yes/No</label>
@@ -768,7 +260,7 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Current Standard Excess</h3>
+        <h3>Current Standard Excess</h3>
         <div class="form-row">
           <div>
             <label for="currentStandardExcess">Current Standard Excess</label>
@@ -776,27 +268,27 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Tick below to confirm cover is required - leave unselected if not applicable:</h3>
-        <div style="margin-bottom: 20px;">
-          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px; cursor: pointer; margin-bottom: 15px;">
-            <input type="checkbox" id="coverOfficeBearers" name="coverOfficeBearers" style="cursor: pointer; margin-top: 3px;">
+        <h3>Tick below to confirm cover is required - leave unselected if not applicable:</h3>
+        <div>
+          <label class="checkbox-label-flex-start">
+            <input type="checkbox" id="coverOfficeBearers" name="coverOfficeBearers">
             <span><strong>Office Bearers Cover</strong> - Protects committee members of the Owners Corporation if they're personally sued for decisions made while doing their duties like approving repairs or managing funds.</span>
           </label>
-          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px; cursor: pointer; margin-bottom: 15px;">
-            <input type="checkbox" id="coverMachineryBreakdown" name="coverMachineryBreakdown" style="cursor: pointer; margin-top: 3px;">
+          <label class="checkbox-label-flex-start">
+            <input type="checkbox" id="coverMachineryBreakdown" name="coverMachineryBreakdown">
             <span><strong>Machinery Breakdown</strong> - Insures against the cost of repairing or replacing mechanical and electrical equipment such as lifts, air conditioning, or water pumps, following an unexpected internal failure or malfunction defined in the policy wording.</span>
           </label>
-          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px; cursor: pointer; margin-bottom: 15px;">
-            <input type="checkbox" id="coverCatastrophe" name="coverCatastrophe" style="cursor: pointer; margin-top: 3px;">
+          <label class="checkbox-label-flex-start">
+            <input type="checkbox" id="coverCatastrophe" name="coverCatastrophe">
             <span><strong>Catastrophe Insurance</strong> (provides additional cover to protect against large-scale natural disasters such as bushfires, floods, or cyclones - when the cost of rebuilding exceeds the building's sum insured due to a sudden surge in demand)</span>
           </label>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Insert Below Values</h3>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+        <h3>Insert Below Values</h3>
+        <div class="checkbox-grid-3col">
           <div>
-            <label for="coverOfficeBearersValue" style="display: block; text-align: left; font-weight: 600; margin-bottom: 8px; color: #5f6368;">Office Bearers</label>
-            <select id="coverOfficeBearersValue" name="coverOfficeBearersValue" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <label for="coverOfficeBearersValue" class="value-label">Office Bearers</label>
+            <select id="coverOfficeBearersValue" name="coverOfficeBearersValue" class="value-select">
               <option value="">Select</option>
               <option value="$250,000">$250,000</option>
               <option value="$500,000">$500,000</option>
@@ -807,16 +299,16 @@
             </select>
           </div>
           <div>
-            <label for="coverMachineryBreakdownValue" style="display: block; text-align: left; font-weight: 600; margin-bottom: 8px; color: #5f6368;">Machinery Breakdown</label>
-            <select id="coverMachineryBreakdownValue" name="coverMachineryBreakdownValue" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <label for="coverMachineryBreakdownValue" class="value-label">Machinery Breakdown</label>
+            <select id="coverMachineryBreakdownValue" name="coverMachineryBreakdownValue" class="value-select">
               <option value="">Select</option>
               <option value="$100,000">$100,000</option>
               <option value="Other (higher value)">Other (higher value)</option>
             </select>
           </div>
           <div>
-            <label for="coverCatastropheValue" style="display: block; text-align: left; font-weight: 600; margin-bottom: 8px; color: #5f6368;">Catastrophe</label>
-            <select id="coverCatastropheValue" name="coverCatastropheValue" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <label for="coverCatastropheValue" class="value-label">Catastrophe</label>
+            <select id="coverCatastropheValue" name="coverCatastropheValue" class="value-select">
               <option value="">Select</option>
               <option value="15%">15%</option>
               <option value="30%">30%</option>
@@ -824,74 +316,74 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+        <div class="value-grid">
           <div>
-            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
-              To the best of your knowledge, are there any current or historical defects affecting the common property? E.g. structural issues, water ingress, cladding, fire protection systems <span style="color: #ff4444;">*</span>
+            <label class="question-label">
+              To the best of your knowledge, are there any current or historical defects affecting the common property? E.g. structural issues, water ingress, cladding, fire protection systems <span class="required-asterisk">*</span>
             </label>
-            <div style="display: flex; gap: 20px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="defectsYes" name="defectsAffectingProperty" value="Yes" style="cursor: pointer;">
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" id="defectsYes" name="defectsAffectingProperty" value="Yes">
                 <span>Yes</span>
               </label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="defectsNo" name="defectsAffectingProperty" value="No" style="cursor: pointer;">
+              <label class="radio-label">
+                <input type="radio" id="defectsNo" name="defectsAffectingProperty" value="No">
                 <span>No</span>
               </label>
             </div>
           </div>
           <div>
-            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
-              Is the Annual Fire Safety Statement (AFSS) Current and Compliant <span style="color: #ff4444;">*</span>
+            <label class="question-label">
+              Is the Annual Fire Safety Statement (AFSS) Current and Compliant <span class="required-asterisk">*</span>
             </label>
-            <div style="display: flex; gap: 20px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="afssYes" name="afssCurrent" value="Yes" style="cursor: pointer;">
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" id="afssYes" name="afssCurrent" value="Yes">
                 <span>Yes</span>
               </label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="afssNo" name="afssCurrent" value="No" style="cursor: pointer;">
-                <span>No</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
-          <div>
-            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
-              Is the building primarily used for Residential purposes less than 20% Commercial? <span style="color: #ff4444;">*</span>
-            </label>
-            <div style="display: flex; gap: 20px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="residentialYes" name="residentialLessThan20Commercial" value="Yes" style="cursor: pointer;">
-                <span>Yes</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="residentialNo" name="residentialLessThan20Commercial" value="No" style="cursor: pointer;">
-                <span>No</span>
-              </label>
-            </div>
-          </div>
-          <div>
-            <label style="display: block; color: #2c3e50; font-size: 14px; margin-bottom: 12px;">
-              Are there any current or planned major works over $500,000 that may impact insurance? <span style="color: #ff4444;">*</span>
-            </label>
-            <div style="display: flex; gap: 20px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="majorWorksYes" name="majorWorksOver500k" value="Yes" style="cursor: pointer;">
-                <span>Yes</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" id="majorWorksNo" name="majorWorksOver500k" value="No" style="cursor: pointer;">
+              <label class="radio-label">
+                <input type="radio" id="afssNo" name="afssCurrent" value="No">
                 <span>No</span>
               </label>
             </div>
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Document Uploads</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <div class="value-grid">
+          <div>
+            <label class="question-label">
+              Is the building primarily used for Residential purposes less than 20% Commercial? <span class="required-asterisk">*</span>
+            </label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" id="residentialYes" name="residentialLessThan20Commercial" value="Yes">
+                <span>Yes</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" id="residentialNo" name="residentialLessThan20Commercial" value="No">
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="question-label">
+              Are there any current or planned major works over $500,000 that may impact insurance? <span class="required-asterisk">*</span>
+            </label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" id="majorWorksYes" name="majorWorksOver500k" value="Yes">
+                <span>Yes</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" id="majorWorksNo" name="majorWorksOver500k" value="No">
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <h3>Document Uploads</h3>
+        <div class="declaration-grid">
           <div class="file-upload-container">
             <label>Defects If applicable - Upload Relevant Docs</label>
             <div class="file-upload-box" id="defectsRelevantDocsUploadBox">
@@ -933,7 +425,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <div class="declaration-grid">
           <div class="file-upload-container">
             <label>Claims History (Last 5 years)</label>
             <div class="file-upload-box" id="claimsHistoryUploadBox">
@@ -975,7 +467,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <div class="declaration-grid">
           <div class="file-upload-container">
             <label>Asbestos Report</label>
             <div class="file-upload-box" id="asbestosReportUploadBox">
@@ -1017,7 +509,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <div class="declaration-grid">
           <div class="file-upload-container">
             <label>Most Recent Valuation</label>
             <div class="file-upload-box" id="mostRecentValuationUploadBox">
@@ -1059,56 +551,56 @@
           </div>
         </div>
 
-        <h3 style="color: #2c3e50; margin: 30px 0 15px 0;">Declaration <span class="required">*</span></h3>
+        <h3>Declaration <span class="required">*</span></h3>
         
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-            <input type="checkbox" name="declarationAuthorised" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I am authorised to act on behalf of the Owners Corporation for insurance purposes</span>
+        <div class="flex-column">
+          <label class="declaration-label">
+            <input type="checkbox" name="declarationAuthorised">
+            <span><span class="required">*</span> I am authorised to act on behalf of the Owners Corporation for insurance purposes</span>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-            <input type="checkbox" name="declarationAppointUnlockt" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I appoint Unlockt Insurance Solutions Pty Ltd, as the insurance risk advisor to act on behalf of the Owners Corporation for the purpose of sourcing renewal terms.</span>
+          <label class="declaration-label">
+            <input type="checkbox" name="declarationAppointUnlockt">
+            <span><span class="required">*</span> I appoint Unlockt Insurance Solutions Pty Ltd, as the insurance risk advisor to act on behalf of the Owners Corporation for the purpose of sourcing renewal terms.</span>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-            <input type="checkbox" name="declarationAccurateInfo" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I understand that the provision of accurate and complete information is essential for insurance placement and compliance with the duty of disclosure.</span>
+          <label class="declaration-label">
+            <input type="checkbox" name="declarationAccurateInfo">
+            <span><span class="required">*</span> I understand that the provision of accurate and complete information is essential for insurance placement and compliance with the duty of disclosure.</span>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-            <input type="checkbox" name="declarationStrataManager" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> The Strata Manager, while authorised for general strata matters. All insurance services have been provided solely by Unlockt, as an authorised representative of Resilium Insurance Broking.</span>
+          <label class="declaration-label">
+            <input type="checkbox" name="declarationStrataManager">
+            <span><span class="required">*</span> The Strata Manager, while authorised for general strata matters. All insurance services have been provided solely by Unlockt, as an authorised representative of Resilium Insurance Broking.</span>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-            <input type="checkbox" name="declarationTrueAnswers" style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;"><span class="required">*</span> I declare the answers below are true and correct to the best of my knowledge.</span>
+          <label class="declaration-label">
+            <input type="checkbox" name="declarationTrueAnswers">
+            <span><span class="required">*</span> I declare the answers below are true and correct to the best of my knowledge.</span>
           </label>
         </div>
 
-        <div style="margin-bottom: 30px;">
-          <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 5px;">
+        <div class="declaration-section">
+          <label class="declaration-subheading">
             Name <span class="required">*</span>
           </label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
+          <div class="declaration-name-grid">
             <div>
-              <input type="text" id="declarationFullName" name="declarationFullName" placeholder="Full Name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+              <input type="text" id="declarationFullName" name="declarationFullName" placeholder="Full Name" required class="declaration-input">
             </div>
             <div>
-              <input type="text" id="declarationPosition" name="declarationPosition" placeholder="Position" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+              <input type="text" id="declarationPosition" name="declarationPosition" placeholder="Position" required class="declaration-input">
             </div>
           </div>
         </div>
 
-        <div style="margin-bottom: 30px;">
-          <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 15px;">
+        <div class="declaration-section">
+          <label class="declaration-heading">
             Confirm <span class="required">*</span>
           </label>
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-            <input type="radio" name="confirmDisclosures" value="confirmed" required style="margin-top: 3px; cursor: pointer;">
-            <span style="color: #2c3e50; line-height: 1.6;">I confirm the Owners Corporation has been informed of the broker's role, commission structure, and any potential conflicts of interest, and has authorised me to receive and acknowledge these disclosures on its behalf.</span>
+          <label class="declaration-label">
+            <input type="radio" name="confirmDisclosures" value="confirmed" required>
+            <span>I confirm the Owners Corporation has been informed of the broker's role, commission structure, and any potential conflicts of interest, and has authorised me to receive and acknowledge these disclosures on its behalf.</span>
           </label>
         </div>
 
@@ -1129,7 +621,7 @@
         </div>
 
         <div class="signature-container">
-          <label style="display: block; color: #2c3e50; font-weight: 600; margin-bottom: 10px;">
+          <label class="declaration-heading">
             By signing the below I declare the information provided is true and correct to the best of my knowledge. <span class="required">*</span>
           </label>
           <input type="hidden" id="signatureData" name="signatureData">
@@ -1150,8 +642,8 @@
           <div class="signature-error" id="signatureError">Please submit your signature</div>
         </div>
 
-        <div style="text-align: center; margin: 20px 0;">
-          <img src="/resilium-logo.png" alt="Resilium Insurance Broking Pty Ltd" style="max-width: 400px; height: auto;">
+        <div class="logo-center">
+          <img src="/resilium-logo.png" alt="Resilium Insurance Broking Pty Ltd">
         </div>
 
         <hr class="submit-divider">
@@ -1161,323 +653,7 @@
     </div>
   </div>
 
-  <script>
-    function setupFileUpload(inputId, boxId, previewId, fileNameId, fileSizeId, deleteId) {
-      const input = document.getElementById(inputId);
-      const box = document.getElementById(boxId);
-      const preview = document.getElementById(previewId);
-      const fileName = document.getElementById(fileNameId);
-      const fileSize = document.getElementById(fileSizeId);
-      const deleteBtn = document.getElementById(deleteId);
-
-      function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-      }
-
-      function handleFile(file) {
-        if (file) {
-          fileName.textContent = file.name;
-          fileSize.textContent = formatFileSize(file.size);
-          preview.classList.add('active');
-          box.style.display = 'none';
-        }
-      }
-
-      box.addEventListener('click', () => input.click());
-
-      input.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          handleFile(e.target.files[0]);
-        }
-      });
-
-      box.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        box.classList.add('dragover');
-      });
-
-      box.addEventListener('dragleave', () => {
-        box.classList.remove('dragover');
-      });
-
-      box.addEventListener('drop', (e) => {
-        e.preventDefault();
-        box.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-          input.files = files;
-          handleFile(files[0]);
-        }
-      });
-
-      deleteBtn.addEventListener('click', () => {
-        input.value = '';
-        preview.classList.remove('active');
-        box.style.display = 'block';
-      });
-    }
-
-    setupFileUpload('cocFile', 'cocUploadBox', 'cocPreview', 'cocFileName', 'cocFileSize', 'deleteCoc');
-    setupFileUpload('defectsRelevantDocsFile', 'defectsRelevantDocsUploadBox', 'defectsRelevantDocsPreview', 'defectsRelevantDocsFileName', 'defectsRelevantDocsFileSize', 'defectsRelevantDocsDelete');
-    setupFileUpload('whsFile', 'whsUploadBox', 'whsPreview', 'whsFileName', 'whsFileSize', 'whsDelete');
-    setupFileUpload('claimsHistoryFile', 'claimsHistoryUploadBox', 'claimsHistoryPreview', 'claimsHistoryFileName', 'claimsHistoryFileSize', 'claimsHistoryDelete');
-    setupFileUpload('strataPlansFile', 'strataPlansUploadBox', 'strataPlansPreview', 'strataPlansFileName', 'strataPlansFileSize', 'strataPlansDelete');
-    setupFileUpload('asbestosReportFile', 'asbestosReportUploadBox', 'asbestosReportPreview', 'asbestosReportFileName', 'asbestosReportFileSize', 'asbestosReportDelete');
-    setupFileUpload('commercialTenantListFile', 'commercialTenantListUploadBox', 'commercialTenantListPreview', 'commercialTenantListFileName', 'commercialTenantListFileSize', 'commercialTenantListDelete');
-    setupFileUpload('mostRecentValuationFile', 'mostRecentValuationUploadBox', 'mostRecentValuationPreview', 'mostRecentValuationFileName', 'mostRecentValuationFileSize', 'mostRecentValuationDelete');
-    setupFileUpload('preventativeMaintenanceProgramFile', 'preventativeMaintenanceProgramUploadBox', 'preventativeMaintenanceProgramPreview', 'preventativeMaintenanceProgramFileName', 'preventativeMaintenanceProgramFileSize', 'preventativeMaintenanceProgramDelete');
-
-    let signaturePad;
-    const canvas = document.getElementById('signatureCanvas');
-    const placeholder = document.getElementById('signaturePlaceholder');
-    const signatureError = document.getElementById('signatureError');
-    const signatureDataInput = document.getElementById('signatureData');
-
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * ratio;
-      canvas.height = rect.height * ratio;
-      canvas.getContext('2d').scale(ratio, ratio);
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    signaturePad = new SignaturePad(canvas, {
-      backgroundColor: 'rgb(255, 255, 255)',
-      penColor: 'rgb(0, 0, 0)',
-      minWidth: 1,
-      maxWidth: 3,
-      velocityFilterWeight: 0.7,
-      minDistance: 5,
-      throttle: 0
-    });
-
-    const signatureDrawingArea = document.getElementById('signatureDrawingArea');
-    const signaturePreviewContainer = document.getElementById('signaturePreviewContainer');
-    const signaturePreviewImg = document.getElementById('signaturePreviewImg');
-
-    signaturePad.addEventListener('beginStroke', () => {
-      placeholder.classList.add('hidden');
-      signatureError.classList.remove('active');
-    });
-
-    document.getElementById('clearSignature').addEventListener('click', () => {
-      signaturePad.clear();
-      placeholder.classList.remove('hidden');
-      signatureError.classList.remove('active');
-    });
-
-    document.getElementById('submitSignature').addEventListener('click', () => {
-      if (signaturePad.isEmpty()) {
-        signatureError.classList.add('active');
-        return;
-      }
-
-      const data = signaturePad.toDataURL('image/png');
-      signatureDataInput.value = data;
-      signaturePreviewImg.src = data;
-      
-      signatureDrawingArea.classList.add('hidden');
-      signaturePreviewContainer.classList.add('active');
-      signatureError.classList.remove('active');
-    });
-
-    document.getElementById('deleteSignature').addEventListener('click', () => {
-      signaturePad.clear();
-      placeholder.classList.remove('hidden');
-      signatureDataInput.value = '';
-      signaturePreviewImg.src = '';
-      
-      signatureDrawingArea.classList.remove('hidden');
-      signaturePreviewContainer.classList.remove('active');
-      signatureError.classList.remove('active');
-    });
-
-    async function loadInsurers() {
-      const select = document.getElementById('currentInsurer');
-      const errorDiv = document.getElementById('insurerError');
-      
-      try {
-        const response = await fetch('/api/insurers');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch insurers');
-        }
-        
-        const insurers = await response.json();
-        
-        select.innerHTML = '<option value="">Please Select</option>';
-        
-        insurers.forEach(insurer => {
-          const option = document.createElement('option');
-          option.value = insurer.name;
-          option.textContent = insurer.name;
-          select.appendChild(option);
-        });
-        
-        select.disabled = false;
-      } catch (error) {
-        console.error('Error loading insurers:', error);
-        select.innerHTML = '<option value="">Please Select</option>';
-        select.disabled = false;
-        errorDiv.style.display = 'block';
-      }
-    }
-
-    loadInsurers();
-
-    async function loadDropdown(apiEndpoint, selectId, defaultOption = 'Please Select') {
-      const select = document.getElementById(selectId);
-      
-      try {
-        const response = await fetch(apiEndpoint);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${selectId}`);
-        }
-        
-        const items = await response.json();
-        
-        select.innerHTML = `<option value="">${defaultOption}</option>`;
-        
-        items.forEach(item => {
-          const option = document.createElement('option');
-          option.value = item.name;
-          option.textContent = item.name;
-          select.appendChild(option);
-        });
-        
-        select.disabled = false;
-      } catch (error) {
-        console.error(`Error loading ${selectId}:`, error);
-        select.innerHTML = `<option value="">${defaultOption}</option>`;
-        select.disabled = false;
-      }
-    }
-
-    function generateYearOptions() {
-      const select = document.getElementById('yearBuilt');
-      const currentYear = new Date().getFullYear();
-      
-      for (let year = currentYear; year >= 1850; year--) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        select.appendChild(option);
-      }
-    }
-
-    loadDropdown('/api/roof-types', 'roofType');
-    loadDropdown('/api/external-wall-types', 'externalWallType');
-    loadDropdown('/api/floor-types', 'floorType');
-    loadDropdown('/api/building-types', 'buildingType');
-    generateYearOptions();
-
-    document.getElementById('quoteSlipForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Clear previous error highlights
-      document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-      
-      // Validate required fields
-      const requiredFields = [
-        { id: 'strataManagementName', name: 'Strata Management Name' },
-        { id: 'contactPerson', name: 'Contact Person' },
-        { id: 'strataPlanNumber', name: 'Strata Plan Number' },
-        { id: 'renewalDate', name: 'Renewal Date' },
-        { id: 'declarationFullName', name: 'Declaration Full Name' },
-        { id: 'declarationPosition', name: 'Declaration Position' }
-      ];
-      
-      let firstError = null;
-      const errors = [];
-      
-      requiredFields.forEach(field => {
-        const input = document.getElementById(field.id);
-        if (!input.value.trim()) {
-          input.classList.add('error');
-          errors.push(field.name);
-          if (!firstError) firstError = input;
-        }
-      });
-      
-      // Check required declaration checkboxes
-      const requiredCheckboxes = [
-        { name: 'declarationAuthorised', label: 'Authorization declaration' },
-        { name: 'declarationAppointUnlockt', label: 'Appointment of Unlockt' },
-        { name: 'declarationAccurateInfo', label: 'Accurate information declaration' },
-        { name: 'declarationStrataManager', label: 'Strata manager declaration' },
-        { name: 'declarationTrueAnswers', label: 'True answers declaration' }
-      ];
-      
-      requiredCheckboxes.forEach(checkbox => {
-        const input = document.querySelector(`input[name="${checkbox.name}"]`);
-        if (!input.checked) {
-          const checkboxLabel = input.closest('label');
-          checkboxLabel.classList.add('error');
-          errors.push(checkbox.label);
-          if (!firstError) firstError = input;
-        }
-      });
-      
-      // If there are validation errors, scroll to first error and show message
-      if (errors.length > 0) {
-        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const errorMessage = document.getElementById('errorMessage');
-        errorMessage.textContent = `Please fill in all required fields: ${errors.join(', ')}`;
-        errorMessage.style.display = 'block';
-        window.scrollBy(0, -100); // Adjust scroll position to account for offset
-        return;
-      }
-      
-      if (!signatureDataInput.value) {
-        signatureError.textContent = 'Please submit your signature before submitting the form';
-        signatureError.classList.add('active');
-        signatureError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-
-      signatureError.classList.remove('active');
-      
-      const formData = new FormData(e.target);
-
-      const submitButton = e.target.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
-      submitButton.textContent = 'Submitting...';
-
-      try {
-        const response = await fetch('/api/submit-quote-slip', {
-          method: 'POST',
-          body: formData
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          document.getElementById('successMessage').style.display = 'block';
-          document.getElementById('errorMessage').style.display = 'none';
-          document.getElementById('quoteSlipForm').style.display = 'none';
-          window.scrollTo(0, 0);
-        } else {
-          throw new Error(result.error || 'Submission failed');
-        }
-      } catch (error) {
-        document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('errorMessage').style.display = 'block';
-        document.getElementById('successMessage').style.display = 'none';
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Submit to Unlockt';
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <script src="/js/quote-slip.js"></script>
 </body>
 </html>

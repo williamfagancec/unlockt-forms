@@ -1,0 +1,544 @@
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #a8d5ba 0%, #c8e6d5 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .logo-container {
+      background: white;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      max-width: 450px;
+      height: auto;
+    }
+
+    .form-container {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .issuer-info {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .required {
+      color: #d32f2f;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    input[type="text"].error,
+    input[type="date"].error,
+    input[type="checkbox"].error {
+      border-color: #d32f2f;
+      border-width: 2px;
+    }
+
+    .checkbox-item.error {
+      background: #ffebee;
+      padding: 8px;
+      border-radius: 4px;
+      border: 2px solid #d32f2f;
+    }
+
+    .helper-text {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .address-grid .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .checkbox-group {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+
+    .checkbox-group h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .checkbox-item {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      margin-right: 10px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .checkbox-item label {
+      margin: 0;
+      font-weight: 400;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    .confirmation-box {
+      background: white;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .confirmation-box h3 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .confirmation-box .checkbox-item label {
+      font-weight: 400;
+      color: #333;
+    }
+
+    .submit-divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 30px 0 20px 0;
+    }
+
+    button[type="submit"] {
+      width: auto;
+      min-width: 300px;
+      padding: 16px 40px;
+      background: linear-gradient(135deg, #5a9f8f 0%, #3d8072 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: block;
+      margin: 0 auto;
+    }
+
+    button[type="submit"]:hover {
+      background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    button[type="submit"]:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .file-upload-container {
+      margin-bottom: 20px;
+    }
+
+    .file-upload-box {
+      border: 2px dashed #ccc;
+      border-radius: 4px;
+      padding: 40px 20px;
+      text-align: center;
+      background: #fafafa;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .file-upload-box:hover {
+      border-color: #999;
+      background: #f5f5f5;
+    }
+
+    .file-upload-box.dragover {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 15px;
+      background: #8b95a5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .file-upload-box h4 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .file-upload-box p {
+      font-size: 12px;
+      color: #999;
+      margin: 0;
+    }
+
+    .file-upload-box input[type="file"] {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-preview.active {
+      display: flex;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-icon {
+      width: 32px;
+      height: 32px;
+      background: #4CAF50;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .file-details {
+      text-align: left;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: #999;
+    }
+
+    .delete-file-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .delete-file-btn:hover {
+      background: #d32f2f;
+    }
+
+    .signature-container {
+      margin-bottom: 20px;
+    }
+
+    .signature-wrapper {
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+      padding: 15px;
+      position: relative;
+    }
+
+    .signature-canvas {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      display: block;
+      cursor: crosshair;
+      width: 100%;
+      touch-action: none;
+    }
+
+    .signature-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #999;
+      font-size: 14px;
+      pointer-events: none;
+      font-style: italic;
+    }
+
+    .signature-placeholder.hidden {
+      display: none;
+    }
+
+    .signature-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .signature-controls button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .clear-signature-btn {
+      background: #ff9800;
+      color: white;
+    }
+
+    .clear-signature-btn:hover {
+      background: #f57c00;
+    }
+
+    .submit-signature-btn {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .submit-signature-btn:hover {
+      background: #45a049;
+    }
+
+    .signature-preview-container {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .signature-preview-container.active {
+      display: flex;
+    }
+
+    .signature-preview-img {
+      max-width: 400px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .delete-signature-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .delete-signature-btn:hover {
+      background: #d32f2f;
+    }
+
+    .signature-drawing-area {
+      display: block;
+    }
+
+    .signature-drawing-area.hidden {
+      display: none;
+    }
+
+    .signature-error {
+      display: none;
+      color: #d32f2f;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .signature-error.active {
+      display: block;
+    }
+
+    .appointment-text {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 4px;
+      margin: 20px 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .appointment-text p {
+      margin-bottom: 12px;
+    }
+
+    .appointment-text strong {
+      font-weight: 600;
+      color: #222;
+    }
+
+    .appointment-text ul {
+      margin: 10px 0 15px 20px;
+      padding-left: 0;
+    }
+
+    .appointment-text li {
+      margin-bottom: 6px;
+    }
+
+    .resilium-logo-container {
+      margin: 20px 0;
+      text-align: left;
+    }
+
+    .resilium-logo {
+      max-width: 300px;
+      height: auto;
+    }
+
+    .success-message {
+      display: none;
+      background: #d4edda;
+      color: #155724;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+      text-align: center;
+    }
+
+    .success-message h2 {
+      margin: 0 0 10px 0;
+      color: #155724;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .success-message p {
+      margin: 0 0 20px 0;
+      color: #155724;
+      font-size: 16px;
+    }
+
+    .success-message a {
+      display: inline-block;
+      background: linear-gradient(135deg, #5fa896 0%, #3a8a7a 100%);
+      color: white;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .success-message a:hover {
+      background: linear-gradient(135deg, #4d8a7d 0%, #2f6b5f 100%);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .error-message {
+      display: none;
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .address-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-container {
+        padding: 20px;
+      }
+    }
