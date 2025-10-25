@@ -14,17 +14,15 @@ class PasswordResetController {
   requestReset = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
-    const user = await adminUserRepository.findByEmail(email);
+    const existingUser = await adminUserRepository.findByEmail(email);
     
-    if (!user) {
+    if (!existingUser) {
       return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
     }
 
-    const config = getConfig();
-    const resetToken = await createResetToken(email);
-    const resetUrl = `${config.BASE_URL}/admin/reset-password?token=${resetToken}`;
+    const { token, user } = await createResetToken(email, req);
     
-    await sendResetEmail(email, resetUrl, false);
+    await sendResetEmail(email, token, user);
 
     (req.log || this.logger).info({ userId: user.id }, 'Password reset email sent');
 
