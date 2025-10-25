@@ -5,6 +5,102 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Security Enhancement: Prevent CSRF Token Caching (2025-10-25)
+**Security Enhancement:** Added cache-control headers to CSRF token endpoint to prevent token caching.
+
+**Problem:**
+The CSRF token endpoint in `src/middleware/csrf.js` was returning tokens without cache-control headers, which could cause:
+- **Token caching:** Browsers/proxies might cache CSRF tokens
+- **Stale tokens:** Cached tokens could be reused across sessions
+- **Security bypass:** Old cached tokens might be replayed
+- **CSRF protection weakness:** Reduces effectiveness of CSRF protection
+
+**Vulnerability Scenario:**
+```javascript
+// Before (No cache headers)
+GET /api/csrf-token
+→ Returns: { csrfToken: "abc123..." }
+→ Browser caches response
+→ User logs out and logs back in
+→ Browser serves cached token instead of fresh one
+→ CSRF protection potentially bypassed
+```
+
+**Solution:**
+Added three cache-control headers before sending the CSRF token response:
+
+```javascript
+// Before (Missing cache headers)
+const csrfTokenEndpoint = (req, res) => {
+  const token = generateToken(req, res);
+  res.json({
+    success: true,
+    data: { csrfToken: token }
+  });
+};
+
+// After (Secure with cache prevention)
+const csrfTokenEndpoint = (req, res) => {
+  const token = generateToken(req, res);
+  res.set('Cache-Control', 'no-store');    // HTTP/1.1 - never cache
+  res.set('Pragma', 'no-cache');           // HTTP/1.0 - compatibility
+  res.set('Expires', '0');                 // Legacy - always expired
+  res.json({
+    success: true,
+    data: { csrfToken: token }
+  });
+};
+```
+
+**Cache Headers Explained:**
+1. **Cache-Control: no-store**
+   - HTTP/1.1 standard
+   - Prevents storage in ANY cache (browser, proxy, CDN)
+   - Most modern and strict directive
+
+2. **Pragma: no-cache**
+   - HTTP/1.0 compatibility
+   - Ensures older proxies don't cache
+   - Backward compatibility layer
+
+3. **Expires: 0**
+   - Legacy HTTP header
+   - Marks content as immediately expired
+   - Additional backward compatibility
+
+**Security Benefits:**
+- ✅ **Fresh tokens always:** Every request gets a new, uncached token
+- ✅ **No proxy caching:** Intermediate proxies won't cache tokens
+- ✅ **No browser caching:** Browser won't reuse old tokens
+- ✅ **Session isolation:** Each session gets unique tokens
+- ✅ **CSRF protection strengthened:** Prevents token replay attacks
+
+**Response Headers (After Fix):**
+```http
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Pragma: no-cache
+Expires: 0
+Content-Type: application/json
+
+{"success":true,"data":{"csrfToken":"abc123..."}}
+```
+
+**Impact:**
+- **Before:** CSRF tokens could be cached and reused
+- **After:** Fresh token generated for every request
+- **Compatibility:** Works with HTTP/1.0, HTTP/1.1, and HTTP/2
+
+**Files Modified:**
+- `src/middleware/csrf.js` - Lines 30-32 (added cache-control headers)
+
+**Best Practice:**
+These three headers together provide defense-in-depth:
+- Modern browsers respect `Cache-Control: no-store`
+- Older proxies respect `Pragma: no-cache`
+- Legacy systems respect `Expires: 0`
+- Together they ensure maximum cache prevention across all systems
+
 ### Security Fix: Private Azure Blob Storage Containers (2025-10-25)
 **Security Fix:** Removed public access from Azure Blob Storage container creation to prevent world-readable files.
 
