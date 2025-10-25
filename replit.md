@@ -5,6 +5,34 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Secure File Downloads Implementation (2025-10-25)
+**Security hardening:** Removed public exposure of uploads directory and implemented authenticated, path-traversal-protected file downloads.
+
+**Changes:**
+- Removed `app.use('/uploads', express.static('uploads'))` from index.js (was line 88)
+- Created new secure download endpoint at `/uploads/:filename`
+- Implemented `authMiddleware` requirement - only authenticated admin users can download files
+- Added comprehensive path traversal protection:
+  - Filename normalization using `path.basename()`
+  - Validation to block `..`, `/`, and `\` characters
+  - Resolved path verification to ensure files stay within uploads directory
+  - File type verification (ensures path points to actual file, not directory)
+- Set security headers on all download responses:
+  - `X-Content-Type-Options: nosniff` - prevents MIME-type sniffing
+  - `X-Frame-Options: DENY` - prevents clickjacking
+  - `Content-Disposition: attachment` - forces download instead of execution
+- Supports both storage backends:
+  - **Local development**: Files streamed from `uploads/` directory using `res.download()`
+  - **Azure production**: Files streamed from Azure Blob Storage
+- Added comprehensive logging for security auditing (user ID, email, filename)
+- Error handling for missing files, invalid filenames, and download failures
+
+**Impact:** Uploaded files are no longer publicly accessible. All downloads now require authentication and are logged for audit trails. Path traversal attacks are prevented through multiple validation layers. Files are forced to download (not execute) via security headers.
+
+**Files Modified:**
+- `index.js` - Removed static uploads middleware, added downloads route
+- `src/routes/downloads.routes.js` - New secure download endpoint (created)
+
 ### Content Security Policy Enhancement (2025-10-25)
 **Security hardening:** Updated Helmet middleware configuration to implement stricter Content-Security-Policy with cryptographic nonces.
 

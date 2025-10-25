@@ -27,6 +27,7 @@ const createFormsRoutes = require('./src/routes/forms.routes');
 const createReferenceRoutes = require('./src/routes/reference.routes');
 const createPagesRoutes = require('./src/routes/pages.routes');
 const createHealthRoutes = require('./src/routes/health.routes');
+const createDownloadsRoutes = require('./src/routes/downloads.routes');
 
 const app = express();
 const PORT = config.PORT;
@@ -85,7 +86,6 @@ app.use(compression({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
 
 app.set('trust proxy', true);
 
@@ -210,6 +210,7 @@ async function initializeDropdownData() {
 }
 
 app.use('/health', createHealthRoutes(logger));
+app.use('/', createDownloadsRoutes(logger));
 app.use('/', createPagesRoutes());
 app.use('/api', createReferenceRoutes(logger));
 app.use('/api', createFormsRoutes(logger));
