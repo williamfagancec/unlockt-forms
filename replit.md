@@ -5,6 +5,30 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Graceful Shutdown Exit Code Fix (2025-10-25)
+**Reliability improvement:** Fixed graceful shutdown logic to properly propagate exit codes, preventing crashes from being masked as successful exits.
+
+**Changes:**
+- Modified `gracefulShutdown` function to accept `exitCode` parameter (default: 1 for errors)
+- Normal shutdowns (SIGTERM, SIGINT) now explicitly use exit code 0
+- Error shutdowns (uncaughtException, unhandledRejection) now use exit code 1
+- Exit code propagated through all exit paths:
+  - Server close callback: `process.exit(exitCode)`
+  - Forced timeout handler: `process.exit(exitCode)`
+  - No-server fallback: `process.exit(exitCode)`
+- Database pool closure errors now ensure exit code remains 1
+- Exit code logged in shutdown messages for debugging
+
+**Impact:** Process exit codes now correctly reflect the shutdown reason. Container orchestration systems (Kubernetes, Docker, systemd) can properly detect and respond to crashes vs. normal shutdowns. Monitoring systems can accurately track application failures.
+
+**Exit Code Behavior:**
+- Exit 0: Normal shutdown via SIGTERM or SIGINT
+- Exit 1: Uncaught exceptions, unhandled rejections, database pool errors, forced timeout
+- Exit 1: Server startup failures (already existing behavior)
+
+**Files Modified:**
+- `index.js` - Updated graceful shutdown function and process event handlers (lines 253-292)
+
 ### PII Logging Removal (2025-10-25)
 **Privacy hardening:** Removed personally identifiable information (PII) from admin seeding logs to comply with privacy best practices.
 

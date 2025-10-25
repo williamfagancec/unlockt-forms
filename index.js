@@ -247,8 +247,8 @@ async function startServer() {
   return server;
 }
 
-async function gracefulShutdown(signal) {
-  logger.info({ signal }, 'Graceful shutdown initiated');
+async function gracefulShutdown(signal, exitCode = 1) {
+  logger.info({ signal, exitCode }, 'Graceful shutdown initiated');
 
   if (server) {
     server.close(async () => {
@@ -259,32 +259,33 @@ async function gracefulShutdown(signal) {
         logger.info('Database pool closed');
       } catch (error) {
         logger.error({ err: error }, 'Error closing database pool');
+        exitCode = 1;
       }
 
-      logger.info('Shutdown complete');
-      process.exit(0);
+      logger.info({ exitCode }, 'Shutdown complete');
+      process.exit(exitCode);
     });
 
     setTimeout(() => {
-      logger.error('Forced shutdown after timeout');
-      process.exit(1);
+      logger.error({ exitCode }, 'Forced shutdown after timeout');
+      process.exit(exitCode);
     }, 30000);
   } else {
-    process.exit(0);
+    process.exit(exitCode);
   }
 }
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM', 0));
+process.on('SIGINT', () => gracefulShutdown('SIGINT', 0));
 
 process.on('uncaughtException', (error) => {
   logger.error({ err: error }, 'Uncaught exception');
-  gracefulShutdown('uncaughtException');
+  gracefulShutdown('uncaughtException', 1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error({ reason, promise }, 'Unhandled promise rejection');
-  gracefulShutdown('unhandledRejection');
+  gracefulShutdown('unhandledRejection', 1);
 });
 
 startServer().catch((error) => {
