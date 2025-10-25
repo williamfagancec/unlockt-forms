@@ -14,8 +14,11 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 - Implemented per-request nonce generation using `crypto.randomBytes(32)` 
 - Added nonce-based CSP directives via function callbacks: `(req, res) => 'nonce-${res.locals.cspNonce}'`
 - Nonces are attached to `res.locals.cspNonce` for each request
+- **Fixed:** Corrected `config.IS_PRODUCTION` to `config.isProduction` in index.js line 53 and src/middleware/csrf.js line 19
+  - This ensures `upgradeInsecureRequests` CSP directive is properly enabled in production
+  - This ensures CSRF cookie `secure` flag is properly set to `true` in production
 
-**Impact:** Strengthens defense against XSS attacks by allowing only scripts and styles with valid nonces to execute. Modern CSP approach that's more secure than relying on `'unsafe-inline'`.
+**Impact:** Strengthens defense against XSS attacks by allowing only scripts and styles with valid nonces to execute. Modern CSP approach that's more secure than relying on `'unsafe-inline'`. Production mode now correctly enforces HTTPS upgrades and secure cookies.
 
 **Next Steps for Full CSP Compliance:**
 - Static HTML files in `/public` directory still contain inline scripts and styles
@@ -26,7 +29,8 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
   3. Add middleware to inject nonces into HTML before sending
 
 **Files Modified:**
-- `index.js` - Added crypto import, nonce middleware, updated Helmet CSP configuration
+- `index.js` - Added crypto import, nonce middleware, updated Helmet CSP configuration, fixed config property reference
+- `src/middleware/csrf.js` - Fixed config property reference for secure cookie flag
 
 ### XSS Vulnerability Fix (2025-10-25)
 **Critical security issue resolved:** Fixed cross-site scripting (XSS) vulnerability in admin detail pages where user-controlled filenames from form submissions were inserted into HTML without proper sanitization.

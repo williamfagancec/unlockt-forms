@@ -13,7 +13,7 @@ const {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    secure: config.IS_PRODUCTION,
+    secure: config.isProduction,
   },
   size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
