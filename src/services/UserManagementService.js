@@ -95,6 +95,7 @@ class UserManagementService {
 
     if (isActive && shouldUnfreeze && user.isFrozen) {
       await adminUserRepository.unfreezeAccount(userId);
+      await adminUserRepository.setActive(userId, true);
       this.logger.info({ userId }, 'User account unfrozen and activated');
     } else if (isActive) {
       await adminUserRepository.setActive(userId, true);

@@ -5,6 +5,42 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: User Activation Logic in Unfreeze and Activate (2025-10-25)
+**Fix:** Added missing user activation call when unfreezing and activating accounts.
+
+**Problem:**
+The `setUserStatus` method in `UserManagementService` had a logic bug where it would unfreeze a frozen account but never actually activate it, despite logging "User account unfrozen and activated". The code path for `isActive && shouldUnfreeze && user.isFrozen` only called:
+- `unfreezeAccount(userId)` - Removes frozen status
+- But never called `setActive(userId, true)` - Sets account to active
+
+This meant frozen users requesting activation would be unfrozen but remain inactive, contradicting the log message and user expectations.
+
+**Solution:**
+Added the missing activation call immediately after unfreezing:
+```javascript
+// Before (Bug - user not actually activated)
+if (isActive && shouldUnfreeze && user.isFrozen) {
+  await adminUserRepository.unfreezeAccount(userId);
+  this.logger.info({ userId }, 'User account unfrozen and activated');  // ❌ Misleading log
+}
+
+// After (Fixed - user properly activated)
+if (isActive && shouldUnfreeze && user.isFrozen) {
+  await adminUserRepository.unfreezeAccount(userId);
+  await adminUserRepository.setActive(userId, true);  // ✅ Actually activate
+  this.logger.info({ userId }, 'User account unfrozen and activated');
+}
+```
+
+**Impact:**
+- ✅ **Correct behavior:** Users are now actually activated when unfrozen
+- ✅ **Log accuracy:** Log message matches actual behavior
+- ✅ **User experience:** Frozen users can be unfrozen and activated in one action
+- ✅ **Error handling preserved:** Maintains proper await and error propagation
+
+**Files Modified:**
+- `src/services/UserManagementService.js` - Line 101
+
 ### Bug Fix: Signature Upload Data Format (2025-10-25)
 **Fix:** Corrected signature upload to pass base64 data and filename separately instead of multer file object.
 
