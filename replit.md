@@ -5,6 +5,28 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Rate Limiter Evasion Fix (2025-10-25)
+**Security fix:** Removed duplicate auth routes mount that allowed attackers to bypass rate limiting by splitting requests across multiple paths.
+
+**Vulnerability:**
+- Auth routes were mounted at both `/api` and `/auth` paths (lines 219-220)
+- Rate limiters in `express-rate-limit` track by IP address but not by path
+- Attackers could bypass the 5-attempt login limit by alternating paths:
+  - 5 attempts at `/api/admin/login` → rate limited
+  - 5 more attempts at `/auth/admin/login` → fresh limit (same IP, different path)
+  - Effective total: 10 attempts instead of 5
+
+**Fix:**
+- Removed redundant `/auth` mount (deleted line 220)
+- All authentication endpoints now only accessible via `/api` prefix
+- Frontend code confirmed to use `/api` exclusively (no `/auth` references found)
+- Rate limiting now properly enforced with no bypass route
+
+**Impact:** Brute-force protection restored to intended 5 login attempts per 15 minutes. Password reset protection restored to 3 attempts per hour. Attack surface reduced by eliminating duplicate endpoints.
+
+**Files Modified:**
+- `index.js` - Removed duplicate auth routes mount (deleted line 220)
+
 ### Graceful Shutdown Exit Code Fix (2025-10-25)
 **Reliability improvement:** Fixed graceful shutdown logic to properly propagate exit codes, preventing crashes from being masked as successful exits.
 

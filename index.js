@@ -217,7 +217,6 @@ app.use('/api', createFormsRoutes(logger));
 app.use('/api', createSubmissionsRoutes(logger));
 app.use('/api/admin', createAdminRoutes(logger));
 app.use('/api', createAuthRoutes(logger, cca));
-app.use('/auth', createAuthRoutes(logger, cca));
 
 app.use(notFoundHandler);
 app.use(errorHandler(logger));
