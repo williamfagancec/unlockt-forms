@@ -116,7 +116,10 @@ const sanitizeFilename = (filename) => {
     throw new Error('Invalid filename: filename cannot be empty');
   }
   
-  const sanitized = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const sanitized = basename
+    .replace(/[\x00-\x1f\x7f]/g, '_')
+    .replace(/["'<>|:*?\\\/]/g, '_')
+    .replace(/\r|\n/g, '_');
   
   if (sanitized.length === 0 || sanitized === '.' || sanitized === '..') {
     throw new Error('Invalid filename: filename contains only invalid characters');
@@ -126,9 +129,12 @@ const sanitizeFilename = (filename) => {
     throw new Error(`Invalid filename: filename exceeds maximum length of ${MAX_FILENAME_LENGTH} characters`);
   }
   
-  const parts = sanitized.split('.');
-  if (parts.length > 2 || (parts.length === 2 && parts[0].length === 0)) {
-    throw new Error('Invalid filename: must have format name.ext or name');
+  if (sanitized.startsWith('.') || sanitized.endsWith('.')) {
+    throw new Error('Invalid filename: cannot start or end with a dot');
+  }
+  
+  if (sanitized.includes('..')) {
+    throw new Error('Invalid filename: cannot contain consecutive dots');
   }
   
   return sanitized;
@@ -176,5 +182,6 @@ module.exports = {
     return getConfig().isAzureProduction;
   },
   uploadFileToBlob,
-  uploadSignatureToBlob
+  uploadSignatureToBlob,
+  sanitizeFilename
 };

@@ -4,6 +4,7 @@ const fs = require('fs');
 const { authMiddleware } = require('../middleware/auth');
 const { getConfig } = require('../utils/config');
 const { BlobServiceClient } = require('@azure/storage-blob');
+const { sanitizeFilename } = require('../infrastructure/storage');
 
 function createDownloadsRoutes(logger) {
   const router = express.Router();
@@ -34,9 +35,16 @@ function createDownloadsRoutes(logger) {
         return res.status(400).json({ error: 'Invalid filename' });
       }
 
+      let safeFilename;
+      try {
+        safeFilename = sanitizeFilename(normalizedFilename);
+      } catch (err) {
+        logger.warn({ filename, error: err.message, userId: req.session?.adminUser?.id }, 'Filename sanitization failed');
+        return res.status(400).json({ error: 'Invalid filename format' });
+      }
+
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('Content-Disposition', `attachment; filename="${normalizedFilename}"`);
 
       if (config.isAzureProduction) {
         const blobServiceClient = BlobServiceClient.fromConnectionString(
@@ -60,11 +68,12 @@ function createDownloadsRoutes(logger) {
         
         res.setHeader('Content-Type', downloadResponse.contentType || 'application/octet-stream');
         res.setHeader('Content-Length', downloadResponse.contentLength);
+        res.attachment(safeFilename);
         
         downloadResponse.readableStreamBody.pipe(res);
         
         logger.info({ 
-          filename: normalizedFilename,
+          filename: safeFilename,
           userId: req.session?.adminUser?.id
         }, 'File downloaded from Azure storage');
         
@@ -103,15 +112,15 @@ function createDownloadsRoutes(logger) {
         }
 
         logger.info({ 
-          filename: normalizedFilename,
+          filename: safeFilename,
           userId: req.session?.adminUser?.id
         }, 'File downloaded from local storage');
 
-        res.download(filePath, normalizedFilename, (err) => {
+        res.download(filePath, safeFilename, (err) => {
           if (err) {
             logger.error({ 
               err,
-              filename: normalizedFilename,
+              filename: safeFilename,
               userId: req.session?.adminUser?.id 
             }, 'Error sending file');
             
