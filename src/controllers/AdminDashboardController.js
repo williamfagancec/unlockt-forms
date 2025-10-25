@@ -1,5 +1,6 @@
 const FormSubmissionService = require('../services/FormSubmissionService');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { success, notFound } = require('../utils/apiResponse');
 
 class AdminDashboardController {
   constructor(logger) {
@@ -9,42 +10,42 @@ class AdminDashboardController {
 
   getLetterOfAppointmentStats = asyncHandler(async (req, res) => {
     const stats = await this.formService.getLetterOfAppointmentStats();
-    res.json(stats);
+    return success(res, stats);
   });
 
   getQuoteSlipStats = asyncHandler(async (req, res) => {
     const stats = await this.formService.getQuoteSlipStats();
-    res.json(stats);
+    return success(res, stats);
   });
 
   getLetterOfAppointmentList = asyncHandler(async (req, res) => {
     const submissions = await this.formService.getLetterOfAppointmentList();
-    res.json(submissions);
+    return success(res, submissions);
   });
 
   getLetterOfAppointmentById = asyncHandler(async (req, res) => {
     const submission = await this.formService.getLetterOfAppointmentById(parseInt(req.params.id));
     
     if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
+      return notFound(res, 'Submission');
     }
     
-    res.json(submission);
+    return success(res, submission);
   });
 
   getQuoteSlipList = asyncHandler(async (req, res) => {
     const submissions = await this.formService.getQuoteSlipList();
-    res.json(submissions);
+    return success(res, submissions);
   });
 
   getQuoteSlipById = asyncHandler(async (req, res) => {
     const submission = await this.formService.getQuoteSlipById(parseInt(req.params.id));
     
     if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
+      return notFound(res, 'Submission');
     }
     
-    res.json(submission);
+    return success(res, submission);
   });
 }
 

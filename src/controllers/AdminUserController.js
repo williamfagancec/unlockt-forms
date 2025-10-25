@@ -2,6 +2,7 @@ const { body } = require('express-validator');
 const UserManagementService = require('../services/UserManagementService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { sendResetEmail } = require('../services/PasswordResetService');
+const { success, created } = require('../utils/apiResponse');
 
 class AdminUserController {
   constructor(logger) {
@@ -11,7 +12,7 @@ class AdminUserController {
 
   getAll = asyncHandler(async (req, res) => {
     const users = await this.userService.getAllUsers();
-    res.json(users);
+    return success(res, users);
   });
 
   create = asyncHandler(async (req, res) => {
@@ -30,11 +31,10 @@ class AdminUserController {
       (req.log || this.logger).info({ email }, 'Onboarding email sent');
     }
 
-    res.status(201).json({
-      success: true,
+    return created(res, {
       user: result.user,
       onboardingUrl: result.onboardingUrl
-    });
+    }, 'User created successfully');
   });
 
   update = asyncHandler(async (req, res) => {
@@ -48,16 +48,13 @@ class AdminUserController {
       role
     });
 
-    res.json({
-      success: true,
-      user: updatedUser
-    });
+    return success(res, { user: updatedUser }, 'User updated successfully');
   });
 
   toggleStatus = asyncHandler(async (req, res) => {
     const userId = parseInt(req.params.id);
     const result = await this.userService.toggleUserStatus(userId);
-    res.json({ success: true, ...result });
+    return success(res, result, 'User status toggled successfully');
   });
 
   setStatus = asyncHandler(async (req, res) => {
@@ -66,16 +63,13 @@ class AdminUserController {
 
     const updatedUser = await this.userService.setUserStatus(userId, isActive, shouldUnfreeze);
 
-    res.json({
-      success: true,
-      user: updatedUser
-    });
+    return success(res, { user: updatedUser }, 'User status updated successfully');
   });
 
   unfreeze = asyncHandler(async (req, res) => {
     const userId = parseInt(req.params.id);
     await this.userService.unfreezeUser(userId);
-    res.json({ success: true, message: 'User account unfrozen successfully' });
+    return success(res, null, 'User account unfrozen successfully');
   });
 
   static createValidation = [

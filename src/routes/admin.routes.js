@@ -1,10 +1,10 @@
 const express = require('express');
-const { validationResult } = require('express-validator');
 const AdminUserController = require('../controllers/AdminUserController');
 const AdminDashboardController = require('../controllers/AdminDashboardController');
 const ExportController = require('../controllers/ExportController');
 const ReferenceDataController = require('../controllers/ReferenceDataController');
 const { adminAuthMiddleware } = require('../middleware/auth');
+const { validate } = require('../middleware/validation');
 
 function createAdminRoutes(logger) {
   const router = express.Router();
@@ -13,14 +13,6 @@ function createAdminRoutes(logger) {
   const dashboardController = new AdminDashboardController(logger);
   const exportController = new ExportController(logger);
   const referenceController = new ReferenceDataController(logger);
-
-  const validate = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  };
 
   router.get('/users', adminAuthMiddleware, userController.getAll);
   router.post('/users', adminAuthMiddleware, AdminUserController.createValidation, validate, userController.create);

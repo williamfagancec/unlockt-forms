@@ -1,5 +1,6 @@
 const FormSubmissionService = require('../services/FormSubmissionService');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { success } = require('../utils/apiResponse');
 
 class FormSubmissionController {
   constructor(logger) {
@@ -9,20 +10,12 @@ class FormSubmissionController {
 
   submitLetterOfAppointment = asyncHandler(async (req, res) => {
     const submission = await this.formService.submitLetterOfAppointment(req.body, req.files);
-    res.json({
-      success: true,
-      submissionId: submission.id,
-      message: 'Form submitted successfully'
-    });
+    return success(res, { submissionId: submission.id }, 'Form submitted successfully');
   });
 
   submitQuoteSlip = asyncHandler(async (req, res) => {
     const submission = await this.formService.submitQuoteSlip(req.body, req.files);
-    res.json({
-      success: true,
-      submissionId: submission.id,
-      message: 'Quote slip submitted successfully'
-    });
+    return success(res, { submissionId: submission.id }, 'Quote slip submitted successfully');
   });
 }
 

@@ -1,6 +1,7 @@
 const ReferenceDataService = require('../services/ReferenceDataService');
 const referenceDataRepository = require('../repositories/ReferenceDataRepository');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { success } = require('../utils/apiResponse');
 
 class ReferenceDataController {
   constructor(logger) {
@@ -10,32 +11,32 @@ class ReferenceDataController {
 
   getInsurers = asyncHandler(async (req, res) => {
     const insurers = await referenceDataRepository.getActiveInsurers();
-    res.json(insurers);
+    return success(res, insurers);
   });
 
   getRoofTypes = asyncHandler(async (req, res) => {
     const types = await referenceDataRepository.getActiveRoofTypes();
-    res.json(types);
+    return success(res, types);
   });
 
   getExternalWallTypes = asyncHandler(async (req, res) => {
     const types = await referenceDataRepository.getActiveExternalWallTypes();
-    res.json(types);
+    return success(res, types);
   });
 
   getFloorTypes = asyncHandler(async (req, res) => {
     const types = await referenceDataRepository.getActiveFloorTypes();
-    res.json(types);
+    return success(res, types);
   });
 
   getBuildingTypes = asyncHandler(async (req, res) => {
     const types = await referenceDataRepository.getActiveBuildingTypes();
-    res.json(types);
+    return success(res, types);
   });
 
   reseedDropdowns = asyncHandler(async (req, res) => {
     const result = await this.referenceDataService.forceReseedDropdowns();
-    res.json(result);
+    return success(res, result, 'Dropdowns reseeded successfully');
   });
 }
 

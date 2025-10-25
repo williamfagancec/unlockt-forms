@@ -72,11 +72,6 @@ function errorHandler(logger) {
     err.statusCode = err.statusCode || 500;
     err.isOperational = err.isOperational !== undefined ? err.isOperational : false;
 
-    const errorResponse = {
-      error: err.message || 'An unexpected error occurred',
-      ...(err.errors && { errors: err.errors }),
-    };
-
     if (err.statusCode >= 500) {
       log.error({
         err,
@@ -96,12 +91,27 @@ function errorHandler(logger) {
       }, 'Client error');
     }
 
-    if (!err.isOperational && err.statusCode >= 500) {
-      errorResponse.error = 'An unexpected error occurred';
-      errorResponse.correlationId = req.correlationId;
+    const errorMessage = (!err.isOperational && err.statusCode >= 500)
+      ? 'An unexpected error occurred'
+      : err.message || 'An unexpected error occurred';
+
+    const response = {
+      success: false,
+      error: errorMessage
+    };
+
+    if (err.errors && Array.isArray(err.errors)) {
+      response.errors = err.errors.map(e => ({
+        field: e.path || e.param,
+        message: e.msg || e.message
+      }));
     }
 
-    res.status(err.statusCode).json(errorResponse);
+    if (!err.isOperational && err.statusCode >= 500 && req.correlationId) {
+      response.correlationId = req.correlationId;
+    }
+
+    res.status(err.statusCode).json(response);
   };
 }
 
@@ -113,6 +123,7 @@ function asyncHandler(fn) {
 
 function notFoundHandler(req, res) {
   res.status(404).json({
+    success: false,
     error: 'Endpoint not found',
     path: req.url,
   });

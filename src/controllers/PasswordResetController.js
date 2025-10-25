@@ -3,6 +3,7 @@ const { createResetToken, validateResetToken, consumeResetToken, sendResetEmail 
 const adminUserRepository = require('../repositories/AdminUserRepository');
 const bcrypt = require('bcryptjs');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { success, error, notFound } = require('../utils/apiResponse');
 
 class PasswordResetController {
   constructor(logger) {
@@ -15,10 +16,7 @@ class PasswordResetController {
     const user = await adminUserRepository.findByEmail(email);
     
     if (!user) {
-      return res.json({
-        success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.'
-      });
+      return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
     }
 
     const resetToken = await createResetToken(email);
@@ -28,32 +26,23 @@ class PasswordResetController {
 
     (req.log || this.logger).info({ email }, 'Password reset email sent');
 
-    res.json({
-      success: true,
-      message: 'If an account with that email exists, a password reset link has been sent.'
-    });
+    return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
   });
 
   validateToken = asyncHandler(async (req, res) => {
     const { token } = req.query;
     
     if (!token) {
-      return res.status(400).json({
-        valid: false,
-        error: 'Token is required'
-      });
+      return error(res, 'Token is required', 400);
     }
 
     const validation = await validateResetToken(token);
     
     if (!validation.valid) {
-      return res.json({
-        valid: false,
-        error: validation.error
-      });
+      return success(res, { valid: false, error: validation.error });
     }
 
-    res.json({ valid: true, email: validation.email });
+    return success(res, { valid: true, email: validation.email });
   });
 
   resetPassword = asyncHandler(async (req, res) => {
@@ -62,19 +51,13 @@ class PasswordResetController {
     const result = await consumeResetToken(token);
     
     if (!result.valid) {
-      return res.status(400).json({
-        success: false,
-        error: result.error || 'Invalid or expired token'
-      });
+      return error(res, result.error || 'Invalid or expired token', 400);
     }
 
     const user = await adminUserRepository.findByEmail(result.email);
     
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
+      return notFound(res, 'User');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
@@ -82,10 +65,7 @@ class PasswordResetController {
 
     (req.log || this.logger).info({ userId: user.id, email: user.email }, 'Password reset completed');
 
-    res.json({
-      success: true,
-      message: 'Password has been reset successfully'
-    });
+    return success(res, null, 'Password has been reset successfully');
   });
 
   static requestResetValidation = [

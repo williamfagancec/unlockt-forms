@@ -1,9 +1,9 @@
 const express = require('express');
-const { validationResult } = require('express-validator');
 const PasswordResetController = require('../controllers/PasswordResetController');
 const OnboardingController = require('../controllers/OnboardingController');
 const AzureAuthController = require('../controllers/AzureAuthController');
 const { loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword, adminAuthMiddleware } = require('../middleware/auth');
+const { validate } = require('../middleware/validation');
 
 function createAuthRoutes(logger, cca) {
   const router = express.Router();
@@ -11,14 +11,6 @@ function createAuthRoutes(logger, cca) {
   const passwordResetController = new PasswordResetController(logger);
   const onboardingController = new OnboardingController(logger);
   const azureAuthController = new AzureAuthController(logger, cca);
-
-  const validate = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  };
 
   router.post('/admin/login', loginValidation, validate, handleLogin);
   router.get('/admin/check-session', handleCheckSession);

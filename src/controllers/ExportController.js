@@ -1,5 +1,6 @@
 const ExportService = require('../services/ExportService');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { notFound } = require('../utils/apiResponse');
 
 class ExportController {
   constructor(logger) {
@@ -12,7 +13,7 @@ class ExportController {
     const result = await this.exportService.generateLetterOfAppointmentPDF(submissionId, res);
     
     if (!result) {
-      return res.status(404).json({ error: 'Submission not found' });
+      return notFound(res, 'Submission');
     }
   });
 

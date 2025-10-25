@@ -1,5 +1,6 @@
 const UserRepository = require('../repositories/UserRepository');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { success, error, serviceUnavailable } = require('../utils/apiResponse');
 
 class AzureAuthController {
   constructor(logger, cca) {
@@ -10,7 +11,7 @@ class AzureAuthController {
 
   getSignInUrl = asyncHandler(async (req, res) => {
     if (!this.cca) {
-      return res.status(503).json({ error: 'Azure AD authentication not configured' });
+      return serviceUnavailable(res, 'Azure AD authentication not configured');
     }
 
     const authCodeUrlParameters = {
@@ -21,15 +22,15 @@ class AzureAuthController {
     try {
       const authUrl = await this.cca.getAuthCodeUrl(authCodeUrlParameters);
       res.redirect(authUrl);
-    } catch (error) {
-      (req.log || this.logger).error({ err: error }, 'Error generating Azure AD auth URL');
-      res.status(500).json({ error: 'Authentication error' });
+    } catch (err) {
+      (req.log || this.logger).error({ err }, 'Error generating Azure AD auth URL');
+      return error(res, 'Authentication error', 500);
     }
   });
 
   handleRedirect = asyncHandler(async (req, res) => {
     if (!this.cca) {
-      return res.status(503).json({ error: 'Azure AD authentication not configured' });
+      return serviceUnavailable(res, 'Azure AD authentication not configured');
     }
 
     const tokenRequest = {
@@ -57,9 +58,9 @@ class AzureAuthController {
       }
       
       res.redirect('/');
-    } catch (error) {
-      (req.log || this.logger).error({ err: error }, 'Azure AD authentication error');
-      res.status(500).send('Authentication failed');
+    } catch (err) {
+      (req.log || this.logger).error({ err }, 'Azure AD authentication error');
+      return error(res, 'Authentication failed', 500);
     }
   });
 
@@ -74,7 +75,7 @@ class AzureAuthController {
 
   getAuthStatus = asyncHandler(async (req, res) => {
     if (req.session.user) {
-      res.json({
+      return success(res, {
         authenticated: true,
         user: {
           email: req.session.user.email,
@@ -82,7 +83,7 @@ class AzureAuthController {
         }
       });
     } else {
-      res.json({ authenticated: false });
+      return success(res, { authenticated: false });
     }
   });
 }

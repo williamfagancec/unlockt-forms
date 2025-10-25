@@ -1,6 +1,7 @@
 const { body } = require('express-validator');
 const OnboardingService = require('../services/OnboardingService');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { success } = require('../utils/apiResponse');
 
 class OnboardingController {
   constructor(logger) {
@@ -11,13 +12,13 @@ class OnboardingController {
   verifyToken = asyncHandler(async (req, res) => {
     const { token } = req.query;
     const result = await this.onboardingService.verifyOnboardingToken(token);
-    res.json(result);
+    return success(res, result);
   });
 
   completeOnboarding = asyncHandler(async (req, res) => {
     const { token, password } = req.body;
     const result = await this.onboardingService.completeOnboarding(token, password);
-    res.json(result);
+    return success(res, result, 'Onboarding completed successfully');
   });
 
   static completeOnboardingValidation = [
