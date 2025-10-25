@@ -70,12 +70,46 @@ function createDownloadsRoutes(logger) {
         res.setHeader('Content-Length', downloadResponse.contentLength);
         res.attachment(safeFilename);
         
-        downloadResponse.readableStreamBody.pipe(res);
+        const readableStream = downloadResponse.readableStreamBody;
+        
+        readableStream.on('error', (err) => {
+          logger.error({ 
+            err,
+            filename: safeFilename,
+            userId: req.session?.adminUser?.id 
+          }, 'Error streaming file from Azure storage');
+          
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Error downloading file' });
+          } else {
+            res.destroy();
+          }
+        });
+        
+        res.on('error', (err) => {
+          logger.error({ 
+            err,
+            filename: safeFilename,
+            userId: req.session?.adminUser?.id 
+          }, 'Error on response stream during Azure download');
+          
+          if (readableStream && !readableStream.destroyed) {
+            readableStream.destroy();
+          }
+        });
+        
+        res.on('close', () => {
+          if (readableStream && !readableStream.destroyed) {
+            readableStream.destroy();
+          }
+        });
+        
+        readableStream.pipe(res);
         
         logger.info({ 
           filename: safeFilename,
           userId: req.session?.adminUser?.id
-        }, 'File downloaded from Azure storage');
+        }, 'File download from Azure storage started');
         
       } else {
         const filePath = path.join(process.cwd(), 'uploads', normalizedFilename);
