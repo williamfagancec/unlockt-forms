@@ -1,6 +1,14 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-25**: **Phase 3: Separation of Concerns** - Completed transformation of monolithic 1,964-line index.js into clean layered architecture:
+  - **Repository Layer** (5 files): Isolated all database access (AdminUserRepository, FormSubmissionRepository, QuoteSlipRepository, ReferenceDataRepository, UserRepository)
+  - **Service Layer** (5 files): Extracted business logic into domain services (UserManagementService, FormSubmissionService, ExportService, OnboardingService, ReferenceDataService)
+  - **Controller Layer** (8 files): Created thin HTTP handlers delegating to services (AdminUserController, AdminDashboardController, ExportController, OnboardingController, PasswordResetController, FormSubmissionController, ReferenceDataController, AzureAuthController)
+  - **Route Layer** (6 files): Organized routes by domain using Express Router (admin.routes.js, submissions.routes.js, auth.routes.js, forms.routes.js, reference.routes.js, pages.routes.js)
+  - **Refactored index.js**: Reduced from 1,964 lines to ~200 lines minimal orchestration file
+  - Fixed storage.js lazy-loading for config, added adminAuthMiddleware export alias
+  - All endpoints tested and verified working, no regressions observed
 - **2025-10-25**: **Phase 1 & 2: Foundation & Structure Refactoring** - Reorganized codebase for production scalability and maintainability:
   - Added typed configuration management with Zod validation (`src/utils/config.js`)
   - Implemented structured logging with Pino, correlation IDs, and request tracking (`src/utils/logger.js`)
@@ -39,11 +47,20 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 The application features distinct interfaces for public users and administrators. Public forms (`letter-of-appointment.html`, `quote-slip.html`) are designed for easy, unauthenticated submission. The admin portal (`admin-login.html`, `admin.html`) provides a dashboard with statistics and detailed views of submissions. Form validation includes visual feedback (red borders, background highlights) and auto-scrolling to improve user experience.
 
 ### Technical Implementations
-- **Backend**: Node.js with Express.js handles API routes, form submissions, and authentication.
+- **Backend**: Node.js with Express.js using layered architecture for scalability and maintainability.
+  - **Architecture**: Clean separation of concerns with Repository → Service → Controller → Route layers
   - **Logging**: Structured logging with Pino, correlation IDs for request tracking, environment-specific formatting (pretty in dev, JSON in prod)
   - **Configuration**: Typed config management with Zod validation for environment variables
   - **Error Handling**: Centralized error middleware with custom error classes (ValidationError, AuthenticationError, etc.)
   - **Security**: Helmet middleware for security headers, CSRF protection (planned), rate limiting
+  - **Code Organization**: 
+    - `src/repositories/`: Database access layer (5 repositories)
+    - `src/services/`: Business logic layer (5 services)
+    - `src/controllers/`: HTTP request handlers (8 controllers)
+    - `src/routes/`: Express route modules (6 domain-organized routes)
+    - `src/middleware/`: Custom middleware (auth, error handling, logging)
+    - `src/infrastructure/`: Database, storage, and external service integrations
+    - `src/utils/`: Shared utilities (config, logger, async handlers)
 - **Database**: PostgreSQL is used for data persistence, managed via Drizzle ORM.
   - Development: Neon-backed PostgreSQL on Replit.
   - Production: Azure Database for PostgreSQL.
