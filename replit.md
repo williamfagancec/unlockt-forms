@@ -5,6 +5,64 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Security Enhancement: Rate Limiting for Password Reset Token Validation (2025-10-25)
+**Security Enhancement:** Added missing rate limiter middleware to password reset token validation endpoint.
+
+**Problem:**
+The GET `/api/admin/validate-reset-token` endpoint was missing rate limiting protection, while the other password reset endpoints (`/admin/forgot-password` and `/admin/reset-password`) were properly protected. This inconsistency:
+- **Security gap:** Allowed unlimited token validation attempts
+- **Brute force vulnerability:** Attackers could rapidly test stolen/guessed tokens
+- **DoS risk:** Endpoint could be hammered without throttling
+- **Inconsistent protection:** Password reset flow had uneven security
+
+**Solution:**
+Added `passwordResetLimiter` middleware to the validate-reset-token route:
+
+```javascript
+// Before (Missing rate limiter)
+router.get('/admin/validate-reset-token', passwordResetController.validateToken);
+
+// After (Protected with rate limiter)
+router.get('/admin/validate-reset-token', passwordResetLimiter, passwordResetController.validateToken);
+```
+
+**Rate Limiter Configuration:**
+- **Limit:** 3 requests per IP address
+- **Window:** 1 hour (60 minutes)
+- **Response:** HTTP 429 with clear error message
+- **Message:** "Too many password reset requests. Please try again in 1 hour."
+
+**Consistent Protection Across Password Reset Flow:**
+```javascript
+// All three endpoints now protected with passwordResetLimiter
+router.post('/admin/forgot-password', passwordResetLimiter, ...);      // ✅
+router.get('/admin/validate-reset-token', passwordResetLimiter, ...);  // ✅ FIXED
+router.post('/admin/reset-password', passwordResetLimiter, ...);       // ✅
+```
+
+**Security Benefits:**
+- ✅ **Brute force protection:** Limits token guessing attempts to 3 per hour
+- ✅ **DoS mitigation:** Prevents endpoint abuse and excessive requests
+- ✅ **Consistent security:** All password reset endpoints equally protected
+- ✅ **Attack detection:** Rate limit violations are logged for monitoring
+- ✅ **User experience:** Legitimate users unaffected (3 attempts sufficient)
+
+**Verified Behavior:**
+```
+Request 1: 200 OK
+Request 2: 200 OK
+Request 3: 200 OK
+Request 4: 429 Too Many Requests ← Rate limit enforced
+Request 5: 429 Too Many Requests
+Request 6: 429 Too Many Requests
+```
+
+**Files Modified:**
+- `src/routes/auth.routes.js` - Line 25 (added passwordResetLimiter middleware)
+
+**Related Configuration:**
+- `src/middleware/rateLimiter.js` - passwordResetLimiter configuration (3 req/hour)
+
 ### Security Fix: Centralized URL Construction in Password Reset Service (2025-10-25)
 **Security Fix:** Replaced unsafe URL construction in password reset email service with centralized config.
 

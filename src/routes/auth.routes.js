@@ -19,7 +19,7 @@ function createAuthRoutes(logger, cca) {
   router.post('/admin/change-password', adminAuthMiddleware, changePasswordValidation, validate, handleChangePassword);
 
   router.post('/admin/forgot-password', passwordResetLimiter, PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
-  router.get('/admin/validate-reset-token', passwordResetController.validateToken);
+  router.get('/admin/validate-reset-token', passwordResetLimiter, passwordResetController.validateToken);
   router.post('/admin/reset-password', passwordResetLimiter, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
 
   router.get('/verify-onboarding-token', OnboardingController.verifyTokenValidation, validate, onboardingController.verifyToken);
