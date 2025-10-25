@@ -5,6 +5,146 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: Remove Non-Existent lastFailedLogin Column References (2025-10-25)
+**Bug Fix:** Removed all references to the non-existent `lastFailedLogin` column in AdminUserRepository to prevent runtime database errors.
+
+**Problem:**
+The `AdminUserRepository.js` was attempting to use a `lastFailedLogin` column that doesn't exist in the `admin_users` table schema, causing runtime database errors when:
+- Fetching all admin users (`findAll()`)
+- Incrementing failed login attempts
+- Resetting failed login attempts
+- Unfreezing admin accounts
+
+**Schema Analysis:**
+The `admin_users` table in `shared/schema.js` has these timestamp columns:
+- ✅ `lastLoginAt` - Exists (tracks successful logins)
+- ✅ `lastPasswordResetAt` - Exists (tracks password changes)
+- ✅ `frozenAt` - Exists (tracks when account was frozen)
+- ❌ `lastFailedLogin` - **Does NOT exist**
+
+**Error Scenario:**
+```javascript
+// Before (would cause database error)
+async findAll() {
+  return await db.select({
+    ...
+    lastFailedLogin: adminUsers.lastFailedLogin,  // ❌ Column doesn't exist
+    ...
+  })
+}
+
+// Database error:
+// column admin_users.last_failed_login does not exist
+```
+
+**Solution:**
+Removed all 4 references to `lastFailedLogin` across the repository:
+
+**1. findAll() - Line 46 (removed from select)**
+```javascript
+// Before
+async findAll() {
+  return await db.select({
+    id: adminUsers.id,
+    ...
+    failedLoginAttempts: adminUsers.failedLoginAttempts,
+    lastFailedLogin: adminUsers.lastFailedLogin,  // ❌ Removed
+    createdAt: adminUsers.createdAt,
+    ...
+  })
+}
+
+// After
+async findAll() {
+  return await db.select({
+    id: adminUsers.id,
+    ...
+    failedLoginAttempts: adminUsers.failedLoginAttempts,
+    createdAt: adminUsers.createdAt,  // ✅ Clean select
+    ...
+  })
+}
+```
+
+**2. incrementFailedLoginAttempts() - Line 90 (removed from update)**
+```javascript
+// Before
+async incrementFailedLoginAttempts(id) {
+  await db.update(adminUsers).set({
+    failedLoginAttempts: db.raw('failed_login_attempts + 1'),
+    lastFailedLogin: new Date(),  // ❌ Removed
+    updatedAt: new Date()
+  })
+}
+
+// After
+async incrementFailedLoginAttempts(id) {
+  await db.update(adminUsers).set({
+    failedLoginAttempts: db.raw('failed_login_attempts + 1'),
+    updatedAt: new Date()  // ✅ Only valid columns
+  })
+}
+```
+
+**3. resetFailedLoginAttempts() - Line 101 (removed from update)**
+```javascript
+// Before
+async resetFailedLoginAttempts(id) {
+  await db.update(adminUsers).set({
+    failedLoginAttempts: 0,
+    lastFailedLogin: null,  // ❌ Removed
+    updatedAt: new Date()
+  })
+}
+
+// After
+async resetFailedLoginAttempts(id) {
+  await db.update(adminUsers).set({
+    failedLoginAttempts: 0,
+    updatedAt: new Date()  // ✅ Only valid columns
+  })
+}
+```
+
+**4. unfreezeAccount() - Line 123 (removed from update)**
+```javascript
+// Before
+async unfreezeAccount(id) {
+  await db.update(adminUsers).set({
+    isFrozen: false,
+    failedLoginAttempts: 0,
+    lastFailedLogin: null,  // ❌ Removed
+    updatedAt: new Date()
+  })
+}
+
+// After
+async unfreezeAccount(id) {
+  await db.update(adminUsers).set({
+    isFrozen: false,
+    failedLoginAttempts: 0,
+    updatedAt: new Date()  // ✅ Only valid columns
+  })
+}
+```
+
+**Impact:**
+- **Before:** Database errors when managing admin users
+- **After:** All repository methods work correctly with actual schema columns
+- **Data integrity:** No data loss (column never existed)
+
+**Files Modified:**
+- `src/repositories/AdminUserRepository.js` - Removed 4 references to non-existent column
+
+**Verification:**
+- ✅ LSP diagnostics clean (no syntax errors)
+- ✅ Server restart successful
+- ✅ No references to `lastFailedLogin` remaining in codebase
+- ✅ All repository methods now use only valid columns from schema
+
+**Key Takeaway:**
+Always verify column existence in the actual database schema (`shared/schema.js`) before referencing columns in repository code. The `admin_users` table tracks failed login attempts with `failedLoginAttempts` counter but does not store the timestamp of the last failed login.
+
 ### Security Enhancement: Prevent CSRF Token Caching (2025-10-25)
 **Security Enhancement:** Added cache-control headers to CSRF token endpoint to prevent token caching.
 

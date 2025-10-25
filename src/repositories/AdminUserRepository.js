@@ -43,7 +43,6 @@ class AdminUserRepository {
         isActive: adminUsers.isActive,
         isFrozen: adminUsers.isFrozen,
         failedLoginAttempts: adminUsers.failedLoginAttempts,
-        lastFailedLogin: adminUsers.lastFailedLogin,
         createdAt: adminUsers.createdAt,
         updatedAt: adminUsers.updatedAt,
         onboardingTokenExpiry: adminUsers.onboardingTokenExpiry
@@ -87,7 +86,6 @@ class AdminUserRepository {
       .update(adminUsers)
       .set({
         failedLoginAttempts: db.raw('failed_login_attempts + 1'),
-        lastFailedLogin: new Date(),
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
@@ -98,7 +96,6 @@ class AdminUserRepository {
       .update(adminUsers)
       .set({
         failedLoginAttempts: 0,
-        lastFailedLogin: null,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
@@ -120,7 +117,6 @@ class AdminUserRepository {
       .set({
         isFrozen: false,
         failedLoginAttempts: 0,
-        lastFailedLogin: null,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
