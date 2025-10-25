@@ -1,13 +1,34 @@
 const cache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
 
-const cacheMiddleware = (duration = CACHE_TTL) => {
+const cacheMiddleware = (durationOrOptions = CACHE_TTL) => {
+  let duration = CACHE_TTL;
+  let options = {};
+  
+  if (typeof durationOrOptions === 'number') {
+    duration = durationOrOptions;
+  } else if (typeof durationOrOptions === 'object') {
+    duration = durationOrOptions.duration || CACHE_TTL;
+    options = durationOrOptions;
+  }
+  
   return (req, res, next) => {
     if (req.method !== 'GET') {
       return next();
     }
 
-    const key = `__express__${req.originalUrl || req.url}`;
+    let key = `__express__${req.originalUrl || req.url}`;
+    
+    if (options.keyGenerator && typeof options.keyGenerator === 'function') {
+      key = options.keyGenerator(req);
+    } else {
+      if (options.varyByUser && req.user && req.user.id) {
+        key += `::user:${req.user.id}`;
+      } else if (options.varyBySession && req.sessionID) {
+        key += `::session:${req.sessionID}`;
+      }
+    }
+    
     const cachedResponse = cache.get(key);
 
     if (cachedResponse) {

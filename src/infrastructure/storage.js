@@ -109,28 +109,57 @@ const uploadFileToBlob = async (file) => {
   return blockBlobClient.url;
 };
 
+const sanitizeFilename = (filename) => {
+  const MAX_FILENAME_LENGTH = 255;
+  
+  const basename = path.basename(filename);
+  
+  if (!basename || basename.length === 0) {
+    throw new Error('Invalid filename: filename cannot be empty');
+  }
+  
+  const sanitized = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  
+  if (sanitized.length === 0 || sanitized === '.' || sanitized === '..') {
+    throw new Error('Invalid filename: filename contains only invalid characters');
+  }
+  
+  if (sanitized.length > MAX_FILENAME_LENGTH) {
+    throw new Error(`Invalid filename: filename exceeds maximum length of ${MAX_FILENAME_LENGTH} characters`);
+  }
+  
+  const parts = sanitized.split('.');
+  if (parts.length > 2 || (parts.length === 2 && parts[0].length === 0)) {
+    throw new Error('Invalid filename: must have format name.ext or name');
+  }
+  
+  return sanitized;
+};
+
 const uploadSignatureToBlob = async (base64Data, filename) => {
   initializeStorage();
   const config = getConfig();
   
   if (!config.isAzureProduction) {
-    const signaturePath = path.join('uploads', filename);
+    const sanitizedFilename = sanitizeFilename(filename);
+    const signaturePath = path.join('uploads', sanitizedFilename);
     
     if (!fs.existsSync('uploads')) {
       fs.mkdirSync('uploads', { recursive: true });
     }
     
     fs.writeFileSync(signaturePath, base64Data, 'base64');
-    return filename;
+    return sanitizedFilename;
   }
 
+  const sanitizedFilename = sanitizeFilename(filename);
   const containerClient = blobServiceClient.getContainerClient(containerName);
   
   await containerClient.createIfNotExists({
     access: 'blob'
   });
 
-  const blockBlobClient = containerClient.getBlockBlobClient(filename);
+  const blockBlobClient = containerClient.getBlockBlobClient(sanitizedFilename);
   const buffer = Buffer.from(base64Data, 'base64');
   
   await blockBlobClient.uploadData(buffer, {

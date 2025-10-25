@@ -5,6 +5,206 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Security Fix: Path Traversal Prevention in File Uploads (2025-10-25)
+**Security Fix:** Added filename sanitization to prevent path traversal attacks in signature uploads.
+
+**Problem:**
+The `uploadSignatureToBlob` function in `src/infrastructure/storage.js` was using raw filenames without validation, creating a critical path traversal vulnerability:
+- **Path traversal risk:** Filenames containing `../` could write outside the uploads directory
+- **Directory traversal:** Attackers could overwrite system files or application code
+- **No validation:** Filenames were used directly in file write operations
+- **Inconsistent security:** File uploads via multer were controlled, but signature uploads were not
+
+**Attack Example:**
+```javascript
+// Malicious filename could escape uploads directory
+filename = "../../../etc/passwd"  // Could overwrite system files
+filename = "../../index.js"       // Could overwrite application code
+```
+
+**Solution:**
+Added comprehensive filename sanitization with multiple security layers:
+
+```javascript
+const sanitizeFilename = (filename) => {
+  const MAX_FILENAME_LENGTH = 255;
+  
+  // 1. Extract basename only (removes any path components)
+  const basename = path.basename(filename);
+  
+  // 2. Enforce whitelist: only alphanumerics, dot, hyphen, underscore
+  const sanitized = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  
+  // 3. Validate non-empty
+  if (!sanitized || sanitized === '.' || sanitized === '..') {
+    throw new Error('Invalid filename');
+  }
+  
+  // 4. Enforce max length
+  if (sanitized.length > MAX_FILENAME_LENGTH) {
+    throw new Error('Filename too long');
+  }
+  
+  // 5. Validate single extension only
+  const parts = sanitized.split('.');
+  if (parts.length > 2) {
+    throw new Error('Invalid filename format');
+  }
+  
+  return sanitized;
+};
+```
+
+**Sanitization Rules:**
+1. ✅ **path.basename():** Strips all directory components (`../../etc/passwd` → `passwd`)
+2. ✅ **Character whitelist:** Only allows `[a-zA-Z0-9._-]`, replaces others with `_`
+3. ✅ **Non-empty validation:** Rejects empty strings, `.`, `..`
+4. ✅ **Length limit:** Maximum 255 characters
+5. ✅ **Single extension:** Allows `name.ext` or `name`, rejects `name.tar.gz`
+
+**Before/After Examples:**
+```javascript
+// Path traversal attempts
+"../../../etc/passwd"           → "passwd"
+"../../index.js"                → "index.js"
+"uploads/../config.json"        → "config.json"
+
+// Invalid characters
+"signature file!@#.png"         → "signature_file___.png"
+"user<script>.png"              → "user_script_.png"
+"file name with spaces.jpg"     → "file_name_with_spaces.jpg"
+
+// Edge cases
+""                              → Error: Invalid filename
+"."                             → Error: Invalid filename
+".."                            → Error: Invalid filename
+```
+
+**Security Benefits:**
+- ✅ **Path traversal blocked:** All directory components removed via path.basename()
+- ✅ **Character injection prevented:** Only safe characters allowed
+- ✅ **Filesystem safety:** Cannot create hidden files or special names
+- ✅ **Consistent protection:** Applied to both local and Azure storage paths
+- ✅ **Returns sanitized name:** Caller receives the safe filename used
+
+**Files Modified:**
+- `src/infrastructure/storage.js` - Lines 115-175 (added sanitizeFilename, applied to uploadSignatureToBlob)
+
+**Scope:**
+- Applied to both development (local filesystem) and production (Azure Blob) paths
+- All signature uploads now sanitized before storage
+
+### Security Fix: Cache Privacy Leak Prevention (2025-10-25)
+**Security Fix:** Enhanced cache middleware to support user-specific and session-specific cache keys.
+
+**Problem:**
+The `cacheMiddleware` in `src/middleware/cache.js` was using only the request URL as the cache key, creating a privacy leak vulnerability:
+- **Privacy leak:** Cached responses shared across all users
+- **Data exposure:** User A could see User B's cached data
+- **Session bleed:** No session isolation in cached responses
+- **One-size-fits-all:** No way to vary cache by user or session context
+
+**Vulnerable Behavior:**
+```javascript
+// Before: Same cache key for all users
+const key = `__express__${req.originalUrl}`;
+// User A requests /api/profile → caches response
+// User B requests /api/profile → gets User A's data! ❌
+```
+
+**Solution:**
+Extended cache middleware to accept options for user/session-specific caching:
+
+```javascript
+// New flexible signature
+cacheMiddleware(durationOrOptions)
+
+// Option 1: Simple duration (backward compatible)
+cacheMiddleware(5 * 60 * 1000)
+
+// Option 2: Options object with varyByUser
+cacheMiddleware({ 
+  duration: 5 * 60 * 1000, 
+  varyByUser: true 
+})
+
+// Option 3: Options object with varyBySession
+cacheMiddleware({ 
+  duration: 5 * 60 * 1000, 
+  varyBySession: true 
+})
+
+// Option 4: Custom key generator
+cacheMiddleware({ 
+  duration: 5 * 60 * 1000, 
+  keyGenerator: (req) => `custom_${req.user?.id}_${req.params.id}` 
+})
+```
+
+**Cache Key Generation Logic:**
+```javascript
+let key = `__express__${req.originalUrl || req.url}`;
+
+// Priority 1: Custom key generator (most flexible)
+if (options.keyGenerator && typeof options.keyGenerator === 'function') {
+  key = options.keyGenerator(req);
+}
+// Priority 2: Vary by user ID (when authenticated)
+else if (options.varyByUser && req.user && req.user.id) {
+  key += `::user:${req.user.id}`;
+}
+// Priority 3: Vary by session ID (for anonymous users)
+else if (options.varyBySession && req.sessionID) {
+  key += `::session:${req.sessionID}`;
+}
+```
+
+**Example Cache Keys:**
+```javascript
+// Public data (no options)
+"__express__/api/insurers"
+
+// User-specific data
+"__express__/api/profile::user:123"
+"__express__/api/settings::user:456"
+
+// Session-specific data
+"__express__/api/cart::session:abc123def"
+"__express__/api/temp-data::session:xyz789"
+
+// Custom key
+"custom_123_order_456"
+```
+
+**Security Benefits:**
+- ✅ **Privacy protection:** User data never shared across users
+- ✅ **Session isolation:** Session-specific data properly isolated
+- ✅ **Backward compatible:** Existing numeric duration calls still work
+- ✅ **Defensive checks:** Only adds identifiers when they exist (`req.user?.id`)
+- ✅ **Flexible:** Custom key generators for complex scenarios
+- ✅ **Opt-in security:** Public data remains public, private data isolated when configured
+
+**Usage Guidelines:**
+```javascript
+// Public reference data (shared cache OK)
+const publicCache = cacheMiddleware(5 * 60 * 1000);
+router.get('/insurers', publicCache, controller.getInsurers);
+
+// User-specific data (isolated by user)
+const userCache = cacheMiddleware({ duration: 5 * 60 * 1000, varyByUser: true });
+router.get('/profile', authenticate, userCache, controller.getProfile);
+
+// Session-specific data (isolated by session)
+const sessionCache = cacheMiddleware({ duration: 5 * 60 * 1000, varyBySession: true });
+router.get('/cart', sessionCache, controller.getCart);
+```
+
+**Files Modified:**
+- `src/middleware/cache.js` - Lines 3-61 (enhanced cacheMiddleware signature and key generation)
+
+**Current Usage:**
+- `src/routes/reference.routes.js` - Uses simple duration (public data, correct usage)
+
 ### Security Enhancement: Rate Limiting for Password Reset Token Validation (2025-10-25)
 **Security Enhancement:** Added missing rate limiter middleware to password reset token validation endpoint.
 
