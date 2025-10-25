@@ -5,6 +5,45 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: Pagination Safety in Response Utilities (2025-10-25)
+**Fix:** Prevented `Infinity` and `NaN` in pagination responses by safely validating limit before division.
+
+**Problem:**
+The `paginatedResponse()` function in `src/utils/response.js` calculated `totalPages` using `Math.ceil(total / limit)` without validation. This could produce:
+- `Infinity` when `limit` is 0
+- `NaN` when `limit` is undefined, null, or non-numeric
+- Invalid results for negative limits
+
+**Solution:**
+Added safe computation with proper validation:
+```javascript
+const total = Number(pagination.total) || 0;
+const limit = Number(pagination.limit) || 0;
+const page = Number(pagination.page) || 1;
+
+const totalPages = (Number.isFinite(limit) && limit > 0) 
+  ? Math.ceil(total / limit) 
+  : 0;
+```
+
+**Impact:**
+- ✅ **No Infinity/NaN:** All pagination fields are guaranteed to be valid numbers
+- ✅ **Graceful degradation:** Invalid inputs default to safe values (0 or 1)
+- ✅ **Type safety:** All inputs coerced to numbers with fallbacks
+- ✅ **Negative protection:** Negative limits produce 0 pages instead of errors
+
+**Test Results:**
+| Input | Old Behavior | New Behavior |
+|-------|-------------|--------------|
+| `limit: 0` | `Infinity` | `0` ✅ |
+| `limit: undefined` | `NaN` | `0` ✅ |
+| `limit: -5` | `-20` | `0` ✅ |
+| `limit: "invalid"` | `NaN` | `0` ✅ |
+| `limit: 10` | `10` | `10` ✅ |
+
+**Files Modified:**
+- `src/utils/response.js` - Lines 25-44
+
 ### Code Quality: DRY Refactoring in ReferenceDataService (2025-10-25)
 **Improvement:** Eliminated code duplication by extracting seed data arrays to module-level constants.
 
