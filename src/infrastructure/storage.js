@@ -40,9 +40,39 @@ function initializeStorage() {
     });
   }
 
+  const ALLOWED_MIME_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ];
+
+  const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.xls', '.xlsx'];
+
+  const fileFilter = (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isValidMime = ALLOWED_MIME_TYPES.includes(file.mimetype);
+    const isValidExt = ALLOWED_EXTENSIONS.includes(ext);
+
+    if (isValidMime && isValidExt) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`), false);
+    }
+  };
+
   upload = multer({ 
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }
+    limits: { 
+      fileSize: 10 * 1024 * 1024,
+      files: 10
+    },
+    fileFilter: fileFilter
   });
   
   configLoaded = true;

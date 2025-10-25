@@ -17,7 +17,12 @@ if (isNeonDatabase) {
   const ws = require('ws');
   
   neonConfig.webSocketConstructor = ws;
-  pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  pool = new Pool({ 
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
   db = drizzle({ client: pool, schema });
 } else {
   // Use standard PostgreSQL driver (for Azure, local, etc.)
@@ -28,7 +33,13 @@ if (isNeonDatabase) {
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' || process.env.WEBSITE_INSTANCE_ID
       ? { rejectUnauthorized: false }
-      : false
+      : false,
+    max: 20,
+    min: 2,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    statement_timeout: 30000,
+    query_timeout: 30000,
   });
   db = drizzle(pool, { schema });
 }

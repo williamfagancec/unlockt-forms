@@ -4,6 +4,7 @@ const OnboardingController = require('../controllers/OnboardingController');
 const AzureAuthController = require('../controllers/AzureAuthController');
 const { loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword, adminAuthMiddleware } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
+const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 
 function createAuthRoutes(logger, cca) {
   const router = express.Router();
@@ -12,14 +13,14 @@ function createAuthRoutes(logger, cca) {
   const onboardingController = new OnboardingController(logger);
   const azureAuthController = new AzureAuthController(logger, cca);
 
-  router.post('/admin/login', loginValidation, validate, handleLogin);
+  router.post('/admin/login', authLimiter, loginValidation, validate, handleLogin);
   router.get('/admin/check-session', handleCheckSession);
   router.post('/admin/logout', handleLogout);
   router.post('/admin/change-password', adminAuthMiddleware, changePasswordValidation, validate, handleChangePassword);
 
-  router.post('/admin/forgot-password', PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
+  router.post('/admin/forgot-password', passwordResetLimiter, PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
   router.get('/admin/validate-reset-token', passwordResetController.validateToken);
-  router.post('/admin/reset-password', PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
+  router.post('/admin/reset-password', passwordResetLimiter, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
 
   router.get('/verify-onboarding-token', onboardingController.verifyToken);
   router.post('/complete-onboarding', OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
