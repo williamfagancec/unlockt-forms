@@ -1,6 +1,16 @@
 # Unlockt Insurance Form Application
 
 ## Recent Changes
+- **2025-10-25**: **Phase 5: Security & Performance** - Hardened application with production-ready security controls and performance optimizations:
+  - **Rate Limiting** (`src/middleware/rateLimiter.js`): Authentication endpoints protected (5 attempts/15min), password reset limited (3 attempts/hour), general API limiting (100 requests/15min)
+  - **Enhanced Security Headers**: Comprehensive CSP, HSTS with preload, X-Frame-Options DENY, referrer policy, XSS protection
+  - **File Upload Security** (`src/infrastructure/storage.js`): MIME type validation, file extension whitelist, 10MB limit, prevents malicious file uploads
+  - **Response Compression**: Gzip compression for improved performance (1KB threshold)
+  - **Caching Strategy** (`src/middleware/cache.js`): In-memory caching for reference data (5-min TTL), X-Cache headers, dramatic response time improvement
+  - **Database Optimization** (`src/infrastructure/database.js`): Connection pooling configured (Neon: max 10, PostgreSQL: max 20), query timeouts (30s), no N+1 queries found
+  - **CSRF Infrastructure** (`src/middleware/csrf.js`): Double-submit cookie pattern ready (requires frontend integration to activate)
+  - All security and performance features tested and verified, no regressions
+  - Architect reviewed and approved with Pass status
 - **2025-10-25**: **Phase 4: API Standardization** - Implemented consistent response formats and validation patterns across all endpoints:
   - **Standardized Response Utilities** (`src/utils/apiResponse.js`): Created success(), error(), created(), notFound(), unauthorized(), forbidden(), validationError() helpers with HTTP_STATUS constants
   - **Centralized Validation Middleware** (`src/middleware/validation.js`): Single validate() function replaces duplicate validation logic across route files
