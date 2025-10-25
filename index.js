@@ -17,6 +17,7 @@ const { setLogger: setAuthLogger } = require('./src/middleware/auth');
 
 const adminUserRepository = require('./src/repositories/AdminUserRepository');
 const ReferenceDataService = require('./src/services/ReferenceDataService');
+const { runProductionChecks } = require('./src/utils/productionChecks');
 
 const createAdminRoutes = require('./src/routes/admin.routes');
 const createSubmissionsRoutes = require('./src/routes/submissions.routes');
@@ -24,6 +25,7 @@ const createAuthRoutes = require('./src/routes/auth.routes');
 const createFormsRoutes = require('./src/routes/forms.routes');
 const createReferenceRoutes = require('./src/routes/reference.routes');
 const createPagesRoutes = require('./src/routes/pages.routes');
+const createHealthRoutes = require('./src/routes/health.routes');
 
 const app = express();
 const PORT = config.PORT;
@@ -202,6 +204,7 @@ async function initializeDropdownData() {
   await referenceDataService.initializeDropdowns();
 }
 
+app.use('/health', createHealthRoutes(logger));
 app.use('/', createPagesRoutes());
 app.use('/api', createReferenceRoutes(logger));
 app.use('/api', createFormsRoutes(logger));
@@ -213,16 +216,70 @@ app.use('/auth', createAuthRoutes(logger, cca));
 app.use(notFoundHandler);
 app.use(errorHandler(logger));
 
+let server;
+
 async function startServer() {
+  try {
+    await runProductionChecks(pgPool, logger);
+  } catch (error) {
+    logger.error({ err: error }, 'Production readiness checks failed');
+    if (isProduction) {
+      throw error;
+    }
+    logger.warn('Continuing startup in development mode despite check failures');
+  }
+
   await initializeDefaultAdmin();
   await initializeDropdownData();
 
-  app.listen(PORT, '0.0.0.0', () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     logger.info(`Server running on http://0.0.0.0:${PORT}`);
     logger.info('Public form: /');
     logger.info('Admin dashboard: /admin');
   });
+
+  return server;
 }
+
+async function gracefulShutdown(signal) {
+  logger.info({ signal }, 'Graceful shutdown initiated');
+
+  if (server) {
+    server.close(async () => {
+      logger.info('HTTP server closed');
+
+      try {
+        await pgPool.end();
+        logger.info('Database pool closed');
+      } catch (error) {
+        logger.error({ err: error }, 'Error closing database pool');
+      }
+
+      logger.info('Shutdown complete');
+      process.exit(0);
+    });
+
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);
+  } else {
+    process.exit(0);
+  }
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+process.on('uncaughtException', (error) => {
+  logger.error({ err: error }, 'Uncaught exception');
+  gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ reason, promise }, 'Unhandled promise rejection');
+  gracefulShutdown('unhandledRejection');
+});
 
 startServer().catch((error) => {
   logger.error({ err: error }, 'Failed to start server');
