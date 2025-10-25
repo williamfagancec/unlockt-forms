@@ -38,16 +38,12 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm start"
+args = "node index.js"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 35903
-externalPort = 3000
 
 [[ports]]
 localPort = 36683
@@ -68,6 +64,10 @@ externalPort = 8000
 [[ports]]
 localPort = 41225
 externalPort = 5000
+
+[[ports]]
+localPort = 44605
+externalPort = 3000
 
 [[ports]]
 localPort = 45153

@@ -7,6 +7,7 @@ const { createLogger, addCorrelationId, createRequestLogger } = require('./src/u
 const logger = createLogger(config);
 
 const express = require('express');
+const crypto = require('crypto');
 const helmet = require('helmet');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
@@ -30,12 +31,17 @@ const createHealthRoutes = require('./src/routes/health.routes');
 const app = express();
 const PORT = config.PORT;
 
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+      styleSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`, "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:"],
       connectSrc: ["'self'"],
@@ -54,7 +60,6 @@ app.use(helmet({
     action: 'deny',
   },
   noSniff: true,
-  xssFilter: true,
   referrerPolicy: {
     policy: 'strict-origin-when-cross-origin',
   },

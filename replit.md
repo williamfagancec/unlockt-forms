@@ -5,6 +5,29 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Content Security Policy Enhancement (2025-10-25)
+**Security hardening:** Updated Helmet middleware configuration to implement stricter Content-Security-Policy with cryptographic nonces.
+
+**Changes:**
+- Removed deprecated `xssFilter` option from Helmet configuration
+- Removed `'unsafe-inline'` from both `scriptSrc` and `styleSrc` CSP directives
+- Implemented per-request nonce generation using `crypto.randomBytes(32)` 
+- Added nonce-based CSP directives via function callbacks: `(req, res) => 'nonce-${res.locals.cspNonce}'`
+- Nonces are attached to `res.locals.cspNonce` for each request
+
+**Impact:** Strengthens defense against XSS attacks by allowing only scripts and styles with valid nonces to execute. Modern CSP approach that's more secure than relying on `'unsafe-inline'`.
+
+**Next Steps for Full CSP Compliance:**
+- Static HTML files in `/public` directory still contain inline scripts and styles
+- These files are served via `express.static` and `res.sendFile()`, which cannot access `res.locals.cspNonce`
+- Options to resolve:
+  1. Move inline scripts/styles to external files
+  2. Implement a template engine (EJS, Pug) to inject nonces dynamically
+  3. Add middleware to inject nonces into HTML before sending
+
+**Files Modified:**
+- `index.js` - Added crypto import, nonce middleware, updated Helmet CSP configuration
+
 ### XSS Vulnerability Fix (2025-10-25)
 **Critical security issue resolved:** Fixed cross-site scripting (XSS) vulnerability in admin detail pages where user-controlled filenames from form submissions were inserted into HTML without proper sanitization.
 
