@@ -300,6 +300,7 @@ async function handleChangePassword(req, res) {
 module.exports = {
   setLogger,
   authMiddleware,
+  adminAuthMiddleware: authMiddleware,
   adminPageMiddleware,
   loginValidation,
   handleLogin,

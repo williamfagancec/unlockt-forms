@@ -4,44 +4,60 @@ const fs = require('fs');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { getConfig } = require('../utils/config');
 
-const config = getConfig();
-const isProduction = config.isProduction;
-const isAzureProduction = config.isAzureProduction;
-
 let storage;
 let blobServiceClient;
 let containerName;
+let upload;
+let configLoaded = false;
 
-if (isAzureProduction) {
-  blobServiceClient = BlobServiceClient.fromConnectionString(
-    config.AZURE_STORAGE_CONNECTION_STRING
-  );
-  containerName = config.AZURE_STORAGE_CONTAINER_NAME;
+function initializeStorage() {
+  if (configLoaded) return;
+  
+  const config = getConfig();
+  const isProduction = config.isProduction;
+  const isAzureProduction = config.isAzureProduction;
 
-  storage = multer.memoryStorage();
-} else {
-  storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadDir = 'uploads';
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+  if (isAzureProduction) {
+    blobServiceClient = BlobServiceClient.fromConnectionString(
+      config.AZURE_STORAGE_CONNECTION_STRING
+    );
+    containerName = config.AZURE_STORAGE_CONTAINER_NAME;
+
+    storage = multer.memoryStorage();
+  } else {
+    storage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadDir = 'uploads';
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
       }
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
+    });
+  }
+
+  upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }
   });
+  
+  configLoaded = true;
 }
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }
-});
+function getUpload() {
+  initializeStorage();
+  return upload;
+}
 
 const uploadFileToBlob = async (file) => {
-  if (!isAzureProduction) {
+  initializeStorage();
+  const config = getConfig();
+  
+  if (!config.isAzureProduction) {
     return file.filename;
   }
 
@@ -64,7 +80,10 @@ const uploadFileToBlob = async (file) => {
 };
 
 const uploadSignatureToBlob = async (base64Data, filename) => {
-  if (!isAzureProduction) {
+  initializeStorage();
+  const config = getConfig();
+  
+  if (!config.isAzureProduction) {
     const signaturePath = path.join('uploads', filename);
     
     if (!fs.existsSync('uploads')) {
@@ -94,8 +113,13 @@ const uploadSignatureToBlob = async (base64Data, filename) => {
 };
 
 module.exports = { 
-  upload, 
-  isAzureProduction,
+  get upload() {
+    return getUpload();
+  },
+  get isAzureProduction() {
+    initializeStorage();
+    return getConfig().isAzureProduction;
+  },
   uploadFileToBlob,
   uploadSignatureToBlob
 };
