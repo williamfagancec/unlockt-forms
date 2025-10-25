@@ -5,6 +5,39 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Input Validation Enhancement (2025-10-25)
+**Security improvement:** Fixed improper ID parsing in controllers that could allow NaN values to be passed to services, potentially causing database errors or unexpected behavior.
+
+**Problems Fixed:**
+- `parseInt()` used without radix parameter (could misinterpret octal/hex values)
+- No validation of parsed IDs before passing to services
+- Services could receive `NaN`, `undefined`, or negative values
+- Missing `error` response helper in imports
+
+**Changes Applied to All Controllers:**
+- Added `error` response helper to imports
+- Changed all `parseInt(id)` → `parseInt(id, 10)` for consistent decimal parsing
+- Added validation: `if (!Number.isInteger(id) || id <= 0)` before service calls
+- Return 400 error response for invalid IDs
+
+**Files Modified:**
+- `src/controllers/AdminDashboardController.js` - 2 methods fixed
+  - `getLetterOfAppointmentById` (line 29-34)
+  - `getQuoteSlipById` (line 50-55)
+- `src/controllers/ExportController.js` - 1 method fixed
+  - `exportLetterOfAppointmentPDF` (line 14-19)
+- `src/controllers/AdminUserController.js` - 4 methods fixed
+  - `update` (line 43-48)
+  - `toggleStatus` (line 62-67)
+  - `setStatus` (line 73-78)
+  - `unfreeze` (line 87-92)
+
+**Impact:** 
+- Prevents database errors from NaN/invalid ID values
+- Better error messages for users (400 Bad Request with "Invalid ID")
+- Consistent ID validation across all endpoints
+- Protection against edge cases (e.g., `parseInt("0x10")` returning 16 instead of error)
+
 ### Button State Management Fix (2025-10-25)
 **Bug fix:** Fixed conflicting button state management in forgot-password form that prevented the 10-second anti-spam delay from working correctly.
 

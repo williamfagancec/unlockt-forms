@@ -1,6 +1,6 @@
 const FormSubmissionService = require('../services/FormSubmissionService');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { success, notFound } = require('../utils/apiResponse');
+const { success, notFound, error } = require('../utils/apiResponse');
 
 class AdminDashboardController {
   constructor(logger) {
@@ -24,7 +24,13 @@ class AdminDashboardController {
   });
 
   getLetterOfAppointmentById = asyncHandler(async (req, res) => {
-    const submission = await this.formService.getLetterOfAppointmentById(parseInt(req.params.id));
+    const id = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(id) || id <= 0) {
+      return error(res, 'Invalid submission ID', 400);
+    }
+    
+    const submission = await this.formService.getLetterOfAppointmentById(id);
     
     if (!submission) {
       return notFound(res, 'Submission');
@@ -39,7 +45,13 @@ class AdminDashboardController {
   });
 
   getQuoteSlipById = asyncHandler(async (req, res) => {
-    const submission = await this.formService.getQuoteSlipById(parseInt(req.params.id));
+    const id = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(id) || id <= 0) {
+      return error(res, 'Invalid submission ID', 400);
+    }
+    
+    const submission = await this.formService.getQuoteSlipById(id);
     
     if (!submission) {
       return notFound(res, 'Submission');

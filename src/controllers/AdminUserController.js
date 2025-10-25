@@ -2,7 +2,7 @@ const { body } = require('express-validator');
 const UserManagementService = require('../services/UserManagementService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { sendResetEmail } = require('../services/PasswordResetService');
-const { success, created } = require('../utils/apiResponse');
+const { success, created, error } = require('../utils/apiResponse');
 
 class AdminUserController {
   constructor(logger) {
@@ -38,7 +38,12 @@ class AdminUserController {
   });
 
   update = asyncHandler(async (req, res) => {
-    const userId = parseInt(req.params.id);
+    const userId = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return error(res, 'Invalid user ID', 400);
+    }
+    
     const { firstName, lastName, email, role } = req.body;
 
     const updatedUser = await this.userService.updateUser(userId, {
@@ -52,13 +57,23 @@ class AdminUserController {
   });
 
   toggleStatus = asyncHandler(async (req, res) => {
-    const userId = parseInt(req.params.id);
+    const userId = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return error(res, 'Invalid user ID', 400);
+    }
+    
     const result = await this.userService.toggleUserStatus(userId);
     return success(res, result, 'User status toggled successfully');
   });
 
   setStatus = asyncHandler(async (req, res) => {
-    const userId = parseInt(req.params.id);
+    const userId = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return error(res, 'Invalid user ID', 400);
+    }
+    
     const { isActive, shouldUnfreeze } = req.body;
 
     const updatedUser = await this.userService.setUserStatus(userId, isActive, shouldUnfreeze);
@@ -67,7 +82,12 @@ class AdminUserController {
   });
 
   unfreeze = asyncHandler(async (req, res) => {
-    const userId = parseInt(req.params.id);
+    const userId = parseInt(req.params.id, 10);
+    
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return error(res, 'Invalid user ID', 400);
+    }
+    
     await this.userService.unfreezeUser(userId);
     return success(res, null, 'User account unfrozen successfully');
   });
