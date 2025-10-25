@@ -5,6 +5,28 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Security Updates
 
+### Button State Management Fix (2025-10-25)
+**Bug fix:** Fixed conflicting button state management in forgot-password form that prevented the 10-second anti-spam delay from working correctly.
+
+**Problem:**
+- Submit button was disabled with 10-second timeout after successful password reset request (lines 234-235)
+- `finally` block immediately re-enabled the button (lines 267-268)
+- This canceled the timeout, allowing rapid repeated submissions
+
+**Fix:**
+- Removed unconditional button re-enable from `finally` block
+- Moved button re-enable logic into `setTimeout` for success case (10s delay preserved)
+- Moved button re-enable logic into error/catch handlers for failure cases (immediate)
+
+**Behavior After Fix:**
+- **Success**: Button stays disabled for 10 seconds (anti-spam protection)
+- **Error/Failure**: Button re-enables immediately (user can retry)
+
+**Impact:** Client-side anti-spam protection now works correctly. Users cannot rapidly submit multiple password reset requests, complementing the server-side rate limiting (3 requests per hour).
+
+**Files Modified:**
+- `public/forgot-password.html` - Fixed button state management logic
+
 ### Unused Dependency Removal (2025-10-25)
 **Maintenance:** Removed unused `csurf` dependency from project to reduce attack surface and dependency bloat.
 
