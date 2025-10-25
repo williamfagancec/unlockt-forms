@@ -3,6 +3,32 @@
 ## Overview
 This project is a secure, comprehensive form collection system for Unlockt Insurance Solutions, facilitating the submission of "Letter of Appointment" and "Quote Slip & Declaration" forms. Its primary purpose is to provide a robust platform for collecting critical insurance data, enabling efficient processing and management by Unlockt staff. Key capabilities include public form submission, a secure admin portal for managing submissions, data export functionalities (XLSX, PDF), and a design optimized for Azure deployment with future integration into MS Fabric. The system aims to streamline the initial stages of the insurance application process and centralize client data.
 
+## Recent Updates
+
+### Code Quality: DRY Refactoring in ReferenceDataService (2025-10-25)
+**Improvement:** Eliminated code duplication by extracting seed data arrays to module-level constants.
+
+**Problem:**
+The `ReferenceDataService.js` file had duplicate seed arrays in both `initializeDropdowns()` and `forceReseedDropdowns()` methods, violating the DRY (Don't Repeat Yourself) principle. Any changes to seed data required updating in two places, increasing maintenance burden and risk of inconsistencies.
+
+**Solution:**
+Extracted all seed arrays to module-level constants at the top of the file:
+- `INSURERS` - 11 insurance companies
+- `ROOF_TYPES` - 6 roof construction types
+- `EXTERNAL_WALL_TYPES` - 11 wall material types
+- `FLOOR_TYPES` - 9 floor construction types
+- `BUILDING_TYPES` - 5 building classifications
+
+**Impact:**
+- ✅ **Single source of truth:** All seed data defined once, used everywhere
+- ✅ **Easier maintenance:** Changes to seed data only need to be made in one place
+- ✅ **Better readability:** Constants clearly document reference data at file top
+- ✅ **Reduced file size:** 178 lines → 136 lines (23% reduction)
+- ✅ **No functional changes:** Both methods use identical data as before
+
+**Files Modified:**
+- `src/services/ReferenceDataService.js` - Lines 3-58 (constants), 73, 80, 87, 94, 101, 124-128
+
 ## Recent Security Updates
 
 ### Host Header Injection Prevention (2025-10-25)
