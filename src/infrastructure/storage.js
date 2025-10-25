@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { getConfig } = require('../utils/config');
+const crypto = require('crypto');
 
 let storage;
 let blobServiceClient;
@@ -140,33 +141,59 @@ const sanitizeFilename = (filename) => {
   return sanitized;
 };
 
+const generateUniqueFilename = (baseFilename) => {
+  const ext = path.extname(baseFilename);
+  const nameWithoutExt = path.basename(baseFilename, ext);
+  const timestamp = Date.now();
+  const randomId = crypto.randomBytes(4).toString('hex');
+  return `${nameWithoutExt}-${timestamp}-${randomId}${ext}`;
+};
+
+const getContentTypeFromExtension = (filename) => {
+  const ext = path.extname(filename).toLowerCase();
+  const contentTypes = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.pdf': 'application/pdf',
+    '.txt': 'text/plain',
+    '.json': 'application/json',
+    '.xml': 'application/xml'
+  };
+  return contentTypes[ext] || 'application/octet-stream';
+};
+
 const uploadSignatureToBlob = async (base64Data, filename) => {
   initializeStorage();
   const config = getConfig();
   
+  const sanitizedFilename = sanitizeFilename(filename);
+  const uniqueFilename = generateUniqueFilename(sanitizedFilename);
+  const contentType = getContentTypeFromExtension(uniqueFilename);
+  
   if (!config.isAzureProduction) {
-    const sanitizedFilename = sanitizeFilename(filename);
-    const signaturePath = path.join('uploads', sanitizedFilename);
-    
-    if (!fs.existsSync('uploads')) {
-      fs.mkdirSync('uploads', { recursive: true });
+    const uploadDir = 'uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
     
+    const signaturePath = path.join(uploadDir, uniqueFilename);
     fs.writeFileSync(signaturePath, base64Data, 'base64');
-    return sanitizedFilename;
+    return uniqueFilename;
   }
 
-  const sanitizedFilename = sanitizeFilename(filename);
   const containerClient = blobServiceClient.getContainerClient(containerName);
   
   await containerClient.createIfNotExists();
 
-  const blockBlobClient = containerClient.getBlockBlobClient(sanitizedFilename);
+  const blockBlobClient = containerClient.getBlockBlobClient(uniqueFilename);
   const buffer = Buffer.from(base64Data, 'base64');
   
   await blockBlobClient.uploadData(buffer, {
     blobHTTPHeaders: {
-      blobContentType: 'image/png'
+      blobContentType: contentType
     }
   });
   
