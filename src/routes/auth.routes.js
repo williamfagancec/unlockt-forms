@@ -22,7 +22,7 @@ function createAuthRoutes(logger, cca) {
   router.get('/admin/validate-reset-token', passwordResetController.validateToken);
   router.post('/admin/reset-password', passwordResetLimiter, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
 
-  router.get('/verify-onboarding-token', onboardingController.verifyToken);
+  router.get('/verify-onboarding-token', OnboardingController.verifyTokenValidation, validate, onboardingController.verifyToken);
   router.post('/complete-onboarding', OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
 
   if (cca) {

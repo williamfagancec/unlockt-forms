@@ -5,6 +5,52 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Enhancement: Onboarding Token Validation Middleware (2025-10-25)
+**Enhancement:** Added input validation middleware for onboarding token verification endpoint.
+
+**Problem:**
+The GET `/api/verify-onboarding-token` endpoint accepted query parameters without validation, allowing empty, whitespace-only, or missing tokens to reach the service layer. This created unnecessary database queries for invalid inputs and inconsistent error responses.
+
+**Solution:**
+Added a static `verifyTokenValidation` method to `OnboardingController` using express-validator to validate `req.query.token`:
+
+```javascript
+// Added to OnboardingController.js (lines 11-16)
+static verifyTokenValidation = [
+  query('token')
+    .trim()
+    .notEmpty()
+    .withMessage('Token is required')
+];
+```
+
+Updated the route to apply validation middleware before the controller:
+```javascript
+// Updated auth.routes.js line 28
+router.get('/verify-onboarding-token', 
+  OnboardingController.verifyTokenValidation, 
+  validate, 
+  onboardingController.verifyToken
+);
+```
+
+**Validation Behavior:**
+- ❌ Missing token: `{"success":false,"error":"Validation failed","errors":[{"field":"token","message":"Token is required"}]}`
+- ❌ Empty token: Same validation error
+- ❌ Whitespace-only token: Trimmed then rejected as empty
+- ✅ Valid token format: Passes validation and reaches controller
+
+**Impact:**
+- ✅ **Consistent validation:** Matches pattern used in `completeOnboarding` POST endpoint
+- ✅ **Early rejection:** Invalid requests fail fast before database queries
+- ✅ **Input sanitization:** `.trim()` removes leading/trailing whitespace
+- ✅ **Clear error messages:** Clients receive structured validation feedback
+- ✅ **Security:** Prevents unnecessary service layer processing of malformed requests
+
+**Files Modified:**
+- `src/controllers/OnboardingController.js` - Lines 1 (added `query` import), 11-16 (validation method)
+- `src/routes/auth.routes.js` - Line 28 (added validation middleware to route)
+
 ### Enhancement: Service Unavailable Details in API Responses (2025-10-25)
 **Enhancement:** Extended `serviceUnavailable` helper to accept and forward optional details to clients.
 
