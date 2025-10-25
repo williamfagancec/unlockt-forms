@@ -5,6 +5,39 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: PDFKit Color Rendering in PDF Export (2025-10-25)
+**Fix:** Corrected invalid PDFKit color usage that would cause PDF misrendering.
+
+**Problem:**
+The PDF generation service used `fillColor('rgba(255, 255, 255, 0.9)')` which is not a valid color format for PDFKit. The library doesn't support rgba() strings for color values, which would cause:
+- Invalid color rendering or errors
+- Potential PDF generation failures
+- Opacity being ignored
+
+**Solution:**
+Split the rgba() value into separate fillColor() and fillOpacity() calls:
+```javascript
+// Before (Invalid)
+doc.fontSize(8)
+   .fillColor('rgba(255, 255, 255, 0.9)')
+   .text('ABN 75 684 319 784 | ASIC AR No. 1316562', 50, 90);
+
+// After (Valid)
+doc.fontSize(8)
+   .fillColor('white')
+   .fillOpacity(0.9)
+   .text('ABN 75 684 319 784 | ASIC AR No. 1316562', 50, 90);
+```
+
+**Impact:**
+- ✅ **Correct rendering:** Uses PDFKit's supported color + opacity API
+- ✅ **Opacity preserved:** 0.9 opacity properly applied to text
+- ✅ **No errors:** Eliminates potential PDF generation issues
+- ✅ **Standards compliant:** Follows PDFKit documentation best practices
+
+**Files Modified:**
+- `src/services/ExportService.js` - Lines 47-48
+
 ### Privacy Enhancement: PII Removal from Error Logs (2025-10-25)
 **Privacy fix:** Removed email addresses from error and download logs to prevent PII exposure in log aggregation systems.
 
