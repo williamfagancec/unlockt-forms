@@ -5,6 +5,60 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Security Fix: Centralized URL Construction in Password Reset Service (2025-10-25)
+**Security Fix:** Replaced unsafe URL construction in password reset email service with centralized config.
+
+**Problem:**
+The `sendResetEmail` function in `src/services/PasswordResetService.js` was building URLs by reading multiple environment variables directly instead of using the centralized `config.BASE_URL`. This created:
+- **Security risk:** Multiple sources of truth for the base URL
+- **Host header injection vulnerability:** If environment variables were misconfigured
+- **Code duplication:** Same URL logic existed in both controller and service
+- **Maintenance burden:** Changes to URL logic required updating multiple locations
+
+**Previous unsafe approach (lines 222-234):**
+```javascript
+let baseUrl;
+if (process.env.WEBSITE_HOSTNAME) {
+  baseUrl = `https://${process.env.WEBSITE_HOSTNAME}`;
+} else if (process.env.APP_BASE_URL) {
+  baseUrl = process.env.APP_BASE_URL;
+} else if (process.env.REPLIT_DOMAINS) {
+  baseUrl = `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`;
+} else if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+  baseUrl = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
+} else {
+  baseUrl = 'http://localhost:5000';
+}
+const resetUrl = `${baseUrl}/admin/reset-password?token=${token}`;
+```
+
+**Fixed approach (lines 225-227):**
+```javascript
+const { getConfig } = require('../utils/config');
+const config = getConfig();
+const resetUrl = `${config.BASE_URL}/admin/reset-password?token=${token}`;
+```
+
+**Security Benefits:**
+- ✅ **Single source of truth:** All URLs built from `config.BASE_URL`
+- ✅ **Validated configuration:** Config validates BASE_URL in production
+- ✅ **No host header usage:** Eliminates risk of host header injection
+- ✅ **Consistent URLs:** Controller and service use same base URL
+- ✅ **Trailing slash handling:** Config automatically handles trailing slashes
+- ✅ **Reduced code:** Eliminated 11 lines of duplicate logic
+
+**Impact:**
+- **Before:** Service built URLs from 5 different environment variables with fallbacks
+- **After:** Service uses single validated BASE_URL from centralized config
+- **Result:** Safer, simpler, more maintainable URL construction
+
+**Files Modified:**
+- `src/services/PasswordResetService.js` - Lines 225-227 (replaced unsafe URL construction)
+
+**Related Components:**
+- `src/utils/config.js` - Centralized BASE_URL validation and normalization
+- `src/controllers/PasswordResetController.js` - Already using config.BASE_URL correctly
+
 ### Enhancement: Onboarding Token Validation Middleware (2025-10-25)
 **Enhancement:** Added input validation middleware for onboarding token verification endpoint.
 
