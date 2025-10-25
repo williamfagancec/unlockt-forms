@@ -5,6 +5,41 @@ This project is a secure, comprehensive form collection system for Unlockt Insur
 
 ## Recent Updates
 
+### Bug Fix: Signature Upload Data Format (2025-10-25)
+**Fix:** Corrected signature upload to pass base64 data and filename separately instead of multer file object.
+
+**Problem:**
+The `uploadSignatureToBlob` function expects two parameters `(base64Data, filename)`, but it was being called with a multer file object in both form submission methods. This parameter mismatch would cause:
+- Signature uploads to fail or save incorrectly
+- Base64 encoding not being applied properly
+- Wrong data being written to storage (file object instead of base64 string)
+
+**Solution:**
+Extract the buffer as base64 and filename from the multer file object before calling the upload function:
+```javascript
+// Before (Wrong - passing entire file object)
+const signatureUrl = files?.signature?.[0] 
+  ? await uploadSignatureToBlob(files.signature[0]) 
+  : null;
+
+// After (Correct - passing base64 data and filename)
+const signatureUrl = files?.signature?.[0] 
+  ? await uploadSignatureToBlob(
+      files.signature[0].buffer.toString('base64'), 
+      files.signature[0].originalname
+    ) 
+  : null;
+```
+
+**Impact:**
+- ✅ **Correct uploads:** Signatures now properly encoded as base64 before storage
+- ✅ **Proper filenames:** Original filename preserved in storage
+- ✅ **API compliance:** Matches uploadSignatureToBlob function signature
+- ✅ **Both forms fixed:** Letter of Appointment and Quote Slip submissions
+
+**Files Modified:**
+- `src/services/FormSubmissionService.js` - Lines 36-38 (Letter of Appointment), Lines 89-91 (Quote Slip)
+
 ### Bug Fix: PDFKit Color Rendering in PDF Export (2025-10-25)
 **Fix:** Corrected invalid PDFKit color usage that would cause PDF misrendering.
 
