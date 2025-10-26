@@ -17,6 +17,9 @@ const csrfFunctions = doubleCsrf({
   getTokenFromRequest: (req) => {
     return req.headers['x-csrf-token'] || req.body?._csrf;
   },
+  getSessionIdentifier: (req) => {
+    return req.session?.id || req.sessionID || '';
+  },
 });
 
 const csrfTokenEndpoint = (req, res) => {
