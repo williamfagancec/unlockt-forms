@@ -222,9 +222,14 @@
       ];
       requiredCheckboxes.forEach(checkbox => {
         const input = document.querySelector(`input[name="${checkbox.name}"]`);
-        if (!input.checked) {
-          const checkboxLabel = input.closest('label');
-          checkboxLabel.classList.add('error');
+        if (input && !input.checked) {
+          let checkboxLabel = input.closest('label');
+          if (!checkboxLabel && input.id) {
+            checkboxLabel = document.querySelector(`label[for="${input.id}"]`);
+          }
+          if (checkboxLabel) {
+            checkboxLabel.classList.add('error');
+          }
           errors.push(checkbox.label);
           if (!firstError) firstError = input;
         }
