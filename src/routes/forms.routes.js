@@ -7,13 +7,18 @@ function createFormsRoutes(logger) {
   
   const formController = new FormSubmissionController(logger);
 
-  const uploadFields = upload.fields([
+  const letterOfAppointmentFields = upload.fields([
+    { name: 'commonSealFile', maxCount: 1 },
+    { name: 'letterHeadFile', maxCount: 1 }
+  ]);
+
+  const quoteSlipFields = upload.fields([
     { name: 'file', maxCount: 1 },
     { name: 'signature', maxCount: 1 }
   ]);
 
-  router.post('/submit-form', uploadFields, formController.submitLetterOfAppointment);
-  router.post('/submit-quote-slip', uploadFields, formController.submitQuoteSlip);
+  router.post('/submit-form', letterOfAppointmentFields, formController.submitLetterOfAppointment);
+  router.post('/submit-quote-slip', quoteSlipFields, formController.submitQuoteSlip);
 
   return router;
 }
