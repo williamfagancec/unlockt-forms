@@ -62,12 +62,22 @@
       document.getElementById('expiredState').style.display = 'block';
     }
 
-    const sharedValidatePassword = window.validatePassword;
+    const sharedValidatePassword = window.validatePassword || (() => {
+      console.warn('Password validator not loaded - validation disabled');
+      return false;
+    });
     
     function validatePasswordWrapper() {
       const passwordInput = document.getElementById('password');
       const confirmPasswordInput = document.getElementById('confirmPassword');
       const submitBtn = document.getElementById('submitBtn');
+      
+      if (!passwordInput || !confirmPasswordInput) {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+        }
+        return false;
+      }
       
       const isValid = sharedValidatePassword(passwordInput, confirmPasswordInput);
       
