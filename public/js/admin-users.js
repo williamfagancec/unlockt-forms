@@ -30,7 +30,8 @@ async function loadUsers() {
     const response = await fetch("/api/admin/users", {
       credentials: "include",
     });
-    const users = await response.json();
+    const responseData = await response.json();
+    const users = responseData.data || responseData;
 
     const tbody = document.getElementById("usersTable");
     if (users.length === 0) {
