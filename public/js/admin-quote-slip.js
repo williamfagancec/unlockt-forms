@@ -53,7 +53,9 @@
 
     function formatCurrency(value) {
       if (!value) return 'N/A';
-      return '$' + parseInt(value).toLocaleString();
+      return '$' + parseFloat(value).toLocaleString('en-US'), {
+        minim
+      }
     }
 
     function renderSubmissions() {
