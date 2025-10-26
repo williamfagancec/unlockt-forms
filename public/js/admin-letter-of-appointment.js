@@ -29,7 +29,8 @@
     async function loadSubmissions() {
       try {
         const response = await fetch('/api/submissions', { credentials: 'include' });
-        const submissions = await response.json();
+        const responseData = await response.json();
+        const submissions = responseData.data || responseData;
 
         allSubmissions = submissions;
         filteredSubmissions = submissions;
