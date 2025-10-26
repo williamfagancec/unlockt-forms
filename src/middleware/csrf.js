@@ -18,7 +18,7 @@ const csrfFunctions = doubleCsrf({
     return req.headers['x-csrf-token'] || req.body?._csrf;
   },
   getSessionIdentifier: (req) => {
-    return '';
+    return req.session?.adminUser?.id || req.session?.id || '';
   },
 });
 
