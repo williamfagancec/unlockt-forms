@@ -319,6 +319,13 @@ function showAlert(message, type) {
   }, 5000);
 }
 
+// Make modal functions globally accessible for onclick handlers
+window.openCreateModal = openCreateModal;
+window.closeCreateModal = closeCreateModal;
+window.closeEditModal = closeEditModal;
+window.createUser = createUser;
+window.updateUser = updateUser;
+
 async function init() {
   const authenticated = await checkAuth();
   if (authenticated) {
