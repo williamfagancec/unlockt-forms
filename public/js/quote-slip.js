@@ -58,6 +58,18 @@
     setupFileUpload('mostRecentValuationFile', 'mostRecentValuationUploadBox', 'mostRecentValuationPreview', 'mostRecentValuationFileName', 'mostRecentValuationFileSize', 'mostRecentValuationDelete');
     setupFileUpload('preventativeMaintenanceProgramFile', 'preventativeMaintenanceProgramUploadBox', 'preventativeMaintenanceProgramPreview', 'preventativeMaintenanceProgramFileName', 'preventativeMaintenanceProgramFileSize', 'preventativeMaintenanceProgramDelete');
     let signaturePad;
+    let csrfToken = null;
+
+    async function getCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token', { credentials: 'include' });
+        const data = await response.json();
+        return data.data.csrfToken;
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+        throw error;
+      }
+    }
     const canvas = document.getElementById('signatureCanvas');
     const placeholder = document.getElementById('signaturePlaceholder');
     const signatureError = document.getElementById('signatureError');
@@ -238,8 +250,15 @@
       submitButton.disabled = true;
       submitButton.textContent = 'Submitting...';
       try {
+        if (!csrfToken) {
+          csrfToken = await getCsrfToken();
+        }
+
         const response = await fetch('/api/submit-quote-slip', {
           method: 'POST',
+          headers: {
+            'x-csrf-token': csrfToken
+          },
           body: formData
         });
         const result = await response.json();

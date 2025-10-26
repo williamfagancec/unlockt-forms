@@ -1,6 +1,7 @@
 const express = require('express');
 const FormSubmissionController = require('../controllers/FormSubmissionController');
 const { upload } = require('../infrastructure/storage');
+const { csrfProtection } = require('../middleware/csrf');
 
 function createFormsRoutes(logger) {
   const router = express.Router();
@@ -25,8 +26,8 @@ function createFormsRoutes(logger) {
     { name: 'signatureData', maxCount: 1 }
   ]);
 
-  router.post('/submit-form', letterOfAppointmentFields, formController.submitLetterOfAppointment);
-  router.post('/submit-quote-slip', quoteSlipFields, formController.submitQuoteSlip);
+  router.post('/submit-form', csrfProtection, letterOfAppointmentFields, formController.submitLetterOfAppointment);
+  router.post('/submit-quote-slip', csrfProtection, quoteSlipFields, formController.submitQuoteSlip);
 
   return router;
 }
