@@ -12,7 +12,15 @@
     async function checkAuth() {
       try {
         const response = await fetch('/api/admin/check-session', { credentials: 'include' });
-        const data = await response.json();
+        
+        if (!response.ok) {
+          console.error('Session check failed with status:', response.status);
+          window.location.href = '/admin-login.html';
+          return false;
+        }
+        
+        const responseData = await response.json();
+        const data = responseData.data || {};
 
         if (!data.authenticated) {
           window.location.href = '/admin-login.html';
