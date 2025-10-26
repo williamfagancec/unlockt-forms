@@ -174,6 +174,13 @@ async function handleCheckSession(req, res) {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   
+  (req.log || logger).info({
+    hasSession: !!req.session,
+    hasAdminUser: !!(req.session && req.session.adminUser),
+    sessionID: req.sessionID,
+    cookies: req.headers.cookie
+  }, 'Check session called');
+  
   if (!req.session || !req.session.adminUser) {
     return success(res, { authenticated: false });
   }
