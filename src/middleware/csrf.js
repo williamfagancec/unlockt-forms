@@ -20,7 +20,7 @@ const csrfFunctions = doubleCsrf({
 });
 
 const csrfTokenEndpoint = (req, res) => {
-  const token = csrfFunctions.generateToken(req, res);
+  const token = csrfFunctions.generateCsrfToken(req, res);
   res.set('Cache-Control', 'no-store');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
@@ -32,6 +32,6 @@ const csrfTokenEndpoint = (req, res) => {
 
 module.exports = {
   csrfProtection: csrfFunctions.doubleCsrfProtection,
-  generateCsrfToken: csrfFunctions.generateToken,
+  generateCsrfToken: csrfFunctions.generateCsrfToken,
   csrfTokenEndpoint
 };
