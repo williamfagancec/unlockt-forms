@@ -16,7 +16,13 @@ function createAuthRoutes(logger, cca) {
 
   router.get('/csrf-token', csrfTokenEndpoint);
   router.post('/admin/login', authLimiter, csrfProtection, loginValidation, validate, handleLogin);
-  router.get('/admin/check-session', handleCheckSession);
+  router.get('/admin/check-session', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.removeHeader('ETag');
+    next();
+  }, handleCheckSession);
   router.post('/admin/logout', csrfProtection, handleLogout);
   router.post('/admin/change-password', adminAuthMiddleware, csrfProtection, changePasswordValidation, validate, handleChangePassword);
 
