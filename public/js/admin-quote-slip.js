@@ -54,9 +54,10 @@
     function formatCurrency(value) {
       if (!value) return 'N/A';
       return '$' + parseFloat(value).toLocaleString('en-US'), {
-        minim
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      };
       }
-    }
 
     function renderSubmissions() {
       const tbody = document.getElementById('submissionsTableBody');
