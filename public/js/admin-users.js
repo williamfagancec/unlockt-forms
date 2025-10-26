@@ -254,8 +254,8 @@ async function handleStatusChange(userId, newStatus, isFrozen) {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        status: newStatus,
-        unfreeze: isFrozen,
+        isActive: newStatus === "active",
+        shouldUnfreeze: isFrozen,
       }),
     });
 
