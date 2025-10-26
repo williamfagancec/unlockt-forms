@@ -13,8 +13,16 @@ function createFormsRoutes(logger) {
   ]);
 
   const quoteSlipFields = upload.fields([
-    { name: 'file', maxCount: 1 },
-    { name: 'signature', maxCount: 1 }
+    { name: 'cocFile', maxCount: 1 },
+    { name: 'claimsHistoryFile', maxCount: 1 },
+    { name: 'whsFile', maxCount: 1 },
+    { name: 'strataPlansFile', maxCount: 1 },
+    { name: 'asbestosReportFile', maxCount: 1 },
+    { name: 'commercialTenantListFile', maxCount: 1 },
+    { name: 'mostRecentValuationFile', maxCount: 1 },
+    { name: 'preventativeMaintenanceProgramFile', maxCount: 1 },
+    { name: 'defectsRelevantDocsFile', maxCount: 1 },
+    { name: 'signatureData', maxCount: 1 }
   ]);
 
   router.post('/submit-form', letterOfAppointmentFields, formController.submitLetterOfAppointment);

@@ -20,7 +20,14 @@ class PasswordResetController {
       return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
     }
 
-    const { token, user } = await createResetToken(email, req);
+    const resetResult = await createResetToken(email, req);
+    
+    if (!resetResult) {
+      (req.log || this.logger).warn({ email }, 'Password reset token creation failed - user not found or inactive');
+      return success(res, null, 'If an account with that email exists, a password reset link has been sent.');
+    }
+
+    const { token, user } = resetResult;
     
     await sendResetEmail(email, token, user);
 
