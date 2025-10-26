@@ -30,7 +30,9 @@ class FormSubmissionService {
       };
 
       const fileUrl = files?.file?.[0] ? await uploadFileToBlob(files.file[0]) : null;
-      const signatureUrl = files?.signature?.[0] ? await uploadSignatureToBlob(files.signature[0]) : null;
+      const signatureUrl = files?.signature?.[0] 
+        ? await uploadSignatureToBlob(files.signature[0].buffer.toString('base64'), files.signature[0].originalname) 
+        : null;
 
       if (fileUrl) submissionData.fileUrl = fileUrl;
       if (signatureUrl) submissionData.signatureUrl = signatureUrl;
@@ -81,7 +83,9 @@ class FormSubmissionService {
       };
 
       const fileUrl = files?.file?.[0] ? await uploadFileToBlob(files.file[0]) : null;
-      const signatureUrl = files?.signature?.[0] ? await uploadSignatureToBlob(files.signature[0]) : null;
+      const signatureUrl = files?.signature?.[0] 
+        ? await uploadSignatureToBlob(files.signature[0].buffer.toString('base64'), files.signature[0].originalname) 
+        : null;
 
       if (fileUrl) submissionData.fileUrl = fileUrl;
       if (signatureUrl) submissionData.signatureUrl = signatureUrl;

@@ -19,10 +19,14 @@ class FormSubmissionRepository {
   }
 
   async findById(id) {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const [submission] = await db
       .select()
       .from(formSubmissions)
-      .where(eq(formSubmissions.id, id));
+      .where(eq(formSubmissions.id, numericId));
     return submission;
   }
 

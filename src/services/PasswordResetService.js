@@ -219,19 +219,9 @@ async function sendResetEmail(email, token, user) {
     throw new Error('SendGrid not configured. Set SENDGRID_FROM_EMAIL environment variable.');
   }
   
-  let baseUrl;
-  if (process.env.WEBSITE_HOSTNAME) {
-    baseUrl = `https://${process.env.WEBSITE_HOSTNAME}`;
-  } else if (process.env.APP_BASE_URL) {
-    baseUrl = process.env.APP_BASE_URL;
-  } else if (process.env.REPLIT_DOMAINS) {
-    baseUrl = `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`;
-  } else if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-    baseUrl = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
-  } else {
-    baseUrl = 'http://localhost:5000';
-  }
-  const resetUrl = `${baseUrl}/admin/reset-password?token=${token}`;
+  const { getConfig } = require('../utils/config');
+  const config = getConfig();
+  const resetUrl = `${config.BASE_URL}/admin/reset-password?token=${token}`;
   const emailHtml = `
     <!DOCTYPE html>
     <html>

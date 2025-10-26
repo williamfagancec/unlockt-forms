@@ -5,6 +5,7 @@ const AzureAuthController = require('../controllers/AzureAuthController');
 const { loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword, adminAuthMiddleware } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
+const { csrfProtection } = require('../middleware/csrf');
 
 function createAuthRoutes(logger, cca) {
   const router = express.Router();
@@ -13,17 +14,17 @@ function createAuthRoutes(logger, cca) {
   const onboardingController = new OnboardingController(logger);
   const azureAuthController = new AzureAuthController(logger, cca);
 
-  router.post('/admin/login', authLimiter, loginValidation, validate, handleLogin);
+  router.post('/admin/login', authLimiter, csrfProtection, loginValidation, validate, handleLogin);
   router.get('/admin/check-session', handleCheckSession);
-  router.post('/admin/logout', handleLogout);
-  router.post('/admin/change-password', adminAuthMiddleware, changePasswordValidation, validate, handleChangePassword);
+  router.post('/admin/logout', csrfProtection, handleLogout);
+  router.post('/admin/change-password', adminAuthMiddleware, csrfProtection, changePasswordValidation, validate, handleChangePassword);
 
-  router.post('/admin/forgot-password', passwordResetLimiter, PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
-  router.get('/admin/validate-reset-token', passwordResetController.validateToken);
-  router.post('/admin/reset-password', passwordResetLimiter, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
+  router.post('/admin/forgot-password', passwordResetLimiter, csrfProtection, PasswordResetController.requestResetValidation, validate, passwordResetController.requestReset);
+  router.get('/admin/validate-reset-token', passwordResetLimiter, passwordResetController.validateToken);
+  router.post('/admin/reset-password', passwordResetLimiter, csrfProtection, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
 
-  router.get('/verify-onboarding-token', onboardingController.verifyToken);
-  router.post('/complete-onboarding', OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
+  router.get('/verify-onboarding-token', OnboardingController.verifyTokenValidation, validate, onboardingController.verifyToken);
+  router.post('/complete-onboarding', csrfProtection, OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
 
   if (cca) {
     router.get('/signin', azureAuthController.getSignInUrl);

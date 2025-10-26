@@ -13,7 +13,7 @@ const {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    secure: config.IS_PRODUCTION,
+    secure: config.isProduction,
   },
   size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
@@ -24,6 +24,9 @@ const {
 
 const csrfTokenEndpoint = (req, res) => {
   const token = generateToken(req, res);
+  res.set('Cache-Control', 'no-store');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   res.json({
     success: true,
     data: { csrfToken: token }

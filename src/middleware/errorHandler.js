@@ -67,6 +67,10 @@ function redactSensitiveData(obj) {
 
 function errorHandler(logger) {
   return (err, req, res, next) => {
+    if (res.headersSent) {
+      return next(err);
+    }
+    
     const log = req.log || logger;
     
     err.statusCode = err.statusCode || 500;
@@ -79,7 +83,7 @@ function errorHandler(logger) {
         method: req.method,
         url: req.url,
         body: redactSensitiveData(req.body),
-        user: req.session?.adminUser?.email,
+        userId: req.session?.adminUser?.id,
       }, 'Server error');
     } else {
       log.warn({
@@ -121,7 +125,11 @@ function asyncHandler(fn) {
   };
 }
 
-function notFoundHandler(req, res) {
+function notFoundHandler(req, res, next) {
+  if (res.headersSent) {
+    return next();
+  }
+  
   res.status(404).json({
     success: false,
     error: 'Endpoint not found',

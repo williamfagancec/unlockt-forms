@@ -1,6 +1,6 @@
 const { db } = require('../infrastructure/database');
 const { adminUsers } = require('../../shared/schema');
-const { eq, and, ne, gt } = require('drizzle-orm');
+const { eq, and, ne, gt, sql } = require('drizzle-orm');
 
 class AdminUserRepository {
   async findByEmail(email) {
@@ -12,10 +12,14 @@ class AdminUserRepository {
   }
 
   async findById(id) {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const [user] = await db
       .select()
       .from(adminUsers)
-      .where(eq(adminUsers.id, id));
+      .where(eq(adminUsers.id, numericId));
     return user;
   }
 
@@ -43,7 +47,6 @@ class AdminUserRepository {
         isActive: adminUsers.isActive,
         isFrozen: adminUsers.isFrozen,
         failedLoginAttempts: adminUsers.failedLoginAttempts,
-        lastFailedLogin: adminUsers.lastFailedLogin,
         createdAt: adminUsers.createdAt,
         updatedAt: adminUsers.updatedAt,
         onboardingTokenExpiry: adminUsers.onboardingTokenExpiry
@@ -86,8 +89,7 @@ class AdminUserRepository {
     await db
       .update(adminUsers)
       .set({
-        failedLoginAttempts: db.raw('failed_login_attempts + 1'),
-        lastFailedLogin: new Date(),
+        failedLoginAttempts: sql`failed_login_attempts + 1`,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
@@ -98,7 +100,6 @@ class AdminUserRepository {
       .update(adminUsers)
       .set({
         failedLoginAttempts: 0,
-        lastFailedLogin: null,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
@@ -120,7 +121,6 @@ class AdminUserRepository {
       .set({
         isFrozen: false,
         failedLoginAttempts: 0,
-        lastFailedLogin: null,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));
