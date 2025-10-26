@@ -326,8 +326,9 @@ window.closeEditModal = closeEditModal;
 window.createUser = createUser;
 window.updateUser = updateUser;
 
-// Add backdrop click handlers to close modals
-function setupModalBackdrops() {
+// Setup all modal-related event listeners
+function setupModalEventListeners() {
+  // Setup backdrop click handlers
   const createModal = document.getElementById('createModal');
   const editModal = document.getElementById('editModal');
   
@@ -346,13 +347,30 @@ function setupModalBackdrops() {
       }
     });
   }
+  
+  // Setup button click handlers
+  const createUserBtn = document.getElementById('createUserBtn');
+  const createCancelBtn = document.getElementById('createCancelBtn');
+  const editCancelBtn = document.getElementById('editCancelBtn');
+  
+  if (createUserBtn) {
+    createUserBtn.addEventListener('click', openCreateModal);
+  }
+  
+  if (createCancelBtn) {
+    createCancelBtn.addEventListener('click', closeCreateModal);
+  }
+  
+  if (editCancelBtn) {
+    editCancelBtn.addEventListener('click', closeEditModal);
+  }
 }
 
 async function init() {
   const authenticated = await checkAuth();
   if (authenticated) {
     await loadUsers();
-    setupModalBackdrops();
+    setupModalEventListeners();
   }
 }
 
