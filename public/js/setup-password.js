@@ -4,7 +4,17 @@
     async function getCsrfToken() {
       try {
         const response = await fetch('/api/csrf-token', { credentials: 'include' });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch CSRF token: ${response.status} ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data || !data.data || !data.data.csrfToken) {
+          throw new Error(`CSRF token field missing in response. Received: ${JSON.stringify(data)}`);
+        }
+        
         return data.data.csrfToken;
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
