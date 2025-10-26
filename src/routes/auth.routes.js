@@ -5,7 +5,7 @@ const AzureAuthController = require('../controllers/AzureAuthController');
 const { loginValidation, handleLogin, handleCheckSession, handleLogout, changePasswordValidation, handleChangePassword, adminAuthMiddleware } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { authLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
-const { csrfProtection } = require('../middleware/csrf');
+const { csrfProtection, csrfTokenEndpoint } = require('../middleware/csrf');
 
 function createAuthRoutes(logger, cca) {
   const router = express.Router();
@@ -14,6 +14,7 @@ function createAuthRoutes(logger, cca) {
   const onboardingController = new OnboardingController(logger);
   const azureAuthController = new AzureAuthController(logger, cca);
 
+  router.get('/csrf-token', csrfTokenEndpoint);
   router.post('/admin/login', authLimiter, csrfProtection, loginValidation, validate, handleLogin);
   router.get('/admin/check-session', handleCheckSession);
   router.post('/admin/logout', csrfProtection, handleLogout);

@@ -1,3 +1,14 @@
+    async function getCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token', { credentials: 'include' });
+        const data = await response.json();
+        return data.data.csrfToken;
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+        throw error;
+      }
+    }
+
     async function checkAuth() {
       try {
         const response = await fetch('/api/admin/check-session', { credentials: 'include' });
@@ -43,10 +54,13 @@
       submitButton.textContent = 'Changing Password...';
 
       try {
+        const csrfToken = await getCsrfToken();
+        
         const response = await fetch('/api/admin/change-password', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
           },
           credentials: 'include',
           body: JSON.stringify({ currentPassword, newPassword, confirmPassword })

@@ -1,5 +1,16 @@
     let resetToken = null;
 
+    async function getCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token', { credentials: 'include' });
+        const data = await response.json();
+        return data.data.csrfToken;
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+        throw error;
+      }
+    }
+
     async function validateToken() {
       const urlParams = new URLSearchParams(window.location.search);
       resetToken = urlParams.get('token');
@@ -59,10 +70,13 @@
       submitButton.textContent = 'Resetting Password...';
 
       try {
+        const csrfToken = await getCsrfToken();
+        
         const response = await fetch('/api/admin/reset-password', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
           },
           body: JSON.stringify({ 
             token: resetToken,

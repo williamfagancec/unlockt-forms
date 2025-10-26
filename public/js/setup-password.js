@@ -1,6 +1,17 @@
     let token = null;
     let userData = null;
 
+    async function getCsrfToken() {
+      try {
+        const response = await fetch('/api/csrf-token', { credentials: 'include' });
+        const data = await response.json();
+        return data.data.csrfToken;
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+        throw error;
+      }
+    }
+
     async function verifyToken() {
       const params = new URLSearchParams(window.location.search);
       token = params.get('token');
@@ -72,9 +83,14 @@
       submitBtn.textContent = 'Setting up your account...';
 
       try {
+        const csrfToken = await getCsrfToken();
+        
         const response = await fetch('/api/complete-onboarding', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
           credentials: 'include',
           body: JSON.stringify({ token, password })
         });
