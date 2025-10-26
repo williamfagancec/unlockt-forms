@@ -34,6 +34,7 @@
             'Content-Type': 'application/json',
             'x-csrf-token': csrfToken
           },
+          credentials: 'include',
           body: JSON.stringify({ email })
         });
 
