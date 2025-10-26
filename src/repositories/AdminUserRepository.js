@@ -89,7 +89,7 @@ class AdminUserRepository {
     await db
       .update(adminUsers)
       .set({
-        failedLoginAttempts: sql`failed_login_attempts + 1`,
+        failedLoginAttempts: sql`${adminUsers.failedLoginAttempts} + 1`,
         updatedAt: new Date()
       })
       .where(eq(adminUsers.id, id));

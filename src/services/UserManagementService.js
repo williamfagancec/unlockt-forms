@@ -1,7 +1,11 @@
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const adminUserRepository = require('../repositories/AdminUserRepository');
-const { ValidationError, ConflictError, NotFoundError } = require('../middleware/errorHandler');
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const adminUserRepository = require("../repositories/AdminUserRepository");
+const {
+  ValidationError,
+  ConflictError,
+  NotFoundError,
+} = require("../middleware/errorHandler");
 
 class UserManagementService {
   constructor(logger) {
@@ -16,13 +20,15 @@ class UserManagementService {
     const { firstName, lastName, email, role } = userData;
 
     const existingEmail = await adminUserRepository.findByEmail(email);
-    
+
     if (existingEmail) {
-      throw new ConflictError('Email already exists');
+      throw new ConflictError("Email already exists");
     }
 
-    const onboardingToken = crypto.randomBytes(32).toString('hex');
-    const onboardingTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const onboardingToken = crypto.randomBytes(32).toString("hex");
+    const onboardingTokenExpiry = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+    );
 
     const newUser = await adminUserRepository.create({
       firstName,
@@ -34,14 +40,14 @@ class UserManagementService {
       onboardingTokenExpiry,
       isActive: false,
       isFrozen: false,
-      failedLoginAttempts: 0
+      failedLoginAttempts: 0,
     });
 
-    this.logger.info({ userId: newUser.id }, 'New admin user created');
+    this.logger.info({ userId: newUser.id }, "New admin user created");
 
     return {
       user: newUser,
-      onboardingUrl: `/setup-password?token=${onboardingToken}`
+      onboardingUrl: `/setup-password?token=${onboardingToken}`,
     };
   }
 
@@ -50,13 +56,16 @@ class UserManagementService {
 
     const existingUser = await adminUserRepository.findById(userId);
     if (!existingUser) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     if (email && email !== existingUser.email) {
-      const emailExists = await adminUserRepository.emailExistsExcludingUser(email, userId);
+      const emailExists = await adminUserRepository.emailExistsExcludingUser(
+        email,
+        userId,
+      );
       if (emailExists) {
-        throw new ConflictError('Email already in use');
+        throw new ConflictError("Email already in use");
       }
     }
 
@@ -64,11 +73,11 @@ class UserManagementService {
       firstName,
       lastName,
       email,
-      role
+      role,
     });
 
     const updatedUser = await adminUserRepository.findById(userId);
-    this.logger.info({ userId }, 'Admin user updated');
+    this.logger.info({ userId }, "Admin user updated");
 
     return updatedUser;
   }
@@ -76,13 +85,13 @@ class UserManagementService {
   async toggleUserStatus(userId) {
     const user = await adminUserRepository.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     const newStatus = !user.isActive;
     await adminUserRepository.setActive(userId, newStatus);
 
-    this.logger.info({ userId, newStatus }, 'User status toggled');
+    this.logger.info({ userId, newStatus }, "User status toggled");
 
     return { isActive: newStatus };
   }
@@ -90,19 +99,19 @@ class UserManagementService {
   async setUserStatus(userId, isActive, shouldUnfreeze) {
     const user = await adminUserRepository.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
-    if (isActive && shouldUnfreeze && user.isFrozen) {
+    if (shouldUnfreeze && user.isFrozen) {
       await adminUserRepository.unfreezeAccount(userId);
-      await adminUserRepository.setActive(userId, true);
-      this.logger.info({ userId }, 'User account unfrozen and activated');
+      if (isActive) await adminUserRepository.setActive(userId, true);
+      this.logger.info({ userId }, "User account unfrozen and activated");
     } else if (isActive) {
       await adminUserRepository.setActive(userId, true);
-      this.logger.info({ userId }, 'User activated');
+      this.logger.info({ userId }, "User activated");
     } else {
       await adminUserRepository.setActive(userId, false);
-      this.logger.info({ userId }, 'User deactivated');
+      this.logger.info({ userId }, "User deactivated");
     }
 
     const updatedUser = await adminUserRepository.findById(userId);
@@ -112,28 +121,30 @@ class UserManagementService {
   async unfreezeUser(userId) {
     const user = await adminUserRepository.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     await adminUserRepository.unfreezeAccount(userId);
-    this.logger.info({ userId }, 'User account unfrozen');
+    this.logger.info({ userId }, "User account unfrozen");
 
     return { success: true };
   }
 
   async getStatistics(submissions) {
     const totalSubmissions = submissions.length;
-    const last30Days = submissions.filter(s => 
-      new Date(s.submittedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const now = Date.now();
+    const d30 = now - 30 * 24 * 60 * 60 * 1000;
+    const d7 = now - 7 * 24 * 60 * 60 * 1000;
+    const last30Days = submissions.filter(
+      (s) => new Date(s.submittedAt) > d30,
     ).length;
-    const last7Days = submissions.filter(s => 
-      new Date(s.submittedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const last7Days = submissions.filter(
+      (s) => new Date(s.submittedAt) > d7,
     ).length;
-
     return {
       totalSubmissions,
       last30Days,
-      last7Days
+      last7Days,
     };
   }
 }

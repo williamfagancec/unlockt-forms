@@ -97,7 +97,7 @@ function loadConfig() {
     // Remove trailing slash from BASE_URL for consistent URL joining
     config.BASE_URL = config.BASE_URL.replace(/\/$/, '');
 
-    return config;
+    return Object.freeze(config);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('Configuration validation failed:');

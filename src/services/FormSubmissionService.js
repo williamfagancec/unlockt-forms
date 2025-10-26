@@ -1,6 +1,9 @@
-const formSubmissionRepository = require('../repositories/FormSubmissionRepository');
-const quoteSlipRepository = require('../repositories/QuoteSlipRepository');
-const { uploadFileToBlob, uploadSignatureToBlob } = require('../infrastructure/storage');
+const formSubmissionRepository = require("../repositories/FormSubmissionRepository");
+const quoteSlipRepository = require("../repositories/QuoteSlipRepository");
+const {
+  uploadFileToBlob,
+  uploadSignatureToBlob,
+} = require("../infrastructure/storage");
 
 class FormSubmissionService {
   constructor(logger) {
@@ -20,18 +23,23 @@ class FormSubmissionService {
         contactPerson: formData.contactPerson,
         email: formData.email,
         phone: formData.phone,
-        questionCheckbox1: formData.questionCheckbox1 === 'true',
-        questionCheckbox2: formData.questionCheckbox2 === 'true',
-        questionCheckbox3: formData.questionCheckbox3 === 'true',
-        questionCheckbox4: formData.questionCheckbox4 === 'true',
-        questionCheckbox5: formData.questionCheckbox5 === 'true',
-        confirmationCheckbox: formData.confirmationCheckbox === 'true',
-        submissionDate: formData.submissionDate
+        questionCheckbox1: formData.questionCheckbox1 === "true",
+        questionCheckbox2: formData.questionCheckbox2 === "true",
+        questionCheckbox3: formData.questionCheckbox3 === "true",
+        questionCheckbox4: formData.questionCheckbox4 === "true",
+        questionCheckbox5: formData.questionCheckbox5 === "true",
+        confirmationCheckbox: formData.confirmationCheckbox === "true",
+        submissionDate: formData.submissionDate,
       };
 
-      const fileUrl = files?.file?.[0] ? await uploadFileToBlob(files.file[0]) : null;
-      const signatureUrl = files?.signature?.[0] 
-        ? await uploadSignatureToBlob(files.signature[0].buffer.toString('base64'), files.signature[0].originalname) 
+      const fileUrl = files?.file?.[0]
+        ? await uploadFileToBlob(files.file[0])
+        : null;
+      const signatureUrl = files?.signature?.[0]
+        ? await uploadSignatureToBlob(
+            files.signature[0].buffer.toString("base64"),
+            files.signature[0].originalname,
+          )
         : null;
 
       if (fileUrl) submissionData.fileUrl = fileUrl;
@@ -39,11 +47,17 @@ class FormSubmissionService {
 
       const submission = await formSubmissionRepository.create(submissionData);
 
-      this.logger.info({ submissionId: submission.id }, 'Letter of appointment submitted successfully');
+      this.logger.info(
+        { submissionId: submission.id },
+        "Letter of appointment submitted successfully",
+      );
 
       return submission;
     } catch (error) {
-      this.logger.error({ err: error }, 'Error submitting letter of appointment');
+      this.logger.error(
+        { err: error },
+        "Error submitting letter of appointment",
+      );
       throw error;
     }
   }
@@ -70,21 +84,27 @@ class FormSubmissionService {
         numberOfLots: parseInt(formData.numberOfLots),
         numberOfFloors: parseInt(formData.numberOfFloors),
         numberOfLifts: parseInt(formData.numberOfLifts),
-        acpEpsPresent: formData.acpEpsPresent === 'true',
+        acpEpsPresent: formData.acpEpsPresent === "true",
         currentStandardExcess: formData.currentStandardExcess,
-        requiredCoverFlood: formData.requiredCoverFlood === 'true',
-        discloseInsuranceDeclined: formData.discloseInsuranceDeclined === 'true',
-        discloseAsbestosPresent: formData.discloseAsbestosPresent === 'true',
-        discloseHeritageListed: formData.discloseHeritageListed === 'true',
+        requiredCoverFlood: formData.requiredCoverFlood === "true",
+        discloseInsuranceDeclined:
+          formData.discloseInsuranceDeclined === "true",
+        discloseAsbestosPresent: formData.discloseAsbestosPresent === "true",
+        discloseHeritageListed: formData.discloseHeritageListed === "true",
         defectsAffectingProperty: formData.defectsAffectingProperty,
-        afssCurrent: formData.afssCurrent === 'true',
+        afssCurrent: formData.afssCurrent === "true",
         declarationFullName: formData.declarationFullName,
-        declarationPosition: formData.declarationPosition
+        declarationPosition: formData.declarationPosition,
       };
 
-      const fileUrl = files?.file?.[0] ? await uploadFileToBlob(files.file[0]) : null;
-      const signatureUrl = files?.signature?.[0] 
-        ? await uploadSignatureToBlob(files.signature[0].buffer.toString('base64'), files.signature[0].originalname) 
+      const fileUrl = files?.file?.[0]
+        ? await uploadFileToBlob(files.file[0])
+        : null;
+      const signatureUrl = files?.signature?.[0]
+        ? await uploadSignatureToBlob(
+            files.signature[0].buffer.toString("base64"),
+            files.signature[0].originalname,
+          )
         : null;
 
       if (fileUrl) submissionData.fileUrl = fileUrl;
@@ -92,11 +112,14 @@ class FormSubmissionService {
 
       const submission = await quoteSlipRepository.create(submissionData);
 
-      this.logger.info({ submissionId: submission.id }, 'Quote slip submitted successfully');
+      this.logger.info(
+        { submissionId: submission.id },
+        "Quote slip submitted successfully",
+      );
 
       return submission;
     } catch (error) {
-      this.logger.error({ err: error }, 'Error submitting quote slip');
+      this.logger.error({ err: error }, "Error submitting quote slip");
       throw error;
     }
   }
@@ -129,24 +152,38 @@ class FormSubmissionService {
 
   _calculateStats(submissions) {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
     const total = submissions.length;
-    const today = submissions.filter(s => 
-      new Date(s.submittedAt) >= startOfToday
+    const today = submissions.filter(
+      (s) => new Date(s.submittedAt) >= startOfToday,
     ).length;
-    const thisWeek = submissions.filter(s => 
-      new Date(s.submittedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const sevenDaysAgo = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 7,
+    );
+    const thisWeek = submissions.filter(
+      (s) => new Date(s.submittedAt) >= sevenDaysAgo,
     ).length;
-    const thisMonth = submissions.filter(s => 
-      new Date(s.submittedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const thirtyDaysAgo = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 30,
+    );
+    const thisMonth = submissions.filter(
+      (s) => new Date(s.submittedAt) >= thirtyDaysAgo,
     ).length;
 
     return {
       total,
       today,
       thisWeek,
-      thisMonth
+      thisMonth,
     };
   }
 }
