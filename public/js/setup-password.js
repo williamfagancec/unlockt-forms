@@ -22,11 +22,9 @@
       }
 
       try {
-        const response = await fetch('/api/verify-onboarding-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ token })
+        const response = await fetch(`/api/verify-onboarding-token?token=${encodeURIComponent(token)}`, {
+          method: 'GET',
+          credentials: 'include'
         });
 
         const data = await response.json();
