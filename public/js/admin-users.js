@@ -326,10 +326,33 @@ window.closeEditModal = closeEditModal;
 window.createUser = createUser;
 window.updateUser = updateUser;
 
+// Add backdrop click handlers to close modals
+function setupModalBackdrops() {
+  const createModal = document.getElementById('createModal');
+  const editModal = document.getElementById('editModal');
+  
+  if (createModal) {
+    createModal.addEventListener('click', (e) => {
+      if (e.target === createModal) {
+        closeCreateModal();
+      }
+    });
+  }
+  
+  if (editModal) {
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) {
+        closeEditModal();
+      }
+    });
+  }
+}
+
 async function init() {
   const authenticated = await checkAuth();
   if (authenticated) {
     await loadUsers();
+    setupModalBackdrops();
   }
 }
 
