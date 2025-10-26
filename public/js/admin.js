@@ -81,8 +81,11 @@ async function loadStats() {
     ]);
 
    if (!loaResponse.ok || !qsResponse.ok) throw new Error("Stats API failed");
-    const loaStats = await loaResponse.json().catch(() => ({}));
-    const qsStats = await qsResponse.json().catch(() => ({}));
+    const loaResponseData = await loaResponse.json().catch(() => ({}));
+    const qsResponseData = await qsResponse.json().catch(() => ({}));
+    
+    const loaStats = loaResponseData.data || loaResponseData;
+    const qsStats = qsResponseData.data || qsResponseData;
 
     document.getElementById("loaTotal").textContent = loaStats.total || 0;
     document.getElementById("loaToday").textContent = loaStats.today || 0;
