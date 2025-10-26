@@ -106,7 +106,8 @@
         }, 2000);
       } catch (error) {
         console.error('Error setting up password:', error);
-        alertContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+        alertContainer.innerHTML = '<div class="alert alert-error"></div>';
+        alertContainer.querySelector('.alert-error').textContent = error.message;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Complete Setup';
       }
