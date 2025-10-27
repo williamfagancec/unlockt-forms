@@ -253,12 +253,21 @@ async function handleStatusChange(userId, newStatus, isFrozen) {
   }
 
   try {
+    const csrfToken = await getCsrfToken();
+    
+    if (!csrfToken) {
+      console.error("CSRF token is missing - aborting request");
+      showAlert("Security token missing. Please refresh the page and try again.", "error");
+      await loadUsers();
+      return;
+    }
+    
     // Use atomic endpoint that handles unfreeze + status change together
     const response = await fetch(`/api/admin/users/${userId}/set-status`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-csrf-token": getCsrfToken(),
+        "x-csrf-token": csrfToken,
       },
       credentials: "include",
       body: JSON.stringify({
@@ -293,11 +302,18 @@ async function unfreezeUser(userId) {
 
   try {
     const csrfToken = await getCsrfToken();
+    
+    if (!csrfToken) {
+      console.error("CSRF token is missing - aborting request");
+      showAlert("Security token missing. Please refresh the page and try again.", "error");
+      return;
+    }
+    
     const response = await fetch(`/api/admin/users/${userId}/unfreeze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-csrf-token": csrfToken(),
+        "x-csrf-token": csrfToken,
       },
       credentials: "include",
     });
