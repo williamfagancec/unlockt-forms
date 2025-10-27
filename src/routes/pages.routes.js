@@ -22,23 +22,23 @@ function createPagesRoutes() {
   });
 
   router.get('/admin/letter-of-appointment', adminPageMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public', 'admin-letter-of-appointment.html'));
+    res.sendFile(path.join(__dirname, '../../public/admin', 'letter-of-appointment.html'));
   });
 
   router.get('/admin/letter-of-appointment/:id', adminPageMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public', 'admin-letter-of-appointment-detail.html'));
+    res.sendFile(path.join(__dirname, '../../public/admin', 'letter-of-appointment-detail.html'));
   });
 
   router.get('/admin/quote-slip', adminPageMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public', 'admin-quote-slip.html'));
+    res.sendFile(path.join(__dirname, '../../public/admin', 'quote-slip.html'));
   });
 
   router.get('/admin/quote-slip/:id', adminPageMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public', 'admin-quote-slip-detail.html'));
+    res.sendFile(path.join(__dirname, '../../public/admin', 'quote-slip-detail.html'));
   });
 
   router.get('/admin/users', adminPageMiddleware, (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public', 'admin-users.html'));
+    res.sendFile(path.join(__dirname, '../../public/admin', 'users.html'));
   });
 
   router.get('/change-password', adminPageMiddleware, (req, res) => {
@@ -54,7 +54,7 @@ function createPagesRoutes() {
   });
 
   router.get('/admin/reset-password', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public', 'reset-password.html'));
+    res.sendFile(path.join(__dirname, '../../public/admin', 'reset-password.html'));
   });
 
   return router;

@@ -128,18 +128,25 @@ class FormSubmissionService {
   }
 
   _calculateStats(submissions) {
-    const totalSubmissions = submissions.length;
-    const last30Days = submissions.filter(s => 
-      new Date(s.submittedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const total = submissions.length;
+    const today = submissions.filter(s => 
+      new Date(s.submittedAt) >= startOfToday
     ).length;
-    const last7Days = submissions.filter(s => 
+    const thisWeek = submissions.filter(s => 
       new Date(s.submittedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    ).length;
+    const thisMonth = submissions.filter(s => 
+      new Date(s.submittedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     ).length;
 
     return {
-      totalSubmissions,
-      last30Days,
-      last7Days
+      total,
+      today,
+      thisWeek,
+      thisMonth
     };
   }
 }

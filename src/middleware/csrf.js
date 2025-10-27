@@ -3,10 +3,7 @@ const { getConfig } = require('../utils/config');
 
 const config = getConfig();
 
-const {
-  generateToken,
-  doubleCsrfProtection,
-} = doubleCsrf({
+const csrfFunctions = doubleCsrf({
   getSecret: () => config.SESSION_SECRET,
   cookieName: 'x-csrf-token',
   cookieOptions: {
@@ -20,10 +17,13 @@ const {
   getTokenFromRequest: (req) => {
     return req.headers['x-csrf-token'] || req.body?._csrf;
   },
+  getSessionIdentifier: (req) => {
+    return '';
+  },
 });
 
 const csrfTokenEndpoint = (req, res) => {
-  const token = generateToken(req, res);
+  const token = csrfFunctions.generateCsrfToken(req, res);
   res.set('Cache-Control', 'no-store');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
@@ -34,7 +34,7 @@ const csrfTokenEndpoint = (req, res) => {
 };
 
 module.exports = {
-  csrfProtection: doubleCsrfProtection,
-  generateCsrfToken: generateToken,
+  csrfProtection: csrfFunctions.doubleCsrfProtection,
+  generateCsrfToken: csrfFunctions.generateCsrfToken,
   csrfTokenEndpoint
 };

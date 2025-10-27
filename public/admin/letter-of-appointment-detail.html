@@ -4,200 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submission Detail - Unlockt</title>
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: #f5f5f5;
-      min-height: 100vh;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #5fa88a 0%, #4a8b6e 100%);
-      color: white;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .header h1 {
-      font-size: 24px;
-      font-weight: 600;
-    }
-
-    .header-logo {
-      height: 40px;
-      width: auto;
-    }
-
-    .header-nav {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-    }
-
-    .btn-back {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .btn-back:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .btn-export {
-      background: white;
-      color: #5fa88a;
-    }
-
-    .btn-export:hover {
-      background: #f0f0f0;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-
-    .submission-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 30px;
-      margin-bottom: 20px;
-    }
-
-    .submission-header {
-      border-bottom: 2px solid #f0f0f0;
-      padding-bottom: 20px;
-      margin-bottom: 30px;
-    }
-
-    .submission-id {
-      font-size: 14px;
-      color: #999;
-      margin-bottom: 10px;
-    }
-
-    .submission-date {
-      font-size: 14px;
-      color: #666;
-    }
-
-    .section-title {
-      font-size: 20px;
-      color: #333;
-      margin-bottom: 20px;
-      font-weight: 600;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #5fa88a;
-    }
-
-    .field-group {
-      margin-bottom: 25px;
-    }
-
-    .field-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 5px;
-      display: block;
-    }
-
-    .field-value {
-      font-size: 16px;
-      color: #333;
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
-    }
-
-    .checkbox-value {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .checkbox-yes {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .checkbox-no {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 60px 20px;
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #5fa88a;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .field-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .header-content {
-        flex-direction: column;
-        gap: 15px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/css/admin-letter-of-appointment-detail.css">
 </head>
 <body>
   <div class="header">
@@ -219,7 +26,7 @@
       <p>Loading submission...</p>
     </div>
 
-    <div id="submissionContent" style="display: none;">
+    <div id="submissionContent" class="hidden">
       <div class="submission-card">
         <div class="submission-header">
           <div class="submission-id">Submission ID: #<span id="submissionId"></span></div>
@@ -238,7 +45,7 @@
           </div>
         </div>
 
-        <h2 class="section-title" style="margin-top: 30px;">Address</h2>
+        <h2 class="section-title mt-30">Address</h2>
         <div class="field-grid">
           <div class="field-group">
             <span class="field-label">Street Address</span>
@@ -262,7 +69,7 @@
           </div>
         </div>
 
-        <h2 class="section-title" style="margin-top: 30px;">Contact Information</h2>
+        <h2 class="section-title mt-30">Contact Information</h2>
         <div class="field-grid">
           <div class="field-group">
             <span class="field-label">Contact Person</span>
@@ -278,7 +85,7 @@
           </div>
         </div>
 
-        <h2 class="section-title" style="margin-top: 30px;">Appointment Questions</h2>
+        <h2 class="section-title mt-30">Appointment Questions</h2>
         <div class="field-group">
           <span class="field-label">1. Representatives appointed to negotiate and arrange contracts of insurance</span>
           <div id="question1"></div>
@@ -300,7 +107,7 @@
           <div id="question5"></div>
         </div>
 
-        <h2 class="section-title" style="margin-top: 30px;">Attachments & Signature</h2>
+        <h2 class="section-title mt-30">Attachments & Signature</h2>
         <div class="field-grid">
           <div class="field-group">
             <span class="field-label">Common Seal</span>
@@ -311,7 +118,7 @@
             <div class="field-value" id="letterHeadFile"></div>
           </div>
         </div>
-        <div class="field-group" style="margin-top: 20px;">
+        <div class="field-group mt-20">
           <span class="field-label">Signature</span>
           <div id="signatureFile"></div>
         </div>
@@ -319,156 +126,6 @@
     </div>
   </div>
 
-  <script>
-    let submissionId = null;
-
-    async function checkAuth() {
-      try {
-        const response = await fetch('/api/admin/check-session', { credentials: 'include' });
-        const data = await response.json();
-
-        if (!data.authenticated) {
-          window.location.href = '/admin-login.html';
-          return false;
-        }
-        return true;
-      } catch (error) {
-        console.error('Auth check error:', error);
-        window.location.href = '/admin-login.html';
-        return false;
-      }
-    }
-
-    async function loadSubmission() {
-      const pathParts = window.location.pathname.split('/');
-      submissionId = pathParts[pathParts.length - 1];
-
-      try {
-        const response = await fetch(`/api/submissions/${submissionId}`, { credentials: 'include' });
-        if (!response.ok) {
-          throw new Error('Submission not found');
-        }
-
-        const submission = await response.json();
-        displaySubmission(submission);
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('submissionContent').style.display = 'block';
-      } catch (error) {
-        console.error('Error loading submission:', error);
-        alert('Failed to load submission');
-        window.location.href = '/admin/letter-of-appointment';
-      }
-    }
-
-    function displaySubmission(submission) {
-      document.getElementById('submissionId').textContent = submission.id;
-      
-      const date = new Date(submission.submittedAt);
-      document.getElementById('submissionDate').textContent = date.toLocaleString();
-
-      document.getElementById('strataManagement').textContent = submission.strataManagement || 'N/A';
-      document.getElementById('strataPlanNumber').textContent = submission.strataPlanNumber || 'N/A';
-      
-      document.getElementById('streetAddress').textContent = submission.streetAddress || 'N/A';
-      document.getElementById('streetAddressLine2').textContent = submission.streetAddressLine2 || 'N/A';
-      document.getElementById('city').textContent = submission.city || 'N/A';
-      document.getElementById('state').textContent = submission.state || 'N/A';
-      document.getElementById('postal').textContent = submission.postal || 'N/A';
-      
-      document.getElementById('contactPerson').textContent = submission.contactPerson || 'N/A';
-      document.getElementById('email').textContent = submission.email || 'N/A';
-      document.getElementById('phone').textContent = submission.phone || 'N/A';
-
-      document.getElementById('question1').innerHTML = getCheckboxHTML(submission.questionCheckbox1);
-      document.getElementById('question2').innerHTML = getCheckboxHTML(submission.questionCheckbox2);
-      document.getElementById('question3').innerHTML = getCheckboxHTML(submission.questionCheckbox3);
-      document.getElementById('question4').innerHTML = getCheckboxHTML(submission.questionCheckbox4);
-      document.getElementById('question5').innerHTML = getCheckboxHTML(submission.questionCheckbox5);
-
-      setFileElement('commonSealFile', submission.commonSealFile, 'Common Seal');
-      setFileElement('letterHeadFile', submission.letterHeadFile, 'Letter Head');
-      
-      setSignatureElement('signatureFile', submission.signatureFile);
-    }
-
-    function getCheckboxHTML(value) {
-      if (value) {
-        return '<span class="checkbox-value checkbox-yes">✓ Yes</span>';
-      } else {
-        return '<span class="checkbox-value checkbox-no">✗ No</span>';
-      }
-    }
-
-    function getFileURL(filename) {
-      if (!filename) return null;
-      if (filename.startsWith('http://') || filename.startsWith('https://')) {
-        return filename;
-      }
-      return `/uploads/${filename}`;
-    }
-
-    function setFileElement(elementId, filename, label) {
-      const element = document.getElementById(elementId);
-      element.textContent = '';
-      
-      if (filename) {
-        const url = getFileURL(filename);
-        const link = document.createElement('a');
-        link.href = url;
-        link.target = '_blank';
-        link.style.cssText = 'color: #5fa88a; text-decoration: none; font-weight: 500;';
-        link.textContent = `📎 View ${label}`;
-        element.appendChild(link);
-      } else {
-        const span = document.createElement('span');
-        span.style.color = '#999';
-        span.textContent = 'Not uploaded';
-        element.appendChild(span);
-      }
-    }
-
-    function setSignatureElement(elementId, signatureFile) {
-      const element = document.getElementById(elementId);
-      element.textContent = '';
-      
-      if (signatureFile) {
-        const signatureURL = getFileURL(signatureFile);
-        const container = document.createElement('div');
-        container.style.marginTop = '10px';
-        
-        const img = document.createElement('img');
-        img.src = signatureURL;
-        img.alt = 'Signature';
-        img.style.cssText = 'max-width: 400px; border: 1px solid #ddd; padding: 10px; background: white;';
-        
-        container.appendChild(img);
-        element.appendChild(container);
-      } else {
-        const span = document.createElement('span');
-        span.style.color = '#999';
-        span.textContent = 'No signature uploaded';
-        element.appendChild(span);
-      }
-    }
-
-    async function exportPDF() {
-      try {
-        window.location.href = `/api/export/pdf/${submissionId}`;
-      } catch (error) {
-        console.error('Export error:', error);
-        alert('Failed to export PDF');
-      }
-    }
-
-    async function init() {
-      const authenticated = await checkAuth();
-      if (authenticated) {
-        await loadSubmission();
-      }
-    }
-
-    init();
-  </script>
+  <script src="/js/admin-letter-of-appointment-detail.js"></script>
 </body>
 </html>
