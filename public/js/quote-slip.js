@@ -23,10 +23,23 @@ function setupFileUpload(
     if (file) {
       const maxBytes = 10 * 1024 * 1024; // 10 MB
       const allowed = ["application/pdf", "image/jpeg", "image/png"];
-      if (file.size > maxBytes) {
-        alert("File size exceeds the maximum limit of 10 MB");
+      
+      if (!allowed.includes(file.type)) {
+        alert("Unsupported file type. Please upload PDF, JPEG, or PNG files only.");
+        input.value = "";
+        preview.classList.remove("active");
+        box.style.display = "block";
         return;
       }
+      
+      if (file.size > maxBytes) {
+        alert("File size exceeds the maximum limit of 10 MB");
+        input.value = "";
+        preview.classList.remove("active");
+        box.style.display = "block";
+        return;
+      }
+      
       fileName.textContent = file.name;
       fileSize.textContent = formatFileSize(file.size);
       preview.classList.add("active");

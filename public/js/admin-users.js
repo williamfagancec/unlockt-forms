@@ -142,13 +142,16 @@ function closeEditModal() {
   document.getElementById("editUserForm").reset();
 }
 
-// Get CSRF token from meta tag or cookie
-function getCsrfToken() {
-  const token = document.querySelector('meta[name="csrf-token"]')?.content;
-  if (!token) {
-    console.error('CSRF token not found');
+// Get CSRF token from server (consistent with other modules)
+async function getCsrfToken() {
+  const response = await fetch("/api/csrf-token", { credentials: "include" });
+  if (!response.ok) {
+    throw new Error(`CSRF token fetch failed with status ${response.status} ${response.statusText}`);
   }
-  return token;
+  const data = await response.json().catch(() => ({}));
+  if (!data?.data?.csrfToken)
+    throw new Error("Invalid CSRF token response");
+    return data.data.csrfToken;
 }
 
 async function createUser(event) {
@@ -160,12 +163,13 @@ async function createUser(event) {
   const role = document.getElementById("role").value;
 
   try {
+    const csrfToken = await getCsrfToken();
     const response = await fetch("/api/admin/users", {
       method: "POST",
       credentials: "include",
       headers: {
         'Content-Type': 'application/json',
-        'x-csrf-token': getCsrfToken(),
+        'x-csrf-token': csrfToken,
       },
       body: JSON.stringify({ firstName, lastName, email, role }),
     });
@@ -198,12 +202,13 @@ async function updateUser(event) {
   const role = document.getElementById("editRole").value;
 
   try {
+    const csrfToken = await getCsrfToken();
     const response = await fetch(`/api/admin/users/${userId}`, {
       method: "PUT",
       credentials: "include",
       headers: {
         'Content-Type': 'application/json',
-        'x-csrf-token': getCsrfToken()
+        'x-csrf-token': csrfToken
       },
       body: JSON.stringify({ firstName, lastName, email, role }),
     });
@@ -287,11 +292,12 @@ async function unfreezeUser(userId) {
   }
 
   try {
+    const csrfToken = await getCsrfToken();
     const response = await fetch(`/api/admin/users/${userId}/unfreeze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-csrf-token": getCsrfToken(),
+        "x-csrf-token": csrfToken(),
       },
       credentials: "include",
     });

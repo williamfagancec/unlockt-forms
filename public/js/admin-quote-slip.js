@@ -57,13 +57,10 @@ async function loadSubmissions() {
 
 function formatCurrency(value) {
   if (!value) return "N/A";
-  return (
-    "$" + parseFloat(value).toLocaleString("en-US"),
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }
-  );
+  return "$" + parseFloat(value).toLocaleString("en-US",{
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function renderSubmissions() {
