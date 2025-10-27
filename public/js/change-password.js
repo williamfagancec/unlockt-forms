@@ -1,14 +1,3 @@
-    async function getCsrfToken() {
-      try {
-        const response = await fetch('/api/csrf-token', { credentials: 'include' });
-        const data = await response.json();
-        return data.data.csrfToken;
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-        throw error;
-      }
-    }
-
     async function checkAuth() {
       try {
         const response = await fetch('/api/admin/check-session', { credentials: 'include' });

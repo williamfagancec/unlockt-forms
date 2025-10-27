@@ -142,19 +142,6 @@ function closeEditModal() {
   document.getElementById("editUserForm").reset();
 }
 
-// Get CSRF token from server (consistent with other modules)
-async function getCsrfToken() {
-  const response = await fetch("/api/csrf-token", { credentials: "include" });
-  if (!response.ok) {
-    throw new Error(`CSRF token fetch failed with status ${response.status} ${response.statusText}`);
-  }
-  const data = await response.json().catch(() => ({}));
-  if (!data?.data?.csrfToken) {
-    throw new Error("Invalid CSRF token response");
-  }
-  return data.data.csrfToken;
-}
-
 async function createUser(event) {
   event.preventDefault();
 

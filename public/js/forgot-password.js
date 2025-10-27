@@ -4,20 +4,6 @@ const successMessage = document.getElementById("successMessage");
 const submitButton = document.getElementById("submitButton");
 const formContainer = document.getElementById("formContainer");
 
-async function getCsrfToken() {
-  try {
-    const response = await fetch("/api/csrf-token", { credentials: "include" });
-    const data = await response.json();
-    if (!data?.data?.csrfToken) {
-      throw new Error("Invalid CSRF token response");
-    }
-    return data.data.csrfToken;
-  } catch (error) {
-    console.error("Error fetching CSRF token:", error);
-    throw error;
-  }
-}
-
 forgotPasswordForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
