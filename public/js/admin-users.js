@@ -251,7 +251,10 @@ async function handleStatusChange(userId, newStatus, isFrozen) {
     // Use atomic endpoint that handles unfreeze + status change together
     const response = await fetch(`/api/admin/users/${userId}/set-status`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-csrf-token": getCsrfToken(),
+      },
       credentials: "include",
       body: JSON.stringify({
         isActive: newStatus === "active",
@@ -286,7 +289,10 @@ async function unfreezeUser(userId) {
   try {
     const response = await fetch(`/api/admin/users/${userId}/unfreeze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-csrf-token": getCsrfToken(),
+      },
       credentials: "include",
     });
 
