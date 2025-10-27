@@ -1,74 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Letter of Appointment Submissions - Unlockt</title>
-  <link rel="stylesheet" href="/css/admin-letter-of-appointment.css">
-</head>
-<body>
-  <div class="header">
-    <div class="header-content">
-      <div class="header-title">
-        <img src="/unlockt-logo.png" alt="Unlockt Logo" class="header-logo">
-        <h1>Letter of Appointment Submissions</h1>
-      </div>
-      <div class="header-nav">
-        <a href="/admin" class="btn btn-back">← Back to Dashboard</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="container">
-    <div class="page-header">
-      <h1 class="page-title">All Submissions</h1>
-      <button class="btn btn-export" onclick="exportSubmissions()">Export to Excel</button>
-    </div>
-
-    <div class="search-bar">
-      <input 
-        type="text" 
-        class="search-input" 
-        id="searchInput" 
-        placeholder="Search by strata management, strata plan, address, or city..."
-        onkeyup="filterSubmissions()"
-      >
-    </div>
-
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Loading submissions...</p>
-    </div>
-
-    <div id="submissionsContent" class="hidden">
-      <div class="submissions-table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Submitted</th>
-              <th>Strata Management</th>
-              <th>Strata Plan #</th>
-              <th>Address</th>
-              <th>City</th>
-              <th>State</th>
-            </tr>
-          </thead>
-          <tbody id="submissionsTableBody">
-          </tbody>
-        </table>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Letter of Appointment Submissions - Unlockt</title>
+    <link rel="stylesheet" href="/css/admin-letter-of-appointment.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <div class="header-title">
+          <img src="/unlockt-logo.png" alt="Unlockt Logo" class="header-logo" />
+          <h1>Letter of Appointment Submissions</h1>
+        </div>
+        <div class="header-nav">
+          <a href="/admin" class="btn btn-back">← Back to Dashboard</a>
+        </div>
       </div>
     </div>
 
-    <div class="empty-state" id="emptyState" class="hidden">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <h2>No Submissions Found</h2>
-      <p>There are no Letter of Appointment submissions yet.</p>
-    </div>
-  </div>
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">All Submissions</h1>
+        <button class="btn btn-export" onclick="exportSubmissions()">
+          Export to Excel
+        </button>
+      </div>
 
-  <script src="/js/admin-letter-of-appointment.js"></script>
-</body>
+      <div class="search-bar">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search by strata management, strata plan, address, or city..."
+          onkeyup="filterSubmissions()"
+        />
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Loading submissions...</p>
+      </div>
+
+      <div id="submissionsContent" class="hidden">
+        <div class="submissions-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Submitted</th>
+                <th>Strata Management</th>
+                <th>Strata Plan #</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody id="submissionsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="empty-state hidden" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <h2>No Submissions Found</h2>
+        <p>There are no Letter of Appointment submissions yet.</p>
+      </div>
+    </div>
+
+    <script src="/js/admin-letter-of-appointment.js"></script>
+  </body>
 </html>

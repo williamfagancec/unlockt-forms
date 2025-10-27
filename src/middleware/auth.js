@@ -170,9 +170,7 @@ async function handleLogin(req, res) {
 }
 
 async function handleCheckSession(req, res) {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
+// Headers applied in route wrapper; keep logic in a single place.
   
   if (!req.session || !req.session.adminUser) {
     return success(res, { authenticated: false });
@@ -185,8 +183,10 @@ async function handleCheckSession(req, res) {
       .where(eq(adminUsers.id, req.session.adminUser.id));
 
     if (!user || !user.isActive || user.isFrozen) {
-      req.session.destroy();
-      return success(res, { authenticated: false });
+      return req.session.destroy((err) =>{
+        if (err) (req.log || logger).error({ err }, 'Session destroy error');
+        return success(res, { authenticated: false });
+      })
     }
 
     return success(res, {

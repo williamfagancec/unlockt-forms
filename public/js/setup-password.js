@@ -4,7 +4,17 @@
     async function getCsrfToken() {
       try {
         const response = await fetch('/api/csrf-token', { credentials: 'include' });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch CSRF token: ${response.status} ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data || !data.data || !data.data.csrfToken) {
+          throw new Error(`CSRF token field missing in response. Received: ${JSON.stringify(data)}`);
+        }
+        
         return data.data.csrfToken;
       } catch (error) {
         console.error('Error fetching CSRF token:', error);
@@ -22,11 +32,9 @@
       }
 
       try {
-        const response = await fetch('/api/verify-onboarding-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ token })
+        const response = await fetch(`/api/verify-onboarding-token?token=${encodeURIComponent(token)}`, {
+          method: 'GET',
+          credentials: 'include'
         });
 
         const data = await response.json();
@@ -54,12 +62,22 @@
       document.getElementById('expiredState').style.display = 'block';
     }
 
-    const sharedValidatePassword = window.validatePassword;
+    const sharedValidatePassword = window.validatePassword || (() => {
+      console.warn('Password validator not loaded - validation disabled');
+      return false;
+    });
     
     function validatePasswordWrapper() {
       const passwordInput = document.getElementById('password');
       const confirmPasswordInput = document.getElementById('confirmPassword');
       const submitBtn = document.getElementById('submitBtn');
+      
+      if (!passwordInput || !confirmPasswordInput) {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+        }
+        return false;
+      }
       
       const isValid = sharedValidatePassword(passwordInput, confirmPasswordInput);
       
@@ -108,7 +126,8 @@
         }, 2000);
       } catch (error) {
         console.error('Error setting up password:', error);
-        alertContainer.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+        alertContainer.innerHTML = '<div class="alert alert-error"></div>';
+        alertContainer.querySelector('.alert-error').textContent = error.message;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Complete Setup';
       }

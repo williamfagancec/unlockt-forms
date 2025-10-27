@@ -266,10 +266,9 @@ async function gracefulShutdown(signal, exitCode = 1) {
     });
 
     setTimeout(() => {
-      logger.error({ exitCode }, 'Forced shutdown after timeout');
-      process.exit(exitCode);
-    }, 30000);
-  } else {
+      logger.error({exitCode: 1 }, 'Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);  } else {
     process.exit(exitCode);
   }
 }

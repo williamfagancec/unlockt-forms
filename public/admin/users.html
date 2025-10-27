@@ -22,7 +22,7 @@
   <div class="container">
     <div class="page-header">
       <h1 class="page-title">Admin Users</h1>
-      <button class="btn btn-primary" onclick="openCreateModal()">+ Create New User</button>
+      <button class="btn btn-primary" id="createUserBtn">+ Create New User</button>
     </div>
 
     <div id="alertContainer"></div>
@@ -81,7 +81,7 @@
 
         <div class="modal-buttons">
           <button type="submit" class="btn btn-primary">Create User</button>
-          <button type="button" class="btn" onclick="closeCreateModal()">Cancel</button>
+          <button type="button" class="btn" id="createCancelBtn">Cancel</button>
         </div>
       </form>
     </div>
@@ -122,7 +122,7 @@
 
         <div class="modal-buttons">
           <button type="submit" class="btn btn-primary">Update User</button>
-          <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+          <button type="button" class="btn" id="editCancelBtn">Cancel</button>
         </div>
       </form>
     </div>
