@@ -16,8 +16,21 @@ class OnboardingController {
       .withMessage('Token is required')
   ];
 
+  static verifyTokenPostValidation = [
+    body('token')
+      .trim()
+      .notEmpty()
+      .withMessage('Token is required')
+  ];
+
   verifyToken = asyncHandler(async (req, res) => {
     const { token } = req.query;
+    const result = await this.onboardingService.verifyOnboardingToken(token);
+    return success(res, result);
+  });
+
+  verifyTokenPost = asyncHandler(async (req, res) => {
+    const { token } = req.body;
     const result = await this.onboardingService.verifyOnboardingToken(token);
     return success(res, result);
   });

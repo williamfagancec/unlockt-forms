@@ -31,6 +31,7 @@ function createAuthRoutes(logger, cca) {
   router.post('/admin/reset-password', passwordResetLimiter, csrfProtection, PasswordResetController.resetPasswordValidation, validate, passwordResetController.resetPassword);
 
   router.get('/verify-onboarding-token', OnboardingController.verifyTokenValidation, validate, onboardingController.verifyToken);
+  router.post('/verify-onboarding-token', csrfProtection, OnboardingController.verifyTokenPostValidation, validate, onboardingController.verifyTokenPost);
   router.post('/complete-onboarding', csrfProtection, OnboardingController.completeOnboardingValidation, validate, onboardingController.completeOnboarding);
 
   if (cca) {
