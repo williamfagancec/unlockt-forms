@@ -80,7 +80,10 @@ async function loadStats() {
       fetch("/api/admin/quote-slip/stats", { credentials: "include" }),
     ]);
 
-   if (!loaResponse.ok || !qsResponse.ok) throw new Error("Stats API failed");
+   if (!loaResponse.ok || !qsResponse.ok) {
+     console.error('Stats API failed:', loaResponse.status, qsResponse.status);
+     throw new Error("Stats API failed");
+   }
     const loaResponseData = await loaResponse.json().catch(() => ({}));
     const qsResponseData = await qsResponse.json().catch(() => ({}));
     
