@@ -149,9 +149,10 @@ async function getCsrfToken() {
     throw new Error(`CSRF token fetch failed with status ${response.status} ${response.statusText}`);
   }
   const data = await response.json().catch(() => ({}));
-  if (!data?.data?.csrfToken)
+  if (!data?.data?.csrfToken) {
     throw new Error("Invalid CSRF token response");
-    return data.data.csrfToken;
+  }
+  return data.data.csrfToken;
 }
 
 async function createUser(event) {
