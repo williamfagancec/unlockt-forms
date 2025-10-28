@@ -23,10 +23,23 @@ function setupFileUpload(
     if (file) {
       const maxBytes = 10 * 1024 * 1024; // 10 MB
       const allowed = ["application/pdf", "image/jpeg", "image/png"];
-      if (file.size > maxBytes) {
-        alert("File size exceeds the maximum limit of 10 MB");
+      
+      if (!allowed.includes(file.type)) {
+        alert("Unsupported file type. Please upload PDF, JPEG, or PNG files only.");
+        input.value = "";
+        preview.classList.remove("active");
+        box.style.display = "block";
         return;
       }
+      
+      if (file.size > maxBytes) {
+        alert("File size exceeds the maximum limit of 10 MB");
+        input.value = "";
+        preview.classList.remove("active");
+        box.style.display = "block";
+        return;
+      }
+      
       fileName.textContent = file.name;
       fileSize.textContent = formatFileSize(file.size);
       preview.classList.add("active");
@@ -136,18 +149,7 @@ setupFileUpload(
   "preventativeMaintenanceProgramDelete",
 );
 let signaturePad;
-let csrfToken = null;
 
-async function getCsrfToken() {
-  try {
-    const response = await fetch("/api/csrf-token", { credentials: "include" });
-    const data = await response.json();
-    return data.data.csrfToken;
-  } catch (error) {
-    console.error("Error fetching CSRF token:", error);
-    throw error;
-  }
-}
 const canvas = document.getElementById("signatureCanvas");
 const placeholder = document.getElementById("signaturePlaceholder");
 const signatureError = document.getElementById("signatureError");
@@ -347,9 +349,7 @@ document
     submitButton.disabled = true;
     submitButton.textContent = "Submitting...";
     try {
-      if (!csrfToken) {
-        csrfToken = await getCsrfToken();
-      }
+      const csrfToken = await getCsrfToken();
 
       const response = await fetch("/api/submit-quote-slip", {
         method: "POST",

@@ -183,10 +183,13 @@ async function handleCheckSession(req, res) {
       .where(eq(adminUsers.id, req.session.adminUser.id));
 
     if (!user || !user.isActive || user.isFrozen) {
-      return req.session.destroy((err) =>{
-        if (err) (req.log || logger).error({ err }, 'Session destroy error');
-        return success(res, { authenticated: false });
-      })
+      await new Promise((resolve) => {
+        req.session.destroy((err) => {
+          if (err) (req.log || logger).error({ err }, 'Session destroy error');
+          resolve();
+        });
+      });
+      return success(res, { authenticated: false });
     }
 
     return success(res, {
@@ -205,14 +208,17 @@ async function handleCheckSession(req, res) {
   }
 }
 
-function handleLogout(req, res) {
-  req.session.destroy((err) => {
-    if (err) {
-      (req.log || logger).error({ err }, 'Logout error');
-      return error(res, "Logout failed", 500);
-    }
-    return success(res, null, 'Logged out successfully');
+async function handleLogout(req, res) {
+  await new Promise((resolve) => {
+    req.session.destroy((err) => {
+      if (err) {
+        (req.log || logger).error({ err }, 'Logout error');
+      }
+      resolve();
+    });
   });
+  
+  return success(res, null, 'Logged out successfully');
 }
 
 const changePasswordValidation = [

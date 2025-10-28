@@ -2,19 +2,6 @@ const loginForm = document.getElementById("loginForm");
 const errorMessage = document.getElementById("errorMessage");
 const loginButton = document.getElementById("loginButton");
 
-async function getCsrfToken() {
-  try {
-    const response = await fetch("/api/csrf-token", {
-      credentials: "include",
-    });
-    const data = await response.json();
-    return data?.data?.csrfToken;
-  } catch (error) {
-    console.error("Error fetching CSRF token:", error);
-    throw error;
-  }
-}
-
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 

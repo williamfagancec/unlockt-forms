@@ -1,16 +1,5 @@
     let resetToken = null;
 
-    async function getCsrfToken() {
-      try {
-        const response = await fetch('/api/csrf-token', { credentials: 'include' });
-        const data = await response.json();
-        return data.data.csrfToken;
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-        throw error;
-      }
-    }
-
     async function validateToken() {
       const urlParams = new URLSearchParams(window.location.search);
       resetToken = urlParams.get('token');

@@ -1,27 +1,6 @@
     let token = null;
     let userData = null;
 
-    async function getCsrfToken() {
-      try {
-        const response = await fetch('/api/csrf-token', { credentials: 'include' });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch CSRF token: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data || !data.data || !data.data.csrfToken) {
-          throw new Error(`CSRF token field missing in response. Received: ${JSON.stringify(data)}`);
-        }
-        
-        return data.data.csrfToken;
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-        throw error;
-      }
-    }
-
     async function verifyToken() {
       const params = new URLSearchParams(window.location.search);
       token = params.get('token');
@@ -32,19 +11,26 @@
       }
 
       try {
-        const response = await fetch(`/api/verify-onboarding-token?token=${encodeURIComponent(token)}`, {
-          method: 'GET',
-          credentials: 'include'
+        const csrfToken = await getCsrfToken();
+        
+        const response = await fetch('/api/verify-onboarding-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          credentials: 'include',
+          body: JSON.stringify({ token })
         });
-
-        const data = await response.json();
 
         if (!response.ok) {
           showExpiredState();
           return;
         }
 
-        userData = data.user;
+        const data = await response.json();
+
+        userData = data.user || data.data?.user;
         document.getElementById('displayName').textContent = `${userData.firstName} ${userData.lastName}`;
         document.getElementById('displayEmail').textContent = userData.email;
         document.getElementById('displayRole').textContent = userData.role;

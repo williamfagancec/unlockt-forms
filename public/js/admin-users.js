@@ -142,15 +142,6 @@ function closeEditModal() {
   document.getElementById("editUserForm").reset();
 }
 
-// Get CSRF token from meta tag or cookie
-function getCsrfToken() {
-  const token = document.querySelector('meta[name="csrf-token"]')?.content;
-  if (!token) {
-    console.error('CSRF token not found');
-  }
-  return token;
-}
-
 async function createUser(event) {
   event.preventDefault();
 
@@ -160,12 +151,13 @@ async function createUser(event) {
   const role = document.getElementById("role").value;
 
   try {
+    const csrfToken = await getCsrfToken();
     const response = await fetch("/api/admin/users", {
       method: "POST",
       credentials: "include",
       headers: {
         'Content-Type': 'application/json',
-        'x-csrf-token': getCsrfToken(),
+        'x-csrf-token': csrfToken,
       },
       body: JSON.stringify({ firstName, lastName, email, role }),
     });
@@ -198,12 +190,13 @@ async function updateUser(event) {
   const role = document.getElementById("editRole").value;
 
   try {
+    const csrfToken = await getCsrfToken();
     const response = await fetch(`/api/admin/users/${userId}`, {
       method: "PUT",
       credentials: "include",
       headers: {
         'Content-Type': 'application/json',
-        'x-csrf-token': getCsrfToken()
+        'x-csrf-token': csrfToken
       },
       body: JSON.stringify({ firstName, lastName, email, role }),
     });
@@ -248,10 +241,22 @@ async function handleStatusChange(userId, newStatus, isFrozen) {
   }
 
   try {
+    const csrfToken = await getCsrfToken();
+    
+    if (!csrfToken) {
+      console.error("CSRF token is missing - aborting request");
+      showAlert("Security token missing. Please refresh the page and try again.", "error");
+      await loadUsers();
+      return;
+    }
+    
     // Use atomic endpoint that handles unfreeze + status change together
     const response = await fetch(`/api/admin/users/${userId}/set-status`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
+      },
       credentials: "include",
       body: JSON.stringify({
         isActive: newStatus === "active",
@@ -284,9 +289,20 @@ async function unfreezeUser(userId) {
   }
 
   try {
+    const csrfToken = await getCsrfToken();
+    
+    if (!csrfToken) {
+      console.error("CSRF token is missing - aborting request");
+      showAlert("Security token missing. Please refresh the page and try again.", "error");
+      return;
+    }
+    
     const response = await fetch(`/api/admin/users/${userId}/unfreeze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
+      },
       credentials: "include",
     });
 
